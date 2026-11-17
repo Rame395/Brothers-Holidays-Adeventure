@@ -3,18 +3,12 @@
 import Link from "next/link";
 import { useState, useRef } from "react";
 import { TREKS } from "@/data/treks";
-import ExpeditionLoader from "@/components/ExpeditionLoader";
 import AnimatedStat from "@/components/AnimatedStat";
 import MirrorHighRoutes from "@/components/MirrorHighRoutes";
+import { Hero } from "@/components/hero/Hero";
 
 export default function HomePage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  // Video State
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -54,197 +48,8 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col w-full relative">
-      {/* High-Altitude Expedition Telemetry Preloader */}
-      <ExpeditionLoader />
-
-      {/* SECTION 1: HERO */}
-      <section className="relative w-full -mt-20 overflow-hidden bg-[#071317] min-h-[940px] flex flex-col justify-end">
-        {/* Layer 0: Pure Obsidian Base */}
-        <div className="absolute inset-0 bg-[#071317]"></div>
-
-        {/* Layer 1: Background Video (snaptik_7540176750408518919_hd) - 100% Crisp, Pure HD */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <video
-            ref={videoRef}
-            autoPlay
-            loop
-            muted={isMuted}
-            playsInline
-            preload="auto"
-            className="w-full h-full object-cover object-center transition-opacity duration-500 opacity-100"
-            style={{
-              filter: "contrast(1.08) brightness(0.96) saturate(1.15)",
-              transform: "translate3d(0, 0, 0)",
-            }}
-            onLoadedData={() => setVideoLoaded(true)}
-          >
-            <source src="/videos/snaptik_7540176750408518919_hd.mp4" type="video/mp4" />
-            <source src="/videos/hero-bg.mp4" type="video/mp4" />
-          </video>
-        </div>
-
-        {/* Layer 2: Poster Image ONLY shown while video is buffering */}
-        {!videoLoaded && (
-          <div
-            className="absolute inset-0 bg-cover bg-center pointer-events-none transition-opacity duration-700"
-            style={{
-              backgroundImage:
-                "url('https://lh3.googleusercontent.com/aida-public/AB6AXuC-N0aHXq8AyAOb85qAl_jyU4QkBRVSpEkxvIdibwtJZPn46uA6ECdOL-5NWGZhN6MNxyMBw10cnkck5EAdawEuxTV5pAfDYWbBFoQFSo0AIDEFi0Pa7RNSG2vIVVWSKUU63e4ghvupJz2kZi2xzPDGpw8Y5Ye-7FFfzRutfoPaabIHaYVeaiX5bEPHllL4cIcVnUMbAZD66h8RmCQ9TQLHUD-iOmGdhgao3yKUZSU')",
-            }}
-          ></div>
-        )}
-
-        {/* Clean, Non-Intrusive Editorial Scrim for Crystal-Clear Text Readability (No Fog, No Lights, No Blurs) */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#071317] via-[#071317]/40 to-black/25 pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-[#071317]/85 via-[#071317]/35 to-transparent pointer-events-none max-w-4xl"></div>
-
-        {/* Hero Content - Lowered to the bottom with smaller, delicate typography so panoramic mountain video remains unobstructed */}
-        <div className="relative max-w-7xl mx-auto w-full px-6 lg:px-margin pt-72 sm:pt-80 lg:pt-96 pb-6 sm:pb-8 flex flex-col justify-end min-h-[860px]">
-          {/* Live Altitude Rail Badge - Compact & Translucent */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md shadow-sm w-fit mb-3 anim-logo-reveal border border-white/20 text-white/85 text-[11px] font-mono">
-            <span className="flex h-2 w-2 rounded-full bg-[#006b78] animate-ping"></span>
-            <span className="material-symbols-outlined text-[14px] text-[#89d6e2]">
-              altitude
-            </span>
-            <span className="tracking-widest uppercase text-white/80">
-              Kathmandu · 1,400 m
-            </span>
-            <span className="text-[#c88a3e] font-serif">→</span>
-            <span className="tracking-widest uppercase text-[#89d6e2] font-semibold">
-              Thorong La · 5,416 m
-            </span>
-            <span className="text-[9px] uppercase bg-white/10 text-[#89d6e2] px-1.5 py-0.5 rounded-full ml-0.5">
-              LIVE
-            </span>
-          </div>
-
-          {/* Main Editorial Headline - Scaled Down & Elegant */}
-          <div className="max-w-2xl space-y-2.5 anim-hero-text">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-light text-white/90 leading-tight tracking-tight drop-shadow-md">
-              High summer pastures <br className="hidden sm:inline" />
-              <span className="italic text-[#89d6e2]/95 font-normal">
-                and silent ridges.
-              </span>
-            </h1>
-            <p className="text-xs sm:text-sm text-white/65 max-w-lg leading-relaxed font-light drop-shadow-sm">
-              An alpine editorial journal of routes across Nepal, mapped with
-              absolute elevation, topographic precision, and zero commercial
-              filler.
-            </p>
-          </div>
-
-          {/* Hero Actions & Telemetry Strip - Compact */}
-          <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-5 pt-3">
-            <div className="flex items-center gap-3">
-              <Link
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#006b78] hover:bg-[#00515b] text-white text-xs font-mono uppercase tracking-wider transition-all shadow-md group cursor-pointer"
-                href="/treks"
-              >
-                <span>Find your trail</span>
-                <span className="material-symbols-outlined text-[15px] transition-transform group-hover:translate-x-1">
-                  arrow_forward
-                </span>
-              </Link>
-              <a
-                className="inline-flex items-center justify-center px-4 py-2.5 rounded-full bg-black/40 backdrop-blur-md text-white/80 text-xs font-mono uppercase tracking-wider hover:bg-black/60 transition-colors shadow-sm border border-white/20"
-                href="#who-we-are"
-              >
-                Field Manifest
-              </a>
-            </div>
-
-            {/* Telemetry Indicators - Compact */}
-            <div className="hidden lg:flex items-center gap-5 text-white/75 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#89d6e2] text-[18px]">
-                  thermostat
-                </span>
-                <div>
-                  <p className="uppercase tracking-wider text-white/40 text-[9px] font-mono">
-                    Base Camp
-                  </p>
-                  <div className="flex items-baseline gap-1">
-                    <AnimatedStat
-                      value={-4}
-                      suffix="°C"
-                      size="sm"
-                      colorScheme="white"
-                      className="inline-block opacity-90 !p-0"
-                    />
-                    <span className="text-xs font-serif text-white/70">
-                      · Clear Frost
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pl-5 border-l border-white/15">
-                <span className="material-symbols-outlined text-[#c88a3e] text-[18px]">
-                  satellite_alt
-                </span>
-                <div>
-                  <p className="uppercase tracking-wider text-white/40 text-[9px] font-mono">
-                    GPS Beacon
-                  </p>
-                  <p className="text-xs font-mono text-white/70">
-                    28.5355° N · 83.8780° E
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Video Playback & Sound Control Pill */}
-          <div className="mt-4 flex items-center justify-between pt-2 border-t border-white/10">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/45 backdrop-blur-md border border-white/15 text-white/85 text-[10px] font-mono shadow-md">
-              <span className="flex h-1.5 w-1.5 rounded-full bg-[#c88a3e] animate-ping"></span>
-              <span className="uppercase tracking-widest text-[9px] text-white/70">
-                LIVE EXPEDITION REEL
-              </span>
-              <div className="h-2.5 w-px bg-white/20 mx-0.5"></div>
-              <button
-                onClick={() => {
-                  if (videoRef.current) {
-                    if (isPlaying) {
-                      videoRef.current.pause();
-                      setIsPlaying(false);
-                    } else {
-                      videoRef.current.play();
-                      setIsPlaying(true);
-                    }
-                  }
-                }}
-                className="hover:text-[#89d6e2] transition-colors cursor-pointer flex items-center p-0.5 text-white"
-                title={isPlaying ? "Pause Video" : "Play Video"}
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[13px]">
-                  {isPlaying ? "pause" : "play_arrow"}
-                </span>
-              </button>
-              <button
-                onClick={() => {
-                  if (videoRef.current) {
-                    videoRef.current.muted = !isMuted;
-                    setIsMuted(!isMuted);
-                  }
-                }}
-                className="hover:text-[#89d6e2] transition-colors cursor-pointer flex items-center p-0.5 text-white"
-                title={isMuted ? "Unmute Audio" : "Mute Audio"}
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[13px]">
-                  {isMuted ? "volume_off" : "volume_up"}
-                </span>
-              </button>
-            </div>
-
-            <span className="text-[10px] font-mono text-white/40 tracking-wider hidden sm:inline">
-              NEPAL ALPINE RECONNAISSANCE · 4K FOOTAGE
-            </span>
-          </div>
-        </div>
-      </section>
+      {/* SECTION 1: 3D HIMALAYAN FLIGHT HERO + TOPOGRAPHIC SURVEY PROFILE */}
+      <Hero />
 
       {/* SECTION 2: 3D MIRROR SCREEN SELECTED HIGH ROUTES */}
       <MirrorHighRoutes />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ExpeditionLoaderProps {
   onComplete?: () => void;
@@ -15,12 +15,20 @@ const MILESTONES = [
 ];
 
 export default function ExpeditionLoader({ onComplete }: ExpeditionLoaderProps) {
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; });
   const [visible, setVisible] = useState(true);
   const [fading, setFading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [altitude, setAltitude] = useState(1400);
   const [telemetryText, setTelemetryText] = useState("INITIALIZING HIGH-ALTITUDE TELEMETRY...");
   const [activeMilestone, setActiveMilestone] = useState(0);
+
+  const dismissLoader = () => {
+    setFading(true);
+    onCompleteRef.current?.(); // hero intro starts while the loader fades out
+    setTimeout(() => setVisible(false), 700);
+  };
 
   useEffect(() => {
     const duration = 2500; // 2.5s duration as requested
@@ -32,14 +40,6 @@ export default function ExpeditionLoader({ onComplete }: ExpeditionLoaderProps) 
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-
-    const dismissLoader = () => {
-      setFading(true);
-      setTimeout(() => {
-        setVisible(false);
-        if (onComplete) onComplete();
-      }, 700);
-    };
 
     const timer = setInterval(() => {
       const now = performance.now();
@@ -80,7 +80,7 @@ export default function ExpeditionLoader({ onComplete }: ExpeditionLoaderProps) 
       clearInterval(timer);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onComplete]);
+  }, []);
 
   if (!visible) return null;
 
@@ -119,13 +119,7 @@ export default function ExpeditionLoader({ onComplete }: ExpeditionLoaderProps) 
         </div>
 
         <button
-          onClick={() => {
-            setFading(true);
-            setTimeout(() => {
-              setVisible(false);
-              if (onComplete) onComplete();
-            }, 300);
-          }}
+          onClick={dismissLoader}
           className="px-3 py-1 rounded-full border border-white/20 hover:border-white text-white/70 hover:text-white transition-all text-[11px] font-mono cursor-pointer"
         >
           SKIP [ESC]

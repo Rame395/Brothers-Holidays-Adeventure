@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Newsreader } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Newsreader,
+  Cormorant_Garamond,
+  Manrope,
+} from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -21,7 +27,20 @@ const newsreader = Newsreader({
   variable: "--font-newsreader",
   subsets: ["latin"],
   style: ["normal", "italic"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["200", "300", "400", "500", "600", "700"],
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  style: ["normal", "italic"],
+});
+
+const manrope = Manrope({
+  variable: "--font-sans",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -47,7 +66,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} scroll-smooth`}
+      className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} ${cormorant.variable} ${manrope.variable} scroll-smooth`}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -66,7 +85,7 @@ export default function RootLayout({
           <RouteLoadingIndicator />
         </Suspense>
         <Header />
-        <main className="w-full pt-16 bg-surface flex-1">{children}</main>
+        <main className="w-full flex-1">{children}</main>
         <Footer />
       </body>
     </html>
