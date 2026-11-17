@@ -427,7 +427,7 @@ export default function HomePage() {
                         onChange={(e) =>
                           setFormData({ ...formData, interest: e.target.value })
                         }
-                        className="w-full h-12 px-4 pr-11 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white appearance-none focus:outline-none focus:border-[#0f5d63] focus:ring-1 focus:ring-[#0f5d63] transition-colors cursor-pointer"
+                        className="w-full h-12 px-4 pr-11 rounded-xl border border-slate-200 text-sm text-slate-800 bg-white appearance-none [appearance:none] [-webkit-appearance:none] [-moz-appearance:none] focus:outline-none focus:border-[#0f5d63] focus:ring-1 focus:ring-[#0f5d63] transition-colors cursor-pointer truncate"
                       >
                         <option value="" disabled>
                           Choose what interests you
@@ -488,7 +488,16 @@ export default function HomePage() {
                   </p>
                   <button
                     type="button"
-                    onClick={() => setEnquirySuccess(false)}
+                    onClick={() => {
+                      setEnquirySuccess(false);
+                      setFormData({
+                        name: "",
+                        email: "",
+                        interest: "",
+                        route: "",
+                        startDate: "",
+                      });
+                    }}
                     className="mt-2 px-6 py-2 rounded-full bg-[#e8f7f7] hover:bg-[#d4eff2] text-[#0f5d63] font-semibold text-xs tracking-wider uppercase transition-colors cursor-pointer"
                   >
                     Send Another Enquiry
