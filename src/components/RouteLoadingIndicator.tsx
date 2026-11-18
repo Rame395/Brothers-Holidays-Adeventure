@@ -4,10 +4,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 
 /**
- * Sleek page-transition overlay.
- * - First website load: handled by ExpeditionLoader (cinematic).
- * - Navigating between pages: a quick, elegant mountain-ridge wipe
- *   that feels fast but smooth — ~600ms with a ridge silhouette.
+ * 1.5-second smooth page-transition overlay.
+ * Runs on every client-side page switch between routes.
  */
 export default function RouteLoadingIndicator() {
   const pathname = usePathname();
@@ -16,23 +14,23 @@ export default function RouteLoadingIndicator() {
   const [phase, setPhase] = useState<"enter" | "hold" | "exit">("enter");
   const previousPathname = useRef(pathname);
   const rafRef = useRef(0);
-  const dismissed = useRef(false);
+  const startTimeRef = useRef(0);
 
   const startTransit = useCallback(() => {
-    dismissed.current = false;
     setActive(true);
     setProgress(0);
     setPhase("enter");
 
     const start = performance.now();
-    const duration = 500; // fast but not jarring
+    startTimeRef.current = start;
+    const duration = 1500; // 1.5 seconds as requested
 
     const tick = () => {
       const elapsed = performance.now() - start;
       const t = Math.min(elapsed / duration, 1);
-      // ease-out cubic
-      const eased = 1 - Math.pow(1 - t, 3);
-      setProgress(eased * 100);
+      // Smooth S-curve easing
+      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      setProgress(Math.round(eased * 100));
 
       if (t >= 1) {
         setPhase("exit");
@@ -40,7 +38,7 @@ export default function RouteLoadingIndicator() {
           setActive(false);
           setProgress(0);
           setPhase("enter");
-        }, 200);
+        }, 220);
       } else {
         rafRef.current = requestAnimationFrame(tick);
       }
@@ -70,62 +68,85 @@ export default function RouteLoadingIndicator() {
     return () => document.removeEventListener("click", handleClick, true);
   }, [pathname, startTransit]);
 
-  // Complete when pathname changes
+  // Keep track of pathname updates
   useEffect(() => {
     if (previousPathname.current !== pathname) {
       previousPathname.current = pathname;
-      if (active && !dismissed.current) {
-        dismissed.current = true;
-        setProgress(100);
-        setPhase("exit");
-        cancelAnimationFrame(rafRef.current);
-        setTimeout(() => {
-          setActive(false);
-          setProgress(0);
-          setPhase("enter");
-        }, 180);
-      }
     }
-  }, [pathname, active]);
+  }, [pathname]);
 
   if (!active) return null;
 
   return (
     <>
       <style>{`
-        @keyframes rt-enter { from { opacity:0; } to { opacity:1; } }
-        @keyframes rt-exit  { from { opacity:1; } to { opacity:0; } }
+        @keyframes rt-enter { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes rt-exit  { from { opacity: 1; } to { opacity: 0; } }
       `}</style>
       <div
         className="fixed inset-0 z-[10000] pointer-events-none select-none"
         style={{
-          animation: phase === "exit"
-            ? "rt-exit 200ms ease-out forwards"
-            : "rt-enter 120ms ease-out forwards",
+          animation:
+            phase === "exit"
+              ? "rt-exit 220ms ease-out forwards"
+              : "rt-enter 140ms ease-out forwards",
         }}
       >
-        {/* Soft overlay */}
-        <div className="absolute inset-0 bg-[#070b12]/60 backdrop-blur-[2px]" />
+        {/* Soft luxury dark veil */}
+        <div className="absolute inset-0 bg-[#070b12]/75 backdrop-blur-[3px]" />
 
-        {/* Top progress line — thin gold */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-white/10">
+        {/* Top luminous gold progress line */}
+        <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-white/10 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-[#c9a46a] to-[#e9cf9b] transition-[width] duration-75 ease-out"
+            className="h-full bg-gradient-to-r from-[#c9a46a] via-[#e9cf9b] to-[#c9a46a] shadow-[0_0_12px_rgba(201,164,106,0.85)] transition-all duration-75 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        {/* Center: Minimal loading indicator */}
+        {/* Center: Elegant Compass Rose & Telemetry */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3 text-center">
-            {/* Small animated compass needle */}
-            <svg width="32" height="32" viewBox="0 0 32 32" className="animate-spin" style={{ animationDuration: "1.6s" }}>
-              <circle cx="16" cy="16" r="14" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
-              <path d="M 16 4 L 18 16 L 16 28 L 14 16 Z" fill="rgba(201,164,106,0.7)" />
-              <circle cx="16" cy="16" r="2" fill="#e9cf9b" />
-            </svg>
-            <span className="text-[11px] font-medium uppercase tracking-[0.35em] text-white/70">
-              Loading
+          <div className="flex flex-col items-center gap-3.5 text-center px-4">
+            {/* Spinning Gold Compass Ring */}
+            <div className="relative w-12 h-12 flex items-center justify-center">
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 48 48"
+                className="animate-spin"
+                style={{ animationDuration: "3s" }}
+              >
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="21"
+                  fill="none"
+                  stroke="rgba(201,164,106,0.25)"
+                  strokeWidth="1.2"
+                  strokeDasharray="4 4"
+                />
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="15"
+                  fill="none"
+                  stroke="rgba(233,207,155,0.4)"
+                  strokeWidth="0.8"
+                />
+                <polygon
+                  points="24,6 27,24 24,42 21,24"
+                  fill="rgba(201,164,106,0.7)"
+                />
+                <circle cx="24" cy="24" r="3" fill="#e9cf9b" />
+              </svg>
+            </div>
+
+            <div className="flex items-center gap-2 text-[11px] font-mono tracking-[0.3em] uppercase text-[#e9cf9b]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c9a46a] animate-pulse" />
+              <span>ROUTING EXPEDITION · {progress}%</span>
+            </div>
+
+            <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">
+              Brothers Holidays Adventure
             </span>
           </div>
         </div>

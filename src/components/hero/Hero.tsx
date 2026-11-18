@@ -1,6 +1,13 @@
 "use client";
 
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Clock,
+  MapPin,
+  Mountain,
+  Users,
+} from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
@@ -239,9 +246,83 @@ export function Hero() {
                   View the routes <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </div>
+
+              {/* Mobile / Tablet Responsive Featured Card */}
+              <div className="lg:hidden mt-7 w-full max-w-sm sm:max-w-md">
+                <div className="relative rounded-2xl border border-white/15 bg-[#101519]/90 backdrop-blur-xl p-4 sm:p-5 shadow-2xl">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-white/70">
+                      FEATURED EXPEDITION
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[#7ce63a]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#7ce63a] animate-pulse" />
+                      TREKKING
+                    </span>
+                  </div>
+
+                  <h3 className="mt-2.5 font-serif text-2xl font-normal text-white leading-tight">
+                    Everest Base Camp
+                  </h3>
+
+                  <div className="mt-1 flex items-center gap-1 text-xs text-white/70">
+                    <MapPin className="h-3.5 w-3.5 text-white/70 shrink-0" />
+                    <span>Solukhumbu, Nepal</span>
+                  </div>
+
+                  <div className="my-3 h-px bg-white/10" />
+
+                  <div className="grid grid-cols-3 gap-2 text-white">
+                    <div>
+                      <span className="block font-mono text-[8px] uppercase tracking-wider text-white/45">
+                        DURATION
+                      </span>
+                      <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-white">
+                        <Clock className="h-3 w-3 text-white/70 shrink-0" />
+                        <span>14 Days</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block font-mono text-[8px] uppercase tracking-wider text-white/45">
+                        DIFFICULTY
+                      </span>
+                      <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-white">
+                        <Mountain className="h-3 w-3 text-white/70 shrink-0" />
+                        <span>Moderate</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="block font-mono text-[8px] uppercase tracking-wider text-white/45">
+                        GROUP SIZE
+                      </span>
+                      <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-white">
+                        <Users className="h-3 w-3 text-white/70 shrink-0" />
+                        <span>8–12</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between pt-1">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xs text-white/60">From</span>
+                      <span className="text-sm font-bold text-white tracking-wide">NPR</span>
+                      <span className="text-xl font-bold text-[#7ce63a] tracking-tight">
+                        45,000
+                      </span>
+                    </div>
+
+                    <Link
+                      href="/destinations/everest-base-camp-trek#book"
+                      aria-label="Book Everest Base Camp expedition"
+                      className="group/btn relative flex h-10 w-10 items-center justify-center rounded-full bg-[#1b3d1f] hover:bg-[#25522b] border border-[#55c024]/40 text-white shadow-[0_0_15px_rgba(85,192,36,0.3)] transition-all active:scale-95 cursor-pointer"
+                    >
+                      <ArrowRight className="h-4 w-4 text-white" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Floating expedition card */}
+            {/* Floating Featured Expedition Card (Everest Base Camp) */}
             <div
               className="animate-rise hidden lg:block"
               style={{
@@ -250,41 +331,81 @@ export function Hero() {
                   "translate3d(calc(var(--mx) * -14px), calc(var(--my) * 8px), 0)",
               }}
             >
-              <div className="glass animate-drift-float w-80 p-6 rounded-md border border-white/15">
-                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.3em] text-white/60">
-                  <span>Featured ascent</span>
-                  <span className="flex items-center gap-2 text-[#e8b765]">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#e8b765]" />{" "}
-                    Spring
+              <div className="relative w-80 rounded-2xl border border-white/15 bg-[#101519]/90 backdrop-blur-xl p-5 shadow-[0_25px_60px_rgba(0,0,0,0.7)] transition-all duration-300 hover:border-white/25">
+                {/* Header row: FEATURED EXPEDITION • TREKKING */}
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-white/70">
+                    FEATURED EXPEDITION
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#7ce63a]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#7ce63a] animate-pulse" />
+                    TREKKING
                   </span>
                 </div>
-                <p className="mt-5 font-display text-3xl font-light text-white">
-                  Ama Dablam
-                </p>
-                <p className="mt-1 text-xs tracking-wide text-white/60">
-                  Khumbu, Nepal · Southwest Ridge
-                </p>
-                <div className="my-5 h-px bg-gradient-to-r from-[#e8b765]/70 to-transparent" />
-                <dl className="grid grid-cols-3 gap-3 text-white">
+
+                {/* Title */}
+                <h3 className="mt-3 font-serif text-[26px] font-normal text-white leading-tight">
+                  Everest Base Camp
+                </h3>
+
+                {/* Location */}
+                <div className="mt-1 flex items-center gap-1.5 text-xs text-white/70">
+                  <MapPin className="h-3.5 w-3.5 text-white/70 shrink-0" />
+                  <span>Solukhumbu, Nepal</span>
+                </div>
+
+                {/* Divider line */}
+                <div className="my-4 h-px bg-white/10" />
+
+                {/* Metrics 3-column grid */}
+                <div className="grid grid-cols-3 gap-2 text-white">
                   <div>
-                    <dt className="text-[9px] uppercase tracking-[0.25em] text-white/50">
-                      Summit
-                    </dt>
-                    <dd className="mt-1 font-display text-xl text-white">6,812 m</dd>
+                    <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/45">
+                      DURATION
+                    </span>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-white">
+                      <Clock className="h-3.5 w-3.5 text-white/70 shrink-0" />
+                      <span>14 Days</span>
+                    </div>
                   </div>
                   <div>
-                    <dt className="text-[9px] uppercase tracking-[0.25em] text-white/50">
-                      Days
-                    </dt>
-                    <dd className="mt-1 font-display text-xl text-white">28</dd>
+                    <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/45">
+                      DIFFICULTY
+                    </span>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-white">
+                      <Mountain className="h-3.5 w-3.5 text-white/70 shrink-0" />
+                      <span>Moderate</span>
+                    </div>
                   </div>
                   <div>
-                    <dt className="text-[9px] uppercase tracking-[0.25em] text-white/50">
-                      Group
-                    </dt>
-                    <dd className="mt-1 font-display text-xl text-white">≤ 6</dd>
+                    <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/45">
+                      GROUP SIZE
+                    </span>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-white">
+                      <Users className="h-3.5 w-3.5 text-white/70 shrink-0" />
+                      <span>8–12</span>
+                    </div>
                   </div>
-                </dl>
+                </div>
+
+                {/* Bottom row: Price + Booking Action Arrow */}
+                <div className="mt-5 flex items-center justify-between pt-1">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xs text-white/60">From</span>
+                    <span className="text-sm font-bold text-white tracking-wide">NPR</span>
+                    <span className="text-xl font-bold text-[#7ce63a] tracking-tight">
+                      45,000
+                    </span>
+                  </div>
+
+                  <Link
+                    href="/destinations/everest-base-camp-trek#book"
+                    aria-label="Book Everest Base Camp expedition"
+                    className="group/btn relative flex h-11 w-11 items-center justify-center rounded-full bg-[#1b3d1f] hover:bg-[#25522b] border border-[#55c024]/40 text-white shadow-[0_0_15px_rgba(85,192,36,0.3)] transition-all duration-300 hover:scale-105 hover:shadow-[0_0_22px_rgba(124,230,58,0.5)] active:scale-95 cursor-pointer"
+                  >
+                    <ArrowRight className="h-5 w-5 text-white transition-transform duration-300 group-hover/btn:translate-x-0.5" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

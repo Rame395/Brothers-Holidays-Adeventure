@@ -42,29 +42,11 @@ export default function ExpeditionLoader({ onComplete, forceShow }: ExpeditionLo
     if (dismissed.current) return;
     dismissed.current = true;
     setFading(true);
-    try {
-      sessionStorage.setItem("brothers_expedition_loader_seen", "true");
-    } catch {}
     window.setTimeout(() => {
       setVisible(false);
       onCompleteRef.current?.();
     }, 900);
   }, []);
-
-  // Show once per session (unless forced via ?loader=1)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const forced = forceShow || params.get("loader") === "1";
-    let seen = false;
-    try {
-      seen = !!sessionStorage.getItem("brothers_expedition_loader_seen");
-    } catch {}
-    if (seen && !forced) {
-      dismissed.current = true;
-      setVisible(false);
-      onCompleteRef.current?.();
-    }
-  }, [forceShow]);
 
   // Lock scroll while visible
   useEffect(() => {
