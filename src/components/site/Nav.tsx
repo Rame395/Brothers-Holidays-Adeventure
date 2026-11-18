@@ -238,11 +238,14 @@ export function Nav() {
           }`}
         >
           {/* 1. LEFT BRAND: BROTHERS Holidays Adventure Logo */}
-          <Link
+          <a
             href="/"
-            onClick={() => {
+            data-launch-reload="true"
+            onClick={(e) => {
+              e.preventDefault();
               setOpen(false);
               setMegaOpen(false);
+              window.location.href = "/";
             }}
             className="group flex items-center text-white shrink-0 cursor-pointer"
             aria-label="BROTHERS Holidays Adventure Home"
@@ -254,7 +257,7 @@ export function Nav() {
               alt="BROTHERS Holidays Adventure"
               className="h-7 sm:h-9 md:h-10 w-auto max-w-[135px] sm:max-w-[170px] md:max-w-none object-contain transition-transform duration-300 group-hover:scale-[1.03] drop-shadow-md"
             />
-          </Link>
+          </a>
 
           {/* 2. MAIN NAVIGATION (Desktop / Tablet-Landscape) */}
           <div className="hidden lg:flex items-center gap-4 xl:gap-6">

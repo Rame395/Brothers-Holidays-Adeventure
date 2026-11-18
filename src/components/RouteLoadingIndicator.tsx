@@ -23,7 +23,7 @@ export default function RouteLoadingIndicator() {
 
     const start = performance.now();
     startTimeRef.current = start;
-    const duration = 1500; // 1.5 seconds as requested
+    const duration = 500; // 0.5 seconds as requested between pages
 
     const tick = () => {
       const elapsed = performance.now() - start;
@@ -51,6 +51,12 @@ export default function RouteLoadingIndicator() {
     const handleClick = (event: MouseEvent) => {
       const target = (event.target as HTMLElement).closest("a");
       if (!target) return;
+      if (
+        target.hasAttribute("data-launch-reload") ||
+        target.closest("[data-launch-reload]")
+      ) {
+        return;
+      }
       const href = target.getAttribute("href");
       if (
         href &&

@@ -179,14 +179,23 @@ export default function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-y-10 lg:gap-y-0">
             {/* Col 1: Brand & Social */}
             <div className="lg:pr-8 space-y-4">
-              <Link href="/" className="inline-block transition-transform hover:scale-105">
+              <a
+                href="/"
+                data-launch-reload="true"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = "/";
+                }}
+                className="inline-block transition-transform hover:scale-105 cursor-pointer"
+                aria-label="BROTHERS Holidays Adventure Home"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/brothers_logo_navbar.png"
                   alt="BROTHERS Holidays Adventure"
                   className="h-10 sm:h-12 w-auto object-contain drop-shadow-md"
                 />
-              </Link>
+              </a>
               <p className="text-white/65 text-[13px] leading-relaxed max-w-[220px]">
                 Experience the high Himalayas with Brothers — where every journey becomes a story.
               </p>
