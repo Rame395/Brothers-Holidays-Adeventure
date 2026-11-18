@@ -99,7 +99,7 @@ export default function Footer() {
               </h4>
             </div>
             <p className="text-slate-300/90 leading-tight">
-              Kharka Expeditions Pvt. Ltd.
+              Brothers Holidays Adventure Pvt. Ltd.
               <br />
               Thamel Marg, Kathmandu, Nepal
             </p>
@@ -322,7 +322,7 @@ export default function Footer() {
 
             {/* Copyright & Govt Registration */}
             <p className="text-slate-500 font-light text-[10px] sm:text-right">
-              © 2026 Kharka Expeditions Pvt. Ltd. · Govt. Regd. No: 58177/068/069
+              © 2026 Brothers Holidays Adventure Pvt. Ltd. · Govt. Regd. No: 58177/068/069
             </p>
           </div>
         </div>

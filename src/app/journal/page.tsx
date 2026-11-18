@@ -284,7 +284,7 @@ export default function JournalPage() {
                 </div>
                 <p className="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
                   Ascending too quickly bypasses the critical physiological
-                  adaptation phase required above 3,500 meters. Kharka guides
+                  adaptation phase required above 3,500 meters. BROTHERS guides
                   monitor resting heart rates each morning before leaving camp,
                   ensuring safe progression. Hypoxia triggers arterial pressure
                   shifts that cannot be overcome by grit; only slow, deliberate
@@ -473,7 +473,7 @@ export default function JournalPage() {
 
                 {subscribeSuccess ? (
                   <p className="font-label-md text-primary font-semibold py-2">
-                    ✓ You are subscribed to Kharka Field Chronicles.
+                    ✓ You are subscribed to BROTHERS Field Chronicles.
                   </p>
                 ) : (
                   <form onSubmit={handleSubscribe} className="space-y-3">

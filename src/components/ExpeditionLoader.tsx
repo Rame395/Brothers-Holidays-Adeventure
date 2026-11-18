@@ -100,12 +100,12 @@ export default function ExpeditionLoader({ onComplete }: ExpeditionLoaderProps) 
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/logo.png"
-            alt="Kharka"
+            src="/images/brothers_logo_navbar.png"
+            alt="BROTHERS Holidays Adventure"
             className="h-9 w-auto object-contain rounded shadow-sm"
           />
           <div className="flex flex-col">
-            <span className="font-semibold text-white tracking-widest text-xs">KHARKA · EST. 1984</span>
+            <span className="font-semibold text-white tracking-widest text-xs">BROTHERS · EST. 1984</span>
             <span className="text-white/60 text-[10px] hidden sm:inline">HIMALAYAN FIELD JOURNAL</span>
           </div>
         </div>

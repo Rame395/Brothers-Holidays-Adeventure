@@ -675,7 +675,7 @@ export function TripDetailView({ trip }: { trip: Trip }) {
                 Have a custom question first?
               </span>
               <span className="text-xs text-[#55606a]">
-                Speak directly with a KHARKA expedition lead
+                Speak directly with a BROTHERS Holidays Adventure expedition lead
               </span>
             </span>
             <ArrowUpRight className="h-4 w-4 text-[#00515b]" />

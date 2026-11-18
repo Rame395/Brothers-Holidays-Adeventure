@@ -78,7 +78,7 @@ export default function TreksDirectoryPage() {
             <div className="flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-tertiary"></span>
               <span className="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant font-semibold">
-                Kharka Field Directory
+                BROTHERS Field Directory
               </span>
               <span className="text-outline-variant">/</span>
               <span className="font-label-sm text-label-sm text-primary font-medium tracking-wider">
@@ -468,7 +468,7 @@ export default function TreksDirectoryPage() {
               </div>
             </div>
             <p className="font-body-sm text-body-sm text-on-surface-variant/80">
-              Field telemetry updated weekly by Kharka Base Logistics (Namche &amp;
+              Field telemetry updated weekly by BROTHERS Base Logistics (Namche &amp;
               Pokhara stations).
             </p>
           </div>

@@ -111,7 +111,7 @@ const DRY = [1, 2, 3, 4, 5, 10, 11, 12];
 
 const TREK_INCLUDES = [
   "Airport transfers and Kathmandu hotel (twin share)",
-  "Licensed KHARKA mountain guide and porters (1 porter per 2 guests)",
+  "Licensed BROTHERS Holidays Adventure mountain guide and porters (1 porter per 2 guests)",
   "Teahouse lodging and three meals a day on the trail",
   "National park, conservation area and TIMS permits",
   "Domestic flights or private ground transport as listed",

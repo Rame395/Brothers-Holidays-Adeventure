@@ -62,8 +62,8 @@ export function Arrival() {
         <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#003840] via-[#003840]/60 to-transparent" />
         <div className="relative flex h-full items-start justify-center px-6 pt-[14vh] z-10">
           <Reveal>
-            <p className="text-center text-[11px] font-semibold uppercase tracking-[0.5em] text-[#334144]">
-              KHARKA
+            <p className="text-center text-[11px] font-semibold uppercase tracking-[0.4em] text-[#334144]">
+              BROTHERS HOLIDAYS ADVENTURE
             </p>
             <h2 className="mt-4 text-center font-display text-5xl font-light italic text-[#111d1f] md:text-8xl">
               welcomes you to the mountains

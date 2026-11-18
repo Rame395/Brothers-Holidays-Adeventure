@@ -123,7 +123,7 @@ export default function HomePage() {
                   <Mountain className="w-5 h-5" />
                 </div>
                 <p className="text-sm text-[#4a5568] leading-relaxed">
-                  KHARKA is more than a trek — it&apos;s a journey into the heart of the
+                  BROTHERS Holidays Adventure is more than a trek — it&apos;s a journey into the heart of the
                   Himalayas, crafted for explorers, dreamers and seekers.
                 </p>
                 <div className="pt-2 border-t border-[#0f5d63]/10 flex items-center justify-between">
@@ -166,7 +166,7 @@ export default function HomePage() {
                       1k+
                     </div>
                     <p className="text-xs text-[#6b7280] mt-1 leading-relaxed">
-                      Adventurers who trusted KHARKA
+                      Adventurers who trusted BROTHERS
                     </p>
                   </div>
                   <Link
@@ -244,12 +244,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* B. KHARKA BY THE NUMBERS */}
+          {/* B. BROTHERS BY THE NUMBERS */}
           <div className="rounded-2xl bg-white/60 backdrop-blur-md p-6 sm:p-8 border border-[#0f5d63]/15 shadow-sm space-y-6">
             <div className="flex items-center gap-2 text-[#0f5d63]">
               <BarChart3 className="w-4 h-4" />
               <span className="text-[11px] font-bold tracking-[0.2em] uppercase">
-                KHARKA BY THE NUMBERS
+                BROTHERS BY THE NUMBERS
               </span>
             </div>
 

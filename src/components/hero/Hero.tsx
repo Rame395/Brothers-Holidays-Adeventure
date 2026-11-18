@@ -128,22 +128,42 @@ export function Hero() {
 
         {/* 2 — Giant wordmark, sitting *behind* the 3D ridges */}
         <div
-          className="pointer-events-none absolute inset-x-0 top-[16vh] flex justify-center md:top-[11vh]"
+          className="pointer-events-none absolute inset-x-0 top-[14vh] flex justify-center md:top-[9vh]"
           style={{
             transform:
               "translate3d(calc(var(--mx) * -8px), calc(var(--p) * -14vh), 0) scale(calc(1 + var(--p) * 0.5))",
             opacity: "calc(1 - var(--p) * 3.2)",
           }}
         >
-          <h1
-            className="animate-rise select-none font-display text-[18vw] font-light leading-none tracking-[0.04em] md:tracking-[0.06em] text-white/90 md:text-[17vw]"
-            style={{
-              animationDelay: "0.05s",
-              textShadow: "0 20px 80px rgba(0, 0, 0, 0.6)",
-            }}
-          >
-            KHARKA
-          </h1>
+          <div className="flex flex-col items-center justify-center text-center px-4 max-w-full">
+            <h1
+              className="animate-rise select-none font-display text-[15vw] md:text-[13vw] font-light leading-[0.88] tracking-[0.06em] md:tracking-[0.1em] text-white/95"
+              style={{
+                animationDelay: "0.05s",
+                textShadow: "0 20px 80px rgba(0, 0, 0, 0.65)",
+              }}
+            >
+              BROTHERS
+            </h1>
+            <div
+              className="animate-rise flex items-center justify-center gap-3 sm:gap-6 mt-1 sm:mt-2.5 md:mt-3 select-none"
+              style={{
+                animationDelay: "0.15s",
+                textShadow: "0 2px 12px rgba(0, 0, 0, 0.9), 0 4px 24px rgba(0, 0, 0, 0.75)",
+              }}
+            >
+              <span className="w-6 sm:w-14 md:w-20 h-[1px] bg-gradient-to-r from-transparent to-[#e8b765]/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+              <span
+                className="font-serif italic text-xs sm:text-base md:text-xl lg:text-2xl tracking-[0.24em] sm:tracking-[0.34em] md:tracking-[0.42em] text-[#e8b765] uppercase font-light drop-shadow-lg whitespace-nowrap"
+                style={{
+                  textShadow: "0 2px 12px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.8)",
+                }}
+              >
+                Holidays Adventure
+              </span>
+              <span className="w-6 sm:w-14 md:w-20 h-[1px] bg-gradient-to-l from-transparent to-[#e8b765]/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            </div>
+          </div>
         </div>
 
         {/* 3 — Live 3D ridges, clouds, ice crystals */}

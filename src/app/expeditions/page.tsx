@@ -648,7 +648,7 @@ export default function ExpeditionsPage() {
         <div className="mt-14 p-8 rounded-xl bg-surface-container flex flex-col lg:flex-row lg:items-center justify-between gap-8 shadow-sm border border-outline-variant/30">
           <div className="space-y-2 max-w-2xl">
             <span className="font-label-md text-label-md uppercase tracking-widest text-primary font-semibold">
-              Kharka Alpine Field Standard
+              BROTHERS Alpine Field Standard
             </span>
             <h3 className="font-headline-md text-headline-md text-on-surface">
               Technical Briefing &amp; Equipment Check

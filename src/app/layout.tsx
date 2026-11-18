@@ -44,7 +44,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Kharka — Himalayan Field Journal & Premium Expeditions",
+  title: "BROTHERS Holidays Adventure — Himalayan Field Journal & Premium Expeditions",
   description:
     "An alpine editorial journal of routes across Nepal, mapped with absolute elevation, topographic precision, and zero commercial filler.",
   keywords: [

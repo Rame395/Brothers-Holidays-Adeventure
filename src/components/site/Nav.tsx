@@ -49,7 +49,7 @@ function menuImage(key: MenuKey): string {
   );
 }
 
-export function KharkaMark({ className }: { className?: string }) {
+export function BrothersMark({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 40 24"
@@ -73,6 +73,7 @@ export function KharkaMark({ className }: { className?: string }) {
     </svg>
   );
 }
+export const KharkaMark = BrothersMark;
 
 function ViewAllLink({
   menuKey,
@@ -224,7 +225,7 @@ export function Nav() {
     >
       <div className="max-w-7xl mx-auto relative pointer-events-auto">
         {/* ──────────────────────────────────────────────────────────
-            KHARKA FLOATING GLASS-EFFECT NAVBAR PILL
+            BROTHERS HOLIDAYS ADVENTURE FLOATING GLASS-EFFECT NAVBAR PILL
             - Dark charcoal/navy glass with high opacity for crystal clarity
             - Metallic gold borders & subtle inner bevel
             - Refined icons and balanced typography matching reference image
@@ -236,17 +237,19 @@ export function Nav() {
               : "bg-[#09171e]/90 border-[#c59a4a]/40 shadow-[0_8px_32px_rgba(0,0,0,0.55)] ring-1 ring-white/5"
           }`}
         >
-          {/* 1. LEFT BRAND: Geometric Mountain Mark & KHARKA Wordmark */}
+          {/* 1. LEFT BRAND: BROTHERS Holidays Adventure Logo */}
           <Link
             href="/"
-            className="group flex items-center gap-2.5 sm:gap-3 text-white shrink-0 cursor-pointer"
-            aria-label="KHARKA Expeditions Home"
+            className="group flex items-center text-white shrink-0 cursor-pointer"
+            aria-label="BROTHERS Holidays Adventure Home"
             onMouseEnter={scheduleCloseMega}
           >
-            <KharkaMark className="h-4 sm:h-5 w-7 text-[#e8b765] transition-transform duration-500 group-hover:-translate-y-0.5 drop-shadow-sm" />
-            <span className="font-display text-base sm:text-lg font-medium tracking-[0.32em] text-white select-none">
-              KHARKA
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/brothers_logo_navbar.png"
+              alt="BROTHERS Holidays Adventure"
+              className="h-8 sm:h-9 md:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.03] drop-shadow-md"
+            />
           </Link>
 
           {/* 2. MAIN NAVIGATION (Desktop / Tablet-Landscape) */}
@@ -294,11 +297,11 @@ export function Nav() {
             </Link>
           </div>
 
-          {/* 3. CENTER BRAND DIVIDER (From Reference Design) */}
+          {/* 3. CENTER BRAND DIVIDER */}
           <div className="hidden xl:flex items-center gap-4 text-white/20">
             <span className="h-4 w-px bg-white/20" />
             <span className="font-display text-sm tracking-[0.34em] text-white/70 select-none">
-              K H A R K A
+              B R O T H E R S
             </span>
           </div>
 

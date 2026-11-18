@@ -869,7 +869,7 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
             </h2>
           </div>
           <p className="font-body-md text-body-md text-on-surface-variant max-w-md">
-            Kharka operates on total fee transparency. No hidden tea house
+            BROTHERS Holidays Adventure operates on total fee transparency. No hidden tea house
             surcharges, undisclosed permit fees, or surprise porter levies along
             the trail.
           </p>
