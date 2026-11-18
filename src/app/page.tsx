@@ -511,13 +511,15 @@ export default function HomePage() {
 
       {/* SECTION 5: CLOSING CALL TO ACTION */}
       <section
-        className="w-full relative overflow-hidden py-24 sm:py-32 lg:py-40 bg-[#07131a] bg-cover bg-center border-t border-[#c59a4a]/20"
+        className="w-full relative overflow-hidden py-24 sm:py-32 lg:py-40 bg-[#07131a] bg-cover bg-center border-t border-[#c59a4a]/30 border-b border-[#c59a4a]/60 shadow-[0_4px_30px_rgba(197,154,74,0.15)]"
         style={{
           backgroundImage: "url('/images/cta-himalaya-bg.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
+        {/* Crisp bottom golden glow border */}
+        <div className="absolute bottom-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-[#c59a4a] to-transparent opacity-90 shadow-[0_0_12px_rgba(197,154,74,0.6)] z-20 pointer-events-none" />
         {/* Cinematic dark navy vignette & atmospheric overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#07131e]/60 via-[#07131e]/40 to-[#07131e]/85 backdrop-brightness-[0.88]" />
 
