@@ -133,9 +133,9 @@ export function Hero() {
           }}
         />
 
-        {/* 2 — Giant wordmark, sitting *behind* the 3D ridges */}
+        {/* 2 — Giant wordmark, sitting *behind* the 3D ridges (Desktop) */}
         <div
-          className="pointer-events-none absolute inset-x-0 top-[14vh] flex justify-center md:top-[9vh]"
+          className="pointer-events-none absolute inset-x-0 top-[9vh] hidden lg:flex justify-center"
           style={{
             transform:
               "translate3d(calc(var(--mx) * -8px), calc(var(--p) * -14vh), 0) scale(calc(1 + var(--p) * 0.5))",
@@ -144,7 +144,7 @@ export function Hero() {
         >
           <div className="flex flex-col items-center justify-center text-center px-4 max-w-full">
             <h1
-              className="animate-rise select-none font-display text-[15vw] md:text-[13vw] font-light leading-[0.88] tracking-[0.06em] md:tracking-[0.1em] text-white/95"
+              className="animate-rise select-none font-display text-[13vw] font-light leading-[0.88] tracking-[0.1em] text-white/95"
               style={{
                 animationDelay: "0.05s",
                 textShadow: "0 20px 80px rgba(0, 0, 0, 0.65)",
@@ -153,22 +153,22 @@ export function Hero() {
               BROTHERS
             </h1>
             <div
-              className="animate-rise flex items-center justify-center gap-3 sm:gap-6 mt-1 sm:mt-2.5 md:mt-3 select-none"
+              className="animate-rise flex items-center justify-center gap-6 mt-3 select-none"
               style={{
                 animationDelay: "0.15s",
                 textShadow: "0 2px 12px rgba(0, 0, 0, 0.9), 0 4px 24px rgba(0, 0, 0, 0.75)",
               }}
             >
-              <span className="w-6 sm:w-14 md:w-20 h-[1px] bg-gradient-to-r from-transparent to-[#e8b765]/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+              <span className="w-20 h-[1px] bg-gradient-to-r from-transparent to-[#e8b765]/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
               <span
-                className="font-serif italic text-xs sm:text-base md:text-xl lg:text-2xl tracking-[0.24em] sm:tracking-[0.34em] md:tracking-[0.42em] text-[#e8b765] uppercase font-light drop-shadow-lg whitespace-nowrap"
+                className="font-serif italic text-xl lg:text-2xl tracking-[0.42em] text-[#e8b765] uppercase font-light drop-shadow-lg whitespace-nowrap"
                 style={{
                   textShadow: "0 2px 12px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.8)",
                 }}
               >
                 Holidays Adventure
               </span>
-              <span className="w-6 sm:w-14 md:w-20 h-[1px] bg-gradient-to-l from-transparent to-[#e8b765]/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+              <span className="w-20 h-[1px] bg-gradient-to-l from-transparent to-[#e8b765]/80 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
             </div>
           </div>
         </div>
@@ -196,32 +196,46 @@ export function Hero() {
 
         {/* 4 — Foreground interface */}
         <div
-          className="absolute inset-x-0 bottom-[14vh] z-10 px-6 md:bottom-[15vh] md:px-12"
+          className="absolute inset-x-0 top-[70px] sm:top-[78px] lg:top-auto lg:bottom-[15vh] z-10 px-4 sm:px-6 md:px-12 max-h-[calc(100svh-125px)] lg:max-h-none overflow-y-auto lg:overflow-visible pb-8 lg:pb-0"
           style={{
             transform:
               "translate3d(calc(var(--mx) * 6px), calc(var(--p) * -22vh), 0)",
             opacity: "calc(1 - var(--p) * 3)",
           }}
         >
-          <div className="mx-auto flex max-w-[1600px] flex-col gap-10 md:flex-row md:items-end md:justify-between">
+          <div className="mx-auto flex max-w-[1600px] flex-col gap-6 lg:gap-10 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
+              {/* Mobile / Tablet Brand Heading: Prominent, elegant, well-spaced, zero overlap */}
+              <div className="lg:hidden mb-3 sm:mb-5">
+                <h1 className="animate-rise select-none font-display text-4xl sm:text-5xl font-light tracking-[0.08em] text-white leading-none">
+                  BROTHERS
+                </h1>
+                <div className="animate-rise flex items-center gap-2 sm:gap-3 mt-1.5 select-none">
+                  <span className="w-6 sm:w-10 h-px bg-gradient-to-r from-transparent to-[#e8b765]/80" />
+                  <span className="font-serif italic text-[11px] sm:text-xs tracking-[0.25em] text-[#e8b765] uppercase font-light drop-shadow-md whitespace-nowrap">
+                    Holidays Adventure
+                  </span>
+                  <span className="w-6 sm:w-10 h-px bg-gradient-to-l from-transparent to-[#e8b765]/80" />
+                </div>
+              </div>
+
               <p
-                className="animate-rise mb-6 flex items-center gap-4 text-[11px] font-medium uppercase tracking-[0.4em] text-[#e8b765]"
+                className="animate-rise mb-2 sm:mb-4 lg:mb-6 flex items-center gap-3 sm:gap-4 text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.3em] sm:tracking-[0.4em] text-[#e8b765]"
                 style={{ animationDelay: "0.1s" }}
               >
-                <span className="h-px w-10 bg-[#e8b765]" /> Private Himalayan
+                <span className="h-px w-6 sm:w-10 bg-[#e8b765]" /> Private Himalayan
                 Expeditions
               </p>
               <h2
-                className="animate-rise font-display text-5xl font-light leading-[0.95] text-white md:text-6xl xl:text-7xl"
+                className="animate-rise font-display text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light leading-tight sm:leading-[0.95] text-white"
                 style={{ animationDelay: "0.15s" }}
               >
                 Rise <em className="text-gold-gradient font-normal">above</em>
-                <br />
+                <br className="hidden sm:inline" />{" "}
                 the world.
               </h2>
               <p
-                className="animate-rise mt-6 max-w-md text-sm leading-relaxed text-white/75 md:text-base font-light"
+                className="animate-rise mt-2 sm:mt-4 lg:mt-6 max-w-md text-xs sm:text-sm lg:text-base leading-relaxed text-white/75 font-light"
                 style={{ animationDelay: "0.2s" }}
               >
                 Sherpa-led ascents and high-pasture journeys for a few travellers
@@ -229,27 +243,27 @@ export function Hero() {
                 silence.
               </p>
               <div
-                className="animate-rise mt-9 flex flex-wrap items-center gap-6"
+                className="animate-rise mt-4 sm:mt-6 lg:mt-9 flex flex-wrap items-center gap-4 sm:gap-6"
                 style={{ animationDelay: "0.25s" }}
               >
                 <a
                   href="#enquiry"
-                  className="group inline-flex items-center gap-4 bg-gold-gradient px-8 py-4 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#050c0e] shadow-[0_20px_50px_-20px_rgba(232,183,101,0.6)] transition-transform duration-500 hover:-translate-y-0.5 cursor-pointer rounded-sm"
+                  className="group inline-flex items-center gap-3 sm:gap-4 bg-gold-gradient px-5 py-2.5 sm:px-8 sm:py-4 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.25em] sm:tracking-[0.3em] text-[#050c0e] shadow-[0_20px_50px_-20px_rgba(232,183,101,0.6)] transition-transform duration-500 hover:-translate-y-0.5 cursor-pointer rounded-sm"
                 >
                   Begin your expedition
-                  <ArrowRight className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-1 text-[#050c0e]" />
+                  <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform duration-500 group-hover:translate-x-1 text-[#050c0e]" />
                 </a>
                 <Link
                   href="/treks"
-                  className="group inline-flex items-center gap-2 border-b border-white/40 pb-1 text-[11px] font-medium uppercase tracking-[0.3em] text-white transition-colors hover:border-[#e8b765] hover:text-[#e8b765] cursor-pointer"
+                  className="group inline-flex items-center gap-2 border-b border-white/40 pb-1 text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.25em] sm:tracking-[0.3em] text-white transition-colors hover:border-[#e8b765] hover:text-[#e8b765] cursor-pointer"
                 >
-                  View the routes <ArrowUpRight className="h-4 w-4" />
+                  View the routes <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Link>
               </div>
 
               {/* Mobile / Tablet Responsive Featured Card */}
-              <div className="lg:hidden mt-7 w-full max-w-sm sm:max-w-md">
-                <div className="relative rounded-2xl border border-white/15 bg-[#101519]/90 backdrop-blur-xl p-4 sm:p-5 shadow-2xl">
+              <div className="lg:hidden mt-4 sm:mt-6 w-full max-w-sm sm:max-w-md">
+                <div className="relative rounded-xl sm:rounded-2xl border border-white/15 bg-[#101519]/90 backdrop-blur-xl p-3.5 sm:p-5 shadow-2xl">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-white/70">
                       FEATURED EXPEDITION
@@ -260,23 +274,23 @@ export function Hero() {
                     </span>
                   </div>
 
-                  <h3 className="mt-2.5 font-serif text-2xl font-normal text-white leading-tight">
+                  <h3 className="mt-2 font-serif text-xl sm:text-2xl font-normal text-white leading-tight">
                     Everest Base Camp
                   </h3>
 
-                  <div className="mt-1 flex items-center gap-1 text-xs text-white/70">
-                    <MapPin className="h-3.5 w-3.5 text-white/70 shrink-0" />
+                  <div className="mt-0.5 flex items-center gap-1 text-xs text-white/70">
+                    <MapPin className="h-3 w-3 text-white/70 shrink-0" />
                     <span>Solukhumbu, Nepal</span>
                   </div>
 
-                  <div className="my-3 h-px bg-white/10" />
+                  <div className="my-2.5 sm:my-3 h-px bg-white/10" />
 
                   <div className="grid grid-cols-3 gap-2 text-white">
                     <div>
                       <span className="block font-mono text-[8px] uppercase tracking-wider text-white/45">
                         DURATION
                       </span>
-                      <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-white">
+                      <div className="mt-0.5 flex items-center gap-1 text-[11px] sm:text-xs font-medium text-white">
                         <Clock className="h-3 w-3 text-white/70 shrink-0" />
                         <span>14 Days</span>
                       </div>
@@ -285,7 +299,7 @@ export function Hero() {
                       <span className="block font-mono text-[8px] uppercase tracking-wider text-white/45">
                         DIFFICULTY
                       </span>
-                      <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-white">
+                      <div className="mt-0.5 flex items-center gap-1 text-[11px] sm:text-xs font-medium text-white">
                         <Mountain className="h-3 w-3 text-white/70 shrink-0" />
                         <span>Moderate</span>
                       </div>
@@ -294,18 +308,18 @@ export function Hero() {
                       <span className="block font-mono text-[8px] uppercase tracking-wider text-white/45">
                         GROUP SIZE
                       </span>
-                      <div className="mt-0.5 flex items-center gap-1 text-xs font-medium text-white">
+                      <div className="mt-0.5 flex items-center gap-1 text-[11px] sm:text-xs font-medium text-white">
                         <Users className="h-3 w-3 text-white/70 shrink-0" />
                         <span>8–12</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between pt-1">
+                  <div className="mt-3 sm:mt-4 flex items-center justify-between pt-1">
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-xs text-white/60">From</span>
-                      <span className="text-sm font-bold text-white tracking-wide">NPR</span>
-                      <span className="text-xl font-bold text-[#7ce63a] tracking-tight">
+                      <span className="text-[11px] sm:text-xs text-white/60">From</span>
+                      <span className="text-xs sm:text-sm font-bold text-white tracking-wide">NPR</span>
+                      <span className="text-lg sm:text-xl font-bold text-[#7ce63a] tracking-tight">
                         45,000
                       </span>
                     </div>
@@ -313,9 +327,9 @@ export function Hero() {
                     <Link
                       href="/destinations/everest-base-camp-trek#book"
                       aria-label="Book Everest Base Camp expedition"
-                      className="group/btn relative flex h-10 w-10 items-center justify-center rounded-full bg-[#1b3d1f] hover:bg-[#25522b] border border-[#55c024]/40 text-white shadow-[0_0_15px_rgba(85,192,36,0.3)] transition-all active:scale-95 cursor-pointer"
+                      className="group/btn relative flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#1b3d1f] hover:bg-[#25522b] border border-[#55c024]/40 text-white shadow-[0_0_15px_rgba(85,192,36,0.3)] transition-all active:scale-95 cursor-pointer"
                     >
-                      <ArrowRight className="h-4 w-4 text-white" />
+                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                     </Link>
                   </div>
                 </div>
