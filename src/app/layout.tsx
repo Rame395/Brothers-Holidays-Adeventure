@@ -10,6 +10,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import RouteLoadingIndicator from "@/components/RouteLoadingIndicator";
+import ExpeditionLoader from "@/components/ExpeditionLoader";
 import { Suspense } from "react";
 
 const geistSans = Geist({
@@ -81,6 +82,9 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen flex flex-col">
+        <Suspense fallback={null}>
+          <ExpeditionLoader />
+        </Suspense>
         <Suspense fallback={null}>
           <RouteLoadingIndicator />
         </Suspense>
