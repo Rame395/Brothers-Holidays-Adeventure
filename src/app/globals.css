@@ -427,3 +427,63 @@
   opacity: 1 !important;
 }
 
+/* Cinematic Footer Animations */
+@keyframes footer-mountain-breathe {
+  0% { transform: scale(1.0); }
+  100% { transform: scale(1.03); }
+}
+
+@keyframes footer-mist-drift {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-35px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes footer-contour-glow {
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 0.38; }
+}
+
+@keyframes footer-beacon-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.75; }
+  50% { transform: scale(1.4); opacity: 1; }
+}
+
+@keyframes footer-ridge-light {
+  0% { stroke-dashoffset: 700; opacity: 0; }
+  20% { opacity: 0.85; }
+  80% { opacity: 0.85; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+.animate-mountain-breathe {
+  animation: footer-mountain-breathe 26s ease-in-out infinite alternate;
+}
+
+.animate-mist-drift {
+  animation: footer-mist-drift 36s ease-in-out infinite;
+}
+
+.animate-contour-glow {
+  animation: footer-contour-glow 9s ease-in-out infinite;
+}
+
+.animate-beacon-pulse {
+  animation: footer-beacon-pulse 3s ease-in-out infinite;
+}
+
+.animate-ridge-light {
+  stroke-dasharray: 120 580;
+  animation: footer-ridge-light 9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-mountain-breathe,
+  .animate-mist-drift,
+  .animate-contour-glow,
+  .animate-beacon-pulse,
+  .animate-ridge-light {
+    animation: none !important;
+  }
+}
+
