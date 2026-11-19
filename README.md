@@ -105,7 +105,7 @@ kharka-trekking/
 ```bash
 # Clone the repository
 git clone https://github.com/kushal-0987/Trecking-website-.git
-cd "Trecking-website-/kharka-trekking"
+cd Trecking-website-
 
 # Install dependencies
 npm install
