@@ -11,7 +11,6 @@ import {
   Radio,
   CheckCircle2,
   XCircle,
-  HelpCircle,
   ArrowRight,
 } from "lucide-react";
 

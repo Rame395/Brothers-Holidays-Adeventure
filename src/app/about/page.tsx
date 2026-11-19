@@ -3,16 +3,8 @@
 import Link from "next/link";
 import {
   Compass,
-  ShieldCheck,
-  Mountain,
-  Users,
-  Award,
-  HeartHandshake,
   CheckCircle2,
   ArrowRight,
-  MapPin,
-  Clock,
-  Sparkles,
 } from "lucide-react";
 
 export default function AboutPage() {
@@ -185,11 +177,11 @@ export default function AboutPage() {
               Full Legal Protection
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl text-white font-normal">
-              Certified &amp; Accredited By Nepal's Mountaineering Authorities
+              Certified &amp; Accredited By Nepal&apos;s Mountaineering Authorities
             </h2>
             <p className="text-white/60 text-sm max-w-xl mx-auto">
               Your deposits and emergency insurances are legally safeguarded by the
-              Government of Nepal's Ministry of Culture, Tourism &amp; Civil Aviation.
+              Government of Nepal&apos;s Ministry of Culture, Tourism &amp; Civil Aviation.
             </p>
           </div>
 

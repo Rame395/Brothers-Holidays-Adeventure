@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useMemo } from "react";
-import { TREKS, Trek } from "@/data/treks";
+import { TREKS } from "@/data/treks";
 import AnimatedElevationGraph from "@/components/AnimatedElevationGraph";
 
 type FilterType = "all" | "under4000" | "highpass" | "spring" | "autumn";

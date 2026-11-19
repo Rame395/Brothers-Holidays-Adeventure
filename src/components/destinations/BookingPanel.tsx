@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Minus, Plus, ShieldCheck, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Trip } from "@/data/trips";
 import {
   bookingReference,
@@ -19,10 +19,15 @@ const fmtDate = (d: Date) =>
   });
 
 export function BookingPanel({ trip }: { trip: Trip }) {
-  const [departures, setDepartures] = useState<Date[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
+  const departures = useMemo(
+    () => upcomingDepartures(new Date(), trip.seasonMonths, 6),
+    [trip.seasonMonths]
+  );
+  const [selected, setSelected] = useState<string>(
+    () => upcomingDepartures(new Date(), trip.seasonMonths, 6)[0]?.toISOString() ?? "custom"
+  );
   const [customDate, setCustomDate] = useState("");
-  const [travellers, setTravellers] = useState(2);
+  const [travellers, setTravellers] = useState(() => clampTravellers(2, trip.groupMax));
   const [step, setStep] = useState<"quote" | "details" | "done">("quote");
   const [form, setForm] = useState({
     name: "",
@@ -32,10 +37,14 @@ export function BookingPanel({ trip }: { trip: Trip }) {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [reference, setReference] = useState("");
+  const isFirstMount = useRef(true);
 
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     const list = upcomingDepartures(new Date(), trip.seasonMonths, 6);
-    setDepartures(list);
     setSelected(list[0]?.toISOString() ?? "custom");
     setTravellers((t) => clampTravellers(t, trip.groupMax));
     setStep("quote");

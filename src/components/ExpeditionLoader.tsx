@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 interface ExpeditionLoaderProps {
   onComplete?: () => void;
-  forceShow?: boolean;
 }
 
 /* Ridge profile the climber walks along (viewBox 0 0 600 150). */
@@ -24,7 +23,7 @@ const STAGES = [
 const DURATION = 3200;
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
-export default function ExpeditionLoader({ onComplete, forceShow }: ExpeditionLoaderProps) {
+export default function ExpeditionLoader({ onComplete }: ExpeditionLoaderProps) {
   const onCompleteRef = useRef(onComplete);
   useEffect(() => {
     onCompleteRef.current = onComplete;

@@ -238,6 +238,7 @@ export function Nav() {
           }`}
         >
           {/* 1. LEFT BRAND: BROTHERS Holidays Adventure Logo */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
             data-launch-reload="true"
@@ -245,6 +246,7 @@ export function Nav() {
               e.preventDefault();
               setOpen(false);
               setMegaOpen(false);
+              // eslint-disable-next-line @next/next/no-location-assign-relative-destination
               window.location.href = "/";
             }}
             className="group flex items-center text-white shrink-0 cursor-pointer"

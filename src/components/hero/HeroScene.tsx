@@ -164,7 +164,7 @@ function buildClouds(): CloudSpec[] {
 
 function Clouds() {
   const textures = useMemo(() => [makeCloudTexture(1), makeCloudTexture(7), makeCloudTexture(13)], []);
-  const specs = useMemo(buildClouds, []);
+  const specs = useMemo(() => buildClouds(), []);
   const refs = useRef<(THREE.Sprite | null)[]>([]);
   const camera = useThree((s) => s.camera);
 
@@ -216,7 +216,7 @@ const PARTICLE_COUNT = 1400;
 
 function Particles() {
   const ref = useRef<THREE.Points>(null);
-  const dot = useMemo(makeDotTexture, []);
+  const dot = useMemo(() => makeDotTexture(), []);
   const { positions, speeds } = useMemo(() => {
     const rand = mulberry32(99);
     const positions = new Float32Array(PARTICLE_COUNT * 3);

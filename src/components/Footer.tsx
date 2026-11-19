@@ -179,11 +179,13 @@ export default function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-y-10 lg:gap-y-0">
             {/* Col 1: Brand & Social */}
             <div className="lg:pr-8 space-y-4">
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a
                 href="/"
                 data-launch-reload="true"
                 onClick={(e) => {
                   e.preventDefault();
+                  // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                   window.location.href = "/";
                 }}
                 className="inline-block transition-transform hover:scale-105 cursor-pointer"

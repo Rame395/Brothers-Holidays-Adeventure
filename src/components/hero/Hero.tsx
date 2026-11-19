@@ -38,7 +38,9 @@ export function Hero() {
     heroState.reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    setScene(hasWebGL());
+    requestAnimationFrame(() => {
+      if (hasWebGL()) setScene(true);
+    });
     const el = sectionRef.current;
     if (!el) return;
 

@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef } from "react";
-import { TREKS } from "@/data/treks";
-import AnimatedStat from "@/components/AnimatedStat";
+import { useState } from "react";
 import MirrorHighRoutes from "@/components/MirrorHighRoutes";
 import { Hero } from "@/components/hero/Hero";
 import {
@@ -23,8 +21,6 @@ import {
 } from "lucide-react";
 
 export default function HomePage() {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
   // Form State
   const [formData, setFormData] = useState({
     name: "",
@@ -37,13 +33,6 @@ export default function HomePage() {
   const [enquirySuccess, setEnquirySuccess] = useState(false);
   const [quickEmail, setQuickEmail] = useState("");
   const [quickSuccess, setQuickSuccess] = useState(false);
-
-  const scrollRoutes = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const offset = direction === "left" ? -400 : 400;
-      scrollContainerRef.current.scrollBy({ left: offset, behavior: "smooth" });
-    }
-  };
 
   const handleEnquirySubmit = (e: React.FormEvent) => {
     e.preventDefault();

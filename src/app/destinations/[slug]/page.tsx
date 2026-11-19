@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import Link from "next/link";
 import { TRIPS, getTrip } from "@/data/trips";
 import { TripDetailView } from "@/components/destinations/TripDetailView";
