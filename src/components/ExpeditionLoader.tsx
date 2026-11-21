@@ -20,7 +20,7 @@ const STAGES = [
   { at: 99, name: "Summit", alt: 8848 },
 ];
 
-const DURATION = 3200;
+const DURATION = 1300;
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
 export default function ExpeditionLoader({ onComplete }: ExpeditionLoaderProps) {
@@ -29,13 +29,41 @@ export default function ExpeditionLoader({ onComplete }: ExpeditionLoaderProps) 
     onCompleteRef.current = onComplete;
   });
 
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
   const [fading, setFading] = useState(false);
   const [progress, setProgress] = useState(0); // 0..100 float
   const pathRef = useRef<SVGPathElement>(null);
   const [pathLength, setPathLength] = useState(560);
   const [pos, setPos] = useState({ x: 0, y: 138 });
   const dismissed = useRef(false);
+
+  useEffect(() => {
+    let raf = 0;
+    try {
+      const isHome = window.location.pathname === "/";
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const isBot = /bot|crawl|spider|lighthouse|pagespeed|headless/i.test(
+        navigator.userAgent
+      );
+      const alreadySeen = sessionStorage.getItem("bha_intro_seen") === "1";
+
+      if (isHome && !reduced && !isBot && !alreadySeen) {
+        raf = window.requestAnimationFrame(() => {
+          try {
+            sessionStorage.setItem("bha_intro_seen", "1");
+          } catch {
+            // ignore storage errors
+          }
+          setVisible(true);
+        });
+      }
+    } catch {
+      // ignore storage errors
+    }
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
 
   const dismiss = useCallback(() => {
     if (dismissed.current) return;
@@ -82,10 +110,10 @@ export default function ExpeditionLoader({ onComplete }: ExpeditionLoaderProps) 
       const elapsed = now - start;
       const t = Math.min(elapsed / duration, 1);
       setProgress(easeInOut(t) * 100);
-      if (t >= 1 && (ready || elapsed > duration + 1500)) {
+      if (t >= 1 && (ready || elapsed > duration + 500)) {
         if (!finished) {
           finished = true;
-          window.setTimeout(dismiss, 650); // brief pause at the summit
+          window.setTimeout(dismiss, 250); // brief pause at the summit
         }
         return;
       }

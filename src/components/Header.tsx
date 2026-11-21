@@ -3,9 +3,14 @@
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import Nav from "@/components/site/Nav";
+import type { NavTripDTO } from "@/lib/types";
 
-export default function Header() {
+export default function Header({ navTrips }: { navTrips?: NavTripDTO[] }) {
   const pathname = usePathname();
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   // Pages that already have a full-bleed dark hero canvas starting at top-0
   const isHeroPage =
@@ -16,7 +21,7 @@ export default function Header() {
   return (
     <>
       <Suspense fallback={null}>
-        <Nav />
+        <Nav navTrips={navTrips} />
       </Suspense>
       {/* Spacer for non-hero content pages so the floating pill doesn't overlap top headings */}
       {!isHeroPage && (

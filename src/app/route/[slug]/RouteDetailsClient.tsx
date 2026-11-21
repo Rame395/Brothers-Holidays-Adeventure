@@ -1,17 +1,38 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { TREKS } from "@/data/treks";
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowRight,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  FileCheck2,
+  Home,
+  IdCard,
+  MapPin,
+  Mountain,
+  PlaneTakeoff,
+  ReceiptText,
+  Route,
+  ShieldCheck,
+  ShieldPlus,
+  Siren,
+  Tag,
+  TrendingUp,
+  Users,
+  X,
+} from "lucide-react";
+import type { TrekRouteDTO } from "@/lib/types";
+import { getStoredUtmParams, trackGenerateLead } from "@/lib/analytics";
 
-export default function RouteDetailsClient({ slug }: { slug: string }) {
-  // Find trek or fallback to Khumbu Glacier Traverse
-  const trek =
-    TREKS.find((t) => t.slug === slug) ||
-    TREKS.find((t) => t.slug === "khumbu-glacier-traverse") ||
-    TREKS[3];
-
+export default function RouteDetailsClient({ trek }: { trek: TrekRouteDTO }) {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+  const [bookingError, setBookingError] = useState("");
+  const [bookingReference, setBookingReference] = useState("");
   const [activeWaypoint, setActiveWaypoint] = useState<string | null>(null);
   const [elevInView, setElevInView] = useState(false);
   const elevRef = useRef<HTMLDivElement>(null);
@@ -37,9 +58,52 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
     date: "October 2026",
   });
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setBookingSuccess(true);
+    setBookingSubmitting(true);
+    setBookingError("");
+
+    try {
+      const utm = getStoredUtmParams();
+      const parsedSize = parseInt(bookingForm.partySize, 10);
+      const res = await fetch("/api/inquiries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "TRIP_INQUIRY",
+          fullName: bookingForm.name.trim(),
+          email: bookingForm.email.trim(),
+          routeName: trek.name,
+          tripSlug: trek.linkedTripSlug || undefined,
+          preferredDate: bookingForm.date,
+          groupSize: Number.isFinite(parsedSize) ? parsedSize : 1,
+          message: `Route reservation request for ${trek.name} (${bookingForm.partySize} climbers, target window: ${bookingForm.date}).`,
+          sourcePage: `/route/${trek.slug}`,
+          ...utm,
+        }),
+      });
+      const json = (await res.json()) as {
+        ok: boolean;
+        reference?: string;
+        error?: string;
+      };
+      if (!res.ok || !json.ok) {
+        setBookingError(json.error || "Unable to submit reservation right now.");
+        return;
+      }
+
+      trackGenerateLead({
+        leadType: "route_reservation",
+        interest: trek.name,
+        sourcePage: `/route/${trek.slug}`,
+      });
+      setBookingReference(json.reference || "");
+      setBookingSuccess(true);
+    } catch {
+      setBookingError("Network error. Please try again.");
+    } finally {
+      setBookingSubmitting(false);
+    }
   };
 
   return (
@@ -88,18 +152,20 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                     href="#itinerary"
                   >
                     <span>Inspect Itinerary</span>
-                    <span className="material-symbols-outlined text-[18px]">
-                      south
-                    </span>
+                    <ArrowDown
+                      className="h-[18px] w-[18px] shrink-0"
+                      aria-hidden="true"
+                    />
                   </a>
                   <a
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-surface-container text-primary font-label-lg text-label-lg hover:bg-surface-container-high transition-all duration-200"
                     href="#pricing"
                   >
                     <span>Manifest &amp; Breakdown</span>
-                    <span className="material-symbols-outlined text-[18px]">
-                      receipt_long
-                    </span>
+                    <ReceiptText
+                      className="h-[18px] w-[18px] shrink-0"
+                      aria-hidden="true"
+                    />
                   </a>
                 </div>
               </div>
@@ -148,9 +214,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 <span className="font-label-md text-label-md uppercase tracking-wider">
                   Maximum Altitude
                 </span>
-                <span className="material-symbols-outlined text-[18px] text-tertiary">
-                  landscape
-                </span>
+                <Mountain
+                  className="h-[18px] w-[18px] shrink-0 text-tertiary"
+                  aria-hidden="true"
+                />
               </div>
               <div className="my-3">
                 <span className="font-display-md text-display-md text-on-surface">
@@ -176,9 +243,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 <span className="font-label-md text-label-md uppercase tracking-wider">
                   Walking Distance
                 </span>
-                <span className="material-symbols-outlined text-[18px] text-primary">
-                  route
-                </span>
+                <Route
+                  className="h-[18px] w-[18px] shrink-0 text-primary"
+                  aria-hidden="true"
+                />
               </div>
               <div className="my-3">
                 <span className="font-display-md text-display-md text-on-surface">
@@ -204,9 +272,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 <span className="font-label-md text-label-md uppercase tracking-wider">
                   Daily Average
                 </span>
-                <span className="material-symbols-outlined text-[18px] text-primary">
-                  pace
-                </span>
+                <Clock
+                  className="h-[18px] w-[18px] shrink-0 text-primary"
+                  aria-hidden="true"
+                />
               </div>
               <div className="my-3">
                 <span className="font-display-md text-display-md text-on-surface">
@@ -232,9 +301,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 <span className="font-label-md text-label-md uppercase tracking-wider">
                   Ascent Total
                 </span>
-                <span className="material-symbols-outlined text-[18px] text-tertiary">
-                  trending_up
-                </span>
+                <TrendingUp
+                  className="h-[18px] w-[18px] shrink-0 text-tertiary"
+                  aria-hidden="true"
+                />
               </div>
               <div className="my-3">
                 <span className="font-display-md text-display-md text-on-surface">
@@ -593,9 +663,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 }}
               >
                 <div className="absolute bottom-3 left-3 bg-surface/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[16px] text-primary">
-                    pin_drop
-                  </span>
+                  <MapPin
+                    className="h-4 w-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
                   <span className="font-label-sm text-label-sm text-on-surface font-medium">
                     Khumbu Moraine Grid
                   </span>
@@ -666,9 +737,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 {/* Prop 1 */}
                 <div className="flex items-center justify-between py-2 border-b border-outline-variant/15">
                   <span className="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-primary">
-                      flight_takeoff
-                    </span>
+                    <PlaneTakeoff
+                      className="h-[18px] w-[18px] shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
                     Start Point
                   </span>
                   <span className="font-label-lg text-label-lg font-semibold text-on-surface">
@@ -679,9 +751,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 {/* Prop 2 */}
                 <div className="flex items-center justify-between py-2 border-b border-outline-variant/15">
                   <span className="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-primary">
-                      cabin
-                    </span>
+                    <Home
+                      className="h-[18px] w-[18px] shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
                     Highest Camp
                   </span>
                   <span className="font-label-lg text-label-lg font-semibold text-on-surface">
@@ -692,9 +765,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 {/* Prop 3 */}
                 <div className="flex items-center justify-between py-2 border-b border-outline-variant/15">
                   <span className="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-tertiary">
-                      warning
-                    </span>
+                    <AlertTriangle
+                      className="h-[18px] w-[18px] shrink-0 text-tertiary"
+                      aria-hidden="true"
+                    />
                     Difficulty
                   </span>
                   <span className="font-label-lg text-label-lg font-semibold text-on-surface">
@@ -705,9 +779,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 {/* Prop 4 */}
                 <div className="flex items-center justify-between py-2 border-b border-outline-variant/15">
                   <span className="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-primary">
-                      calendar_month
-                    </span>
+                    <Calendar
+                      className="h-[18px] w-[18px] shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
                     Best Season
                   </span>
                   <span className="font-label-lg text-label-lg font-semibold text-on-surface">
@@ -718,9 +793,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 {/* Prop 5 */}
                 <div className="flex items-center justify-between py-2 border-b border-outline-variant/15">
                   <span className="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-primary">
-                      badge
-                    </span>
+                    <IdCard
+                      className="h-[18px] w-[18px] shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
                     Permits Required
                   </span>
                   <span className="font-label-lg text-label-lg font-semibold text-on-surface text-right">
@@ -731,9 +807,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 {/* Prop 6 */}
                 <div className="flex items-center justify-between py-2 border-b border-outline-variant/15">
                   <span className="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-primary">
-                      sell
-                    </span>
+                    <Tag
+                      className="h-[18px] w-[18px] shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
                     Base Price
                   </span>
                   <span className="font-headline-sm text-headline-sm text-primary font-normal">
@@ -744,9 +821,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 {/* Prop 7 */}
                 <div className="flex items-center justify-between py-2 border-b border-outline-variant/15">
                   <span className="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-primary">
-                      group
-                    </span>
+                    <Users
+                      className="h-[18px] w-[18px] shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
                     Group Ratio
                   </span>
                   <span className="font-label-lg text-label-lg font-semibold text-on-surface">
@@ -757,9 +835,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 {/* Prop 8 */}
                 <div className="flex items-center justify-between py-2">
                   <span className="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[18px] text-tertiary">
-                      emergency
-                    </span>
+                    <Siren
+                      className="h-[18px] w-[18px] shrink-0 text-tertiary"
+                      aria-hidden="true"
+                    />
                     Evacuation Protocol
                   </span>
                   <span className="font-label-lg text-label-lg font-semibold text-on-surface text-right">
@@ -796,9 +875,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                 <div className="space-y-4">
                   <div className="flex items-start gap-4 p-4 rounded-DEFAULT bg-surface-container-lowest shadow-sm border border-outline-variant/20">
                     <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-container text-on-primary shrink-0 mt-0.5">
-                      <span className="material-symbols-outlined text-[18px]">
-                        health_and_safety
-                      </span>
+                      <ShieldPlus
+                        className="h-[18px] w-[18px] shrink-0"
+                        aria-hidden="true"
+                      />
                     </span>
                     <div className="flex flex-col">
                       <span className="font-headline-sm text-headline-sm text-on-surface">
@@ -814,9 +894,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
 
                   <div className="flex items-start gap-4 p-4 rounded-DEFAULT bg-surface-container-lowest shadow-sm border border-outline-variant/20">
                     <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-container text-on-primary shrink-0 mt-0.5">
-                      <span className="material-symbols-outlined text-[18px]">
-                        verified_user
-                      </span>
+                      <ShieldCheck
+                        className="h-[18px] w-[18px] shrink-0"
+                        aria-hidden="true"
+                      />
                     </span>
                     <div className="flex flex-col">
                       <span className="font-headline-sm text-headline-sm text-on-surface">
@@ -832,9 +913,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
 
                   <div className="flex items-start gap-4 p-4 rounded-DEFAULT bg-surface-container-lowest shadow-sm border border-outline-variant/20">
                     <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-container text-on-primary shrink-0 mt-0.5">
-                      <span className="material-symbols-outlined text-[18px]">
-                        assignment_turned_in
-                      </span>
+                      <FileCheck2
+                        className="h-[18px] w-[18px] shrink-0"
+                        aria-hidden="true"
+                      />
                     </span>
                     <div className="flex flex-col">
                       <span className="font-headline-sm text-headline-sm text-on-surface">
@@ -1010,9 +1092,10 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                   className="w-full py-3.5 px-6 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary transition-all duration-200 text-center shadow-md flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>Book This Expedition</span>
-                  <span className="material-symbols-outlined text-[18px]">
-                    arrow_forward
-                  </span>
+                  <ArrowRight
+                    className="h-[18px] w-[18px] shrink-0"
+                    aria-hidden="true"
+                  />
                 </button>
                 <p className="font-label-sm text-label-sm text-center text-on-surface-variant">
                   Next scheduled departure: October 14, 2026 (4 slots remaining)
@@ -1034,9 +1117,7 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
               }}
               className="absolute top-6 right-6 w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[20px]">
-                close
-              </span>
+              <X className="h-5 w-5 shrink-0" aria-hidden="true" />
             </button>
 
             {!bookingSuccess ? (
@@ -1126,23 +1207,38 @@ export default function RouteDetailsClient({ slug }: { slug: string }) {
                   </div>
                 </div>
 
+                {bookingError && (
+                  <p className="text-xs text-error font-medium">
+                    {bookingError}
+                  </p>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary transition-colors shadow-md mt-2 cursor-pointer"
+                  disabled={bookingSubmitting}
+                  className="w-full py-3.5 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary transition-colors shadow-md mt-2 cursor-pointer disabled:opacity-60"
                 >
-                  Confirm Reservation Request
+                  {bookingSubmitting
+                    ? "Logging Reservation..."
+                    : "Confirm Reservation Request"}
                 </button>
               </form>
             ) : (
               <div className="py-8 text-center space-y-4">
                 <div className="w-14 h-14 rounded-full bg-primary-fixed text-primary flex items-center justify-center mx-auto">
-                  <span className="material-symbols-outlined text-[32px]">
-                    check_circle
-                  </span>
+                  <CheckCircle2
+                    className="h-8 w-8 shrink-0"
+                    aria-hidden="true"
+                  />
                 </div>
                 <h3 className="font-headline-md text-headline-md text-on-surface font-serif">
                   Reservation Logged
                 </h3>
+                {bookingReference && (
+                  <span className="inline-block rounded-full bg-surface-container px-3 py-1 font-mono text-xs font-semibold text-primary">
+                    Ref · {bookingReference}
+                  </span>
+                )}
                 <p className="font-body-md text-body-md text-on-surface-variant">
                   We have registered your provisional reservation for{" "}
                   <strong>{trek.name}</strong> ({bookingForm.date}). A verified

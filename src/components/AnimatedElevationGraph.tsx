@@ -22,40 +22,37 @@ export default function AnimatedElevationGraph({
   midLabel,
   peakLabel,
   className = "",
-  strokeColor = "#006b78",
-  fillColor = "rgba(0, 107, 120, 0.18)",
+  strokeColor = "#0f4c54",
+  fillColor = "rgba(15, 76, 84, 0.16)",
   viewBox = "0 0 300 40",
   height = "h-10",
 }: AnimatedElevationGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  const [animKey, setAnimKey] = useState(0);
+  const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
+    if (revealed) return;
     const el = containerRef.current;
     if (!el) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Re-trigger animation whenever seen
-          setInView(true);
-          setAnimKey((k) => k + 1);
-        } else {
-          setInView(false);
+          setRevealed(true);
+          observer.disconnect();
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.15 }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [revealed]);
 
   return (
     <div ref={containerRef} className={`w-full overflow-hidden ${className}`}>
       {(startLabel || midLabel || peakLabel) && (
-        <div className="flex justify-between text-[10px] font-mono text-on-surface-variant/80 mb-1">
+        <div className="flex justify-between text-[10px] font-mono text-white/65 mb-1 tabular-nums">
           <span>{startLabel}</span>
           {midLabel && <span>{midLabel}</span>}
           <span>{peakLabel}</span>
@@ -64,23 +61,20 @@ export default function AnimatedElevationGraph({
 
       <div className={`relative w-full ${height}`}>
         <svg
-          key={animKey}
-          className={`w-full h-full overflow-visible transition-opacity duration-700 ${
-            inView ? "opacity-100" : "opacity-40"
+          className={`w-full h-full overflow-visible transition-opacity duration-500 ${
+            revealed ? "opacity-100" : "opacity-45"
           }`}
           viewBox={viewBox}
           preserveAspectRatio="none"
         >
-          {/* Background Area Fill */}
           <path
             d={`${svgPath} L 300 40 L 0 40 Z`}
             fill={fillColor}
-            className={`transition-all duration-1000 ease-out ${
-              inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+            className={`transition-opacity duration-700 ${
+              revealed ? "opacity-100" : "opacity-0"
             }`}
           />
 
-          {/* Animated Stroke Line */}
           <path
             d={svgPath}
             fill="none"
@@ -89,41 +83,23 @@ export default function AnimatedElevationGraph({
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeDasharray="600"
-            strokeDashoffset={inView ? "0" : "600"}
+            strokeDashoffset={revealed ? "0" : "600"}
             style={{
-              transition: "stroke-dashoffset 1.4s cubic-bezier(0.16, 1, 0.3, 1)",
+              transition: "stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           />
 
-          {/* Peak Waypoint Beacon */}
           {peakCoords && (
-            <g
-              className={`transition-all duration-700 delay-500 ${
-                inView ? "opacity-100 scale-100" : "opacity-0 scale-50"
-              }`}
-              style={{
-                transformOrigin: `${peakCoords.x}px ${peakCoords.y}px`,
-              }}
-            >
-              <circle
-                cx={peakCoords.x}
-                cy={peakCoords.y}
-                r="3.5"
-                fill="#c88a3e"
-                stroke="#ffffff"
-                strokeWidth="1.5"
-                className="animate-pulse"
-              />
-              <circle
-                cx={peakCoords.x}
-                cy={peakCoords.y}
-                r="7"
-                fill="none"
-                stroke="#c88a3e"
-                strokeWidth="1"
-                className="animate-ping opacity-60"
-              />
-            </g>
+            <circle
+              cx={peakCoords.x}
+              cy={peakCoords.y}
+              r="3.2"
+              fill="#e5b96b"
+              stroke="#0b181f"
+              strokeWidth="1.4"
+              opacity={revealed ? 1 : 0}
+              style={{ transition: "opacity 0.5s ease 0.4s" }}
+            />
           )}
         </svg>
       </div>

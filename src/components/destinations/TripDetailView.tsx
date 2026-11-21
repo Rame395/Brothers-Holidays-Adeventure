@@ -14,22 +14,25 @@ import {
   MapPin,
   Mountain,
   Sparkles,
+  Star,
   TrendingDown,
   TrendingUp,
   Users,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BookingPanel } from "@/components/destinations/BookingPanel";
 import { ElevationProfile } from "@/components/destinations/ElevationProfile";
 import { TripCard } from "@/components/destinations/TripCard";
 import {
   categoryLabel,
   regionLabel,
-  relatedTrips,
-  type Trip,
+  type Category,
+  type Region,
 } from "@/data/trips";
+import type { TripDTO } from "@/lib/types";
 import { formatRs } from "@/lib/booking";
+import { trackViewTrip } from "@/lib/analytics";
 
 const MONTHS = [
   "Jan",
@@ -54,12 +57,27 @@ const SECTIONS = [
   { id: "includes", label: "Includes" },
 ];
 
-export function TripDetailView({ trip }: { trip: Trip }) {
+export function TripDetailView({
+  trip,
+  related,
+}: {
+  trip: TripDTO;
+  related: TripDTO[];
+}) {
   const [activeHeroImg, setActiveHeroImg] = useState<string>(trip.image);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [itineraryFilter, setItineraryFilter] = useState<"all" | "high">("all");
 
-  const related = relatedTrips(trip);
+  useEffect(() => {
+    trackViewTrip({
+      slug: trip.slug,
+      name: trip.name,
+      price: trip.price,
+      country: trip.country,
+      region: trip.region,
+    });
+  }, [trip.slug, trip.name, trip.price, trip.country, trip.region]);
+
   const unit = trip.days === 1 ? "Stage" : "Day";
 
   // Combine main image + gallery images (deduplicated) for the top gallery
@@ -143,7 +161,7 @@ export function TripDetailView({ trip }: { trip: Trip }) {
                   href={`/destinations?category=trekking&region=${trip.region}`}
                   className="text-[#89d6e2] hover:text-[#e8b765] transition-colors"
                 >
-                  {regionLabel(trip.region)}
+                  {regionLabel(trip.region as Region)}
                 </Link>
               ) : (
                 <Link
@@ -152,7 +170,7 @@ export function TripDetailView({ trip }: { trip: Trip }) {
                   }`}
                   className="text-[#89d6e2] hover:text-[#e8b765] transition-colors"
                 >
-                  {categoryLabel(trip.categories[0] ?? "trekking")}
+                  {categoryLabel((trip.categories[0] ?? "trekking") as Category)}
                 </Link>
               )}
             </nav>
@@ -661,6 +679,88 @@ export function TripDetailView({ trip }: { trip: Trip }) {
               </div>
             </div>
           </section>
+
+          {/* SECTION E: FREQUENTLY ASKED QUESTIONS (WHEN PRESENT) */}
+          {trip.faqs.length > 0 && (
+            <section id="faqs" className="scroll-mt-32">
+              <div className="mb-5">
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#b58133] font-semibold">
+                  Pre-Departure Briefing
+                </p>
+                <h2 className="mt-1 font-serif text-3xl sm:text-4xl text-[#111d1f] font-normal">
+                  Frequently Asked Questions
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {trip.faqs.map((faq) => (
+                  <details
+                    key={faq.id}
+                    className="group rounded-2xl border border-[#d8e5e7] bg-white p-5 shadow-xs"
+                  >
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-serif text-lg text-[#111d1f]">
+                      <span>{faq.question}</span>
+                      <span className="font-mono text-xs text-[#00515b] transition-transform group-open:rotate-45">
+                        +
+                      </span>
+                    </summary>
+                    <p className="mt-3 text-sm text-[#3f484a] leading-relaxed border-t border-[#e8f0f3] pt-3">
+                      {faq.answer}
+                    </p>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* SECTION F: VERIFIED TREKKER REVIEWS (WHEN PRESENT) */}
+          {trip.reviews.length > 0 && (
+            <section id="reviews" className="scroll-mt-32">
+              <div className="mb-5">
+                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#b58133] font-semibold">
+                  Field Dispatches &amp; Reviews
+                </p>
+                <h2 className="mt-1 font-serif text-3xl sm:text-4xl text-[#111d1f] font-normal">
+                  Verified Climber Reports
+                </h2>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {trip.reviews.map((rev) => (
+                  <div
+                    key={rev.id}
+                    className="rounded-2xl border border-[#d8e5e7] bg-white p-5 shadow-xs space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-[#b58133]">
+                        {Array.from({ length: rev.rating }).map((_, idx) => (
+                          <Star
+                            key={idx}
+                            className="h-3.5 w-3.5 fill-current"
+                          />
+                        ))}
+                      </div>
+                      {rev.verified && (
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-[#0f4c54] bg-[#f2efe8] border border-[#d6cfc2] px-2 py-0.5 rounded-full">
+                          Verified Ascent
+                        </span>
+                      )}
+                    </div>
+                    {rev.title && (
+                      <h3 className="font-serif text-lg text-[#111d1f]">
+                        {rev.title}
+                      </h3>
+                    )}
+                    <p className="text-xs sm:text-sm text-[#3f484a] leading-relaxed">
+                      {rev.comment}
+                    </p>
+                    <p className="font-mono text-[11px] text-[#6f797b] pt-1">
+                      {rev.authorName}
+                      {rev.authorCountry ? ` · ${rev.authorCountry}` : ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         {/* RIGHT SIDEBAR: Sticky Booking Panel */}
@@ -711,19 +811,19 @@ export function TripDetailView({ trip }: { trip: Trip }) {
       )}
 
       {/* Mobile Sticky Bottom Booking Bar */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#d8e5e7] bg-white/95 p-3 backdrop-blur-xl lg:hidden shadow-lg">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#d6cfc2] bg-[#faf8f4]/96 p-3 lg:hidden shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-2">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-[#55606a]">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-[#526065]">
               From / person
             </p>
-            <p className="font-serif text-lg font-semibold text-[#003840]">
+            <p className="font-serif text-lg font-semibold text-[#141c1f] tabular-nums">
               {formatRs(trip.price)}
             </p>
           </div>
           <a
             href="#book"
-            className="rounded-full bg-[#00515b] px-6 py-2.5 font-mono text-xs uppercase tracking-widest font-semibold text-white shadow-md"
+            className="rounded-full bg-[#0f4c54] hover:bg-[#0c3d44] transition-colors px-6 py-2.5 font-mono text-xs uppercase tracking-widest font-semibold text-white shadow-md"
           >
             Book Expedition
           </a>
