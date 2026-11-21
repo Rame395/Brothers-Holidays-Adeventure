@@ -1,0 +1,733 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum AdminRole {
+  SUPER_ADMIN
+  EDITOR
+  SALES_AGENT
+}
+
+enum DepartureStatus {
+  OPEN
+  LIMITED
+  GUARANTEED
+  SOLD_OUT
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  DEPOSIT_PAID
+  PAID
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum InquiryType {
+  GENERAL
+  CUSTOM_TRIP
+  TRIP_INQUIRY
+  EXPEDITION
+  CALLBACK
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  NEGOTIATION
+  WON
+  LOST
+  ARCHIVED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ActivityType {
+  NOTE
+  CALL
+  EMAIL
+  WHATSAPP
+  STATUS_CHANGE
+  QUOTE_SENT
+}
+
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+}
+
+enum AuthActorType {
+  ADMIN
+  CUSTOMER
+  SYSTEM
+}
+
+enum TokenPurpose {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+  EMAIL_CHANGE
+}
+
+enum OAuthProvider {
+  GOOGLE
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. ADMIN & ACCESS CONTROL
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String
+  passwordHash        String
+  role                AdminRole @default(EDITOR)
+  isActive            Boolean   @default(true)
+  mfaEnabled          Boolean   @default(false)
+  mfaRequired         Boolean   @default(true)
+  mfaSecretEncrypted  String?
+  mfaVerifiedAt       DateTime?
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  passwordChangedAt   DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  assignedInquiries  Inquiry[]
+  activities         LeadActivity[]
+  journalPosts       JournalPost[]
+  sessions           AdminSession[]
+  backupCodes        MfaBackupCode[]
+  verificationTokens VerificationToken[]
+  auditLogs          AuthAuditLog[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. CORE EXPEDITIONS / DESTINATIONS CATALOG
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Trip {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  country         String
+  categories      String[]
+  region          String?
+  area            String
+  image           String
+  gallery         String[]
+  mapImage        String?
+  videoUrl        String?
+  days            Int
+  maxAltitude     Int
+  difficulty      String
+  price           Int
+  priceUsd        Int?
+  groupMax        Int      @default(8)
+  seasonMonths    Int[]
+  startPoint      String
+  endPoint        String
+  tagline         String
+  overview        String   @db.Text
+  highlights      String[]
+  includes        String[]
+  excludes        String[]
+  gearList        String[] @default([])
+  badge           String?
+  isPublished     Boolean  @default(true)
+  isFeatured      Boolean  @default(false)
+  featuredOrder   Int      @default(0)
+
+  // SEO Controls
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  metaKeywords    String[] @default([])
+  focusKeyword    String?
+  ogImage         String?
+  canonicalUrl    String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  itinerary  TripItineraryDay[]
+  departures TripDeparture[]
+  faqs       TripFaq[]
+  reviews    TripReview[]
+  bookings   Booking[]
+  inquiries  Inquiry[]
+
+  @@index([country, isPublished])
+  @@index([region, isPublished])
+  @@index([isFeatured, featuredOrder])
+}
+
+model TripItineraryDay {
+  id            String  @id @default(cuid())
+  tripId        String
+  dayOrder      Int
+  dayLabel      String
+  title         String
+  altitude      Int     @default(0)
+  note          String? @db.Text
+  meals         String?
+  accommodation String?
+  distanceKm    Float?
+  durationHrs   String?
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, dayOrder])
+  @@index([tripId])
+}
+
+model TripDeparture {
+  id            String          @id @default(cuid())
+  tripId        String
+  startDate     DateTime
+  endDate       DateTime?
+  priceOverride Int?
+  seatsTotal    Int             @default(8)
+  seatsBooked   Int             @default(0)
+  status        DepartureStatus @default(OPEN)
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  trip     Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([tripId, startDate])
+  @@index([status, startDate])
+}
+
+model TripFaq {
+  id        String @id @default(cuid())
+  tripId    String
+  question  String
+  answer    String @db.Text
+  sortOrder Int    @default(0)
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, sortOrder])
+}
+
+model TripReview {
+  id            String    @id @default(cuid())
+  tripId        String
+  authorName    String
+  authorCountry String?
+  rating        Int       @default(5)
+  title         String?
+  comment       String    @db.Text
+  tripDate      DateTime?
+  verified      Boolean   @default(true)
+  isPublished   Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, isPublished])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. SPECIALIZED CATALOGS (TREK ROUTES, EXPEDITION BANDS, ARCHIVE, JOURNAL)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TrekRoute {
+  id               String   @id @default(cuid())
+  code             String   @unique
+  slug             String   @unique
+  name             String
+  range            String
+  region           String
+  district         String
+  difficulty       String
+  duration         Int
+  startPoint       String
+  highestPoint     Int
+  highestPointName String
+  priceFrom        Int
+  season           String
+  seasonLabel      String
+  statusBadge      String
+  statusColor      String
+  description      String   @db.Text
+  image            String
+  elevationStart   String
+  elevationMid     String
+  elevationPeak    String
+  svgPath          String   @db.Text
+  peakX            Float
+  peakY            Float
+  linkedTripSlug   String?
+  sortOrder        Int      @default(0)
+  isPublished      Boolean  @default(true)
+  metaTitle        String?
+  metaDescription  String?  @db.Text
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model ExpeditionObjective {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  region      String
+  permit      String
+  band        String
+  bandType    String
+  elevation   Int
+  elevationFt String
+  season      String
+  seasonSub   String
+  route       String
+  specs       String   @db.Text
+  guideRatio  String
+  guideSpecs  String
+  image       String?
+  icon        String?
+  sortOrder   Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ArchiveEntry {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  year        Int
+  decade      String
+  name        String
+  region      String
+  subRegion   String
+  passDetail  String
+  status      String
+  altitude    Int
+  altitudeFt  String
+  icon        String
+  summary     String   @db.Text
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model JournalPost {
+  id               String     @id @default(cuid())
+  slug             String     @unique
+  dispatchNo       String
+  title            String
+  subtitle         String
+  excerpt          String     @db.Text
+  content          String     @db.Text
+  image            String
+  authorId         String?
+  authorName       String     @default("Brothers Field Team")
+  authorRole       String     @default("Senior Alpine Lead")
+  category         String     @default("Field Dispatch")
+  tags             String[]   @default([])
+  badge            String
+  badgeType        String
+  rating           String     @default("5.0")
+  ratingCount      String     @default("0 logged")
+  duration         String
+  metricLabel      String
+  metricValue      String
+  tariff           String
+  logisticsBadge   String
+  telemetryWarning String?
+  telemetryIcon    String?
+  telemetryColor   String?
+  mirrored         Boolean    @default(false)
+  readingTimeMin   Int        @default(5)
+  isPublished      Boolean    @default(true)
+  isFeatured       Boolean    @default(false)
+  publishedAt      DateTime   @default(now())
+
+  // SEO Controls
+  metaTitle       String?
+  metaDescription String?    @db.Text
+  metaKeywords    String[]   @default([])
+  ogImage         String?
+  canonicalUrl    String?
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  author AdminUser? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([isPublished, publishedAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. BUILT-IN CRM, CUSTOMERS, BOOKINGS & LEADS
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Customer {
+  id                  String    @id @default(cuid())
+  fullName            String
+  email               String    @unique
+  passwordHash        String?
+  emailVerifiedAt     DateTime?
+  isActive            Boolean   @default(true)
+  mfaEnabled          Boolean   @default(false)
+  mfaSecretEncrypted  String?
+  mfaVerifiedAt       DateTime?
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  passwordChangedAt   DateTime?
+  deletedAt           DateTime?
+  phone               String?
+  whatsapp            String?
+  country             String?
+  nationality         String?
+  source              String?
+  tags                String[]  @default([])
+  notes               String?   @db.Text
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  bookings           Booking[]
+  inquiries          Inquiry[]
+  activities         LeadActivity[]
+  sessions           CustomerSession[]
+  backupCodes        MfaBackupCode[]
+  verificationTokens VerificationToken[]
+  oauthAccounts      OAuthAccount[]
+  auditLogs          AuthAuditLog[]
+}
+
+model Booking {
+  id             String        @id @default(cuid())
+  reference      String        @unique
+  tripId         String
+  tripSlug       String
+  tripName       String
+  departureId    String?
+  departureDate  DateTime?
+  isCustomDate   Boolean       @default(false)
+  travellers     Int           @default(1)
+  pricePerPerson Int
+  totalAmount    Int
+  currency       String        @default("NPR")
+  status         BookingStatus @default(PENDING)
+  paymentStatus  PaymentStatus @default(UNPAID)
+  customerId     String?
+  customerName   String
+  customerEmail  String
+  customerPhone  String?
+  specialNotes   String?       @db.Text
+  adminNotes     String?       @db.Text
+  sourcePage     String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  trip       Trip           @relation(fields: [tripId], references: [id], onDelete: Restrict)
+  departure  TripDeparture? @relation(fields: [departureId], references: [id], onDelete: SetNull)
+  customer   Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  activities LeadActivity[]
+
+  @@index([status, createdAt])
+  @@index([customerEmail])
+  @@index([tripId])
+}
+
+model Inquiry {
+  id             String        @id @default(cuid())
+  reference      String        @unique
+  type           InquiryType   @default(GENERAL)
+  status         InquiryStatus @default(NEW)
+  priority       Priority      @default(MEDIUM)
+  customerId     String?
+  fullName       String
+  email          String
+  phone          String?
+  whatsapp       String?
+  country        String?
+  interest       String?
+  routeName      String?
+  tripId         String?
+  preferredDate  DateTime?
+  groupSize      Int?
+  budget         String?
+  message        String?       @db.Text
+  assignedToId   String?
+  estimatedValue Int?
+  followUpAt     DateTime?
+  sourcePage     String?
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  customer   Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  trip       Trip?          @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  assignedTo AdminUser?     @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  activities LeadActivity[]
+
+  @@index([status, priority, createdAt])
+  @@index([email])
+}
+
+model LeadActivity {
+  id          String       @id @default(cuid())
+  type        ActivityType @default(NOTE)
+  content     String       @db.Text
+  inquiryId   String?
+  bookingId   String?
+  customerId  String?
+  adminUserId String?
+  createdAt   DateTime     @default(now())
+
+  inquiry   Inquiry?   @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  booking   Booking?   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  customer  Customer?  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+
+  @@index([inquiryId])
+  @@index([bookingId])
+  @@index([customerId])
+}
+
+model NewsletterSubscriber {
+  id        String           @id @default(cuid())
+  email     String           @unique
+  name      String?
+  source    String?
+  status    SubscriberStatus @default(ACTIVE)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. GLOBAL SITE SETTINGS, SEO COMMAND CENTER & MEDIA
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SiteSetting {
+  id                     String   @id @default("default")
+  siteName               String   @default("BROTHERS Holidays Adventure")
+  tagline                String   @default("Himalayan Field Journal & Premium Expeditions")
+  contactEmail           String   @default("info@brothersholidays.com")
+  contactPhone           String   @default("+977-1-4700000")
+  whatsappNumber         String   @default("+9779800000000")
+  officeAddress          String   @default("Thamel, Kathmandu 44600, Nepal")
+  registrationNo         String   @default("Govt. Regd. 58177/068/069 · TAAN · NMA · NTB")
+  defaultCurrency        String   @default("NPR")
+  usdExchangeRate        Float    @default(135.0)
+  announcementBanner     String?
+  announcementActive     Boolean  @default(false)
+  instagramUrl           String?
+  facebookUrl            String?
+  youtubeUrl             String?
+  tripadvisorUrl         String?
+
+  // Analytics & Verification
+  gaMeasurementId        String?
+  gtmContainerId         String?
+  googleSiteVerification String?
+  bingSiteVerification   String?
+  facebookPixelId        String?
+
+  // Default Global SEO
+  defaultMetaTitle       String   @default("BROTHERS Holidays Adventure — Himalayan Field Journal & Premium Expeditions")
+  defaultMetaDescription String   @default("An alpine editorial journal of routes across Nepal, mapped with absolute elevation, topographic precision, and zero commercial filler.") @db.Text
+  defaultOgImage         String   @default("/images/trips/hero-ama-dablam.jpg")
+
+  updatedAt              DateTime @updatedAt
+}
+
+model PageSeo {
+  id                 String   @id @default(cuid())
+  routePath          String   @unique
+  pageLabel          String
+  metaTitle          String
+  metaDescription    String   @db.Text
+  metaKeywords       String[] @default([])
+  ogTitle            String?
+  ogDescription      String?  @db.Text
+  ogImage            String?
+  canonicalUrl       String?
+  noIndex            Boolean  @default(false)
+  structuredDataJson String?  @db.Text
+  updatedAt          DateTime @updatedAt
+}
+
+model Redirect {
+  id         String   @id @default(cuid())
+  fromPath   String   @unique
+  toPath     String
+  statusCode Int      @default(301)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String   @unique
+  altText   String?
+  mimeType  String?
+  sizeBytes Int?
+  folder    String   @default("general")
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6. AUTHENTICATION, SESSIONS, MFA, OAUTH & SECURITY AUDIT TRAIL
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AdminSession {
+  id             String    @id @default(cuid())
+  tokenHash      String    @unique
+  adminUserId    String
+  mfaVerified    Boolean   @default(false)
+  ipAddress      String?
+  userAgent      String?
+  deviceLabel    String?
+  lastActivityAt DateTime  @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  adminUser AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId, revokedAt])
+  @@index([expiresAt])
+}
+
+model CustomerSession {
+  id             String    @id @default(cuid())
+  tokenHash      String    @unique
+  customerId     String
+  mfaVerified    Boolean   @default(true)
+  ipAddress      String?
+  userAgent      String?
+  deviceLabel    String?
+  lastActivityAt DateTime  @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, revokedAt])
+  @@index([expiresAt])
+}
+
+model VerificationToken {
+  id                  String        @id @default(cuid())
+  tokenHash           String        @unique
+  purpose             TokenPurpose
+  actorType           AuthActorType
+  email               String
+  adminUserId         String?
+  customerId          String?
+  pendingPasswordHash String?
+  pendingFullName     String?
+  pendingPhone        String?
+  pendingCountry      String?
+  expiresAt           DateTime
+  usedAt              DateTime?
+  createdAt           DateTime      @default(now())
+
+  adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  customer  Customer?  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([email, purpose])
+  @@index([expiresAt])
+}
+
+model MfaBackupCode {
+  id          String        @id @default(cuid())
+  codeHash    String
+  actorType   AuthActorType
+  adminUserId String?
+  customerId  String?
+  usedAt      DateTime?
+  createdAt   DateTime      @default(now())
+
+  adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  customer  Customer?  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId, usedAt])
+  @@index([customerId, usedAt])
+}
+
+model OAuthAccount {
+  id                String        @id @default(cuid())
+  provider          OAuthProvider
+  providerAccountId String
+  email             String
+  customerId        String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([customerId])
+}
+
+model AuthAuditLog {
+  id          String        @id @default(cuid())
+  actorType   AuthActorType
+  adminUserId String?
+  customerId  String?
+  email       String?
+  action      String
+  success     Boolean       @default(true)
+  ipAddress   String?
+  userAgent   String?
+  metadata    String?       @db.Text
+  createdAt   DateTime      @default(now())
+
+  adminUser AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+  customer  Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([actorType, createdAt])
+  @@index([adminUserId, createdAt])
+  @@index([customerId, createdAt])
+  @@index([action, createdAt])
+}
+
+model RateLimitAttempt {
+  id           String    @id @default(cuid())
+  bucketKey    String    @unique
+  count        Int       @default(1)
+  windowStart  DateTime  @default(now())
+  blockedUntil DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  @@index([windowStart])
+  @@index([blockedUntil])
+}
