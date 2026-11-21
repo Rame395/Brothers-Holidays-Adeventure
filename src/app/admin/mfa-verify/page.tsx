@@ -1,0 +1,30 @@
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/auth/guards";
+import AdminMfaVerifyClient from "@/components/admin/AdminMfaVerifyClient";
+
+async function MfaVerifyGate() {
+  const auth = await requireAdmin({ allowPendingMfa: true });
+  if (auth.mfaVerified) {
+    redirect("/admin");
+  }
+  if (!auth.admin.mfaEnabled) {
+    redirect("/admin/mfa-setup");
+  }
+
+  return <AdminMfaVerifyClient adminEmail={auth.admin.email} />;
+}
+
+export default function AdminMfaVerifyPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center font-mono text-xs text-white/60">
+          Loading verification...
+        </div>
+      }
+    >
+      <MfaVerifyGate />
+    </Suspense>
+  );
+}
