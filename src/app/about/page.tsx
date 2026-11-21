@@ -1,14 +1,26 @@
-"use client";
-
 import Link from "next/link";
+import type { Metadata } from "next";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { buildBreadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
 import {
   Compass,
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
 
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/about");
+}
+
 export default function AboutPage() {
   return (
+    <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "About Us", path: "/about" },
+        ])}
+      />
     <div className="flex flex-col w-full bg-[#071116] text-white selection:bg-[#c9a46a] selection:text-white">
       {/* ──────────────────────────────────────────────────────────
           1. EDITORIAL HERO SECTION
@@ -319,5 +331,6 @@ export default function AboutPage() {
         </div>
       </section>
     </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
-"use client";
-
 import Link from "next/link";
+import type { Metadata } from "next";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { buildBreadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
 import {
   Compass,
   FileCheck,
@@ -13,6 +14,10 @@ import {
   XCircle,
   ArrowRight,
 } from "lucide-react";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildPageMetadata("/process");
+}
 
 export default function ProcessPage() {
   const steps = [
@@ -74,6 +79,13 @@ export default function ProcessPage() {
   ];
 
   return (
+    <>
+      <JsonLd
+        data={buildBreadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Our Process", path: "/process" },
+        ])}
+      />
     <div className="flex flex-col w-full bg-[#071116] text-white selection:bg-[#c9a46a] selection:text-white">
       {/* ──────────────────────────────────────────────────────────
           1. PROCESS HERO SECTION
@@ -337,5 +349,6 @@ export default function ProcessPage() {
         </div>
       </section>
     </div>
+    </>
   );
 }
