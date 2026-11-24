@@ -254,7 +254,10 @@
   .anim-logo-reveal,
   .anim-scroll-cue,
   .animate-rise,
-  .animate-scroll-line {
+  .animate-scroll-line,
+  .animate-cloud-drift-left,
+  .animate-cloud-drift-right,
+  .animate-mountain-breathe {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

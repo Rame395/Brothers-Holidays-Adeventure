@@ -16,8 +16,13 @@ import {
 } from "@/lib/seo";
 
 export async function generateStaticParams() {
-  const taxonomy = await getDestinationTaxonomy();
-  return taxonomy.categories.map((c) => ({ slug: c.slug }));
+  try {
+    const taxonomy = await getDestinationTaxonomy();
+    if (taxonomy.categories.length === 0) return [{ slug: "__placeholder__" }];
+    return taxonomy.categories.map((c) => ({ slug: c.slug }));
+  } catch {
+    return [{ slug: "__placeholder__" }];
+  }
 }
 
 export async function generateMetadata({

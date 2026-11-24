@@ -66,14 +66,8 @@ export default async function HomePage() {
       {/* SECTION 6: WHO WE ARE, TRACK RECORD & DIRECT ENQUIRY */}
       <section
         id="who-we-are"
-        className="w-full relative overflow-hidden py-20 lg:py-28 bg-white text-[#1c1917] content-auto"
+        className="w-full relative overflow-hidden py-20 lg:py-28 bg-white text-[#1c1917] border-t border-slate-100 content-auto"
       >
-        <AlpineBackdrop
-          imageSrc="/images/trips/everest.jpg"
-          imageAlt="Himalayan peaks backdrop"
-          variant="light"
-          showMistWave
-        />
 
         <div className="relative z-20 max-w-7xl mx-auto px-6 lg:px-10 space-y-14">
           {/* Who We Are */}

@@ -17,8 +17,13 @@ import {
 } from "@/lib/seo";
 
 export async function generateStaticParams() {
-  const slugs = await getAllTripSlugs();
-  return slugs.map((slug) => ({ slug }));
+  try {
+    const slugs = await getAllTripSlugs();
+    if (slugs.length === 0) return [{ slug: "__placeholder__" }];
+    return slugs.map((slug) => ({ slug }));
+  } catch {
+    return [{ slug: "__placeholder__" }];
+  }
 }
 
 export async function generateMetadata({

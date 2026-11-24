@@ -90,7 +90,11 @@ export function Hero() {
       sm.y += dmy * 0.08;
       sm.p += dp * 0.16;
 
+      const bp = Math.min(1, Math.max(0, (sm.p - 0.42) / 0.58));
+      const bt = Math.min(1, Math.max(0, (bp - 0.14) / 0.48));
       el.style.setProperty("--p", sm.p.toFixed(4));
+      el.style.setProperty("--bp", bp.toFixed(4));
+      el.style.setProperty("--bt", bt.toFixed(4));
       el.style.setProperty("--mx", sm.x.toFixed(4));
       el.style.setProperty("--my", sm.y.toFixed(4));
 
@@ -149,6 +153,8 @@ export function Hero() {
         heroState.mouseY = 0;
         heroState.progress = 0;
         el.style.setProperty("--p", "0");
+        el.style.setProperty("--bp", "0");
+        el.style.setProperty("--bt", "0");
         el.style.setProperty("--mx", "0");
         el.style.setProperty("--my", "0");
       }
@@ -231,6 +237,8 @@ export function Hero() {
       className="relative h-svh lg:h-[170vh] bg-[#081318] text-white"
       style={{
         "--p": 0,
+        "--bp": 0,
+        "--bt": 0,
         "--mx": 0,
         "--my": 0,
       } as CSSProperties}
@@ -431,37 +439,148 @@ export function Hero() {
           </div>
         </div>
 
-        {/* 5 — The Iconic Suspension Bridge Crossing Reveal: "WELCOMES YOU TO THE MOUNTAINS" (DESKTOP ONLY) */}
+        {/* 5 — The Iconic Suspension Bridge Crossing Reveal right above Why Choose Us */}
         <div
-          className="pointer-events-none absolute inset-0 z-20 hidden lg:flex items-center justify-center transition-opacity duration-500 overflow-hidden bg-white"
+          data-paused={inView ? "false" : "true"}
+          className="pointer-events-none absolute inset-0 z-20 hidden lg:flex items-center justify-center overflow-hidden bg-white will-change-[opacity]"
           style={{
-            opacity: "min(1, max(0, calc((var(--p) - 0.44) * 2.6)))",
+            opacity: "min(1, calc(var(--bp) * 2.5))",
           }}
         >
-          {/* Crisp, High-Resolution Panoramic Visual (2048x1096 Lanczos3 - Zero Blur, Natural Full Coverage) */}
-          <div className="relative h-full w-full max-w-[2048px] flex items-center justify-center">
-            <Image
-              src="/images/welcomes-to-mountains.jpg"
-              alt="Himalayan Suspension Bridge Crossing - Welcomes You to the Mountains"
-              fill
-              sizes="100vw"
-              className="object-cover object-center"
-              priority={false}
-            />
+          {/* Crisp, High-Resolution Panoramic Visual with Kinetic Dolly Motion */}
+          <div className="relative h-full w-full max-w-[2560px] flex items-center justify-center overflow-hidden">
+            <div
+              className="absolute -inset-6 will-change-transform"
+              style={{
+                transform:
+                  "translate3d(calc((var(--bp) - 0.5) * -28px + var(--mx) * -12px), calc((1 - var(--bp)) * 26px + var(--my) * 8px), 0) scale(calc(1.14 - var(--bp) * 0.11))",
+              }}
+            >
+              <Image
+                src="/images/himalaya-suspension-bridge-trekkers.jpg"
+                alt="Himalayan Suspension Bridge Crossing with Trekkers"
+                fill
+                sizes="100vw"
+                className="object-cover object-center"
+                priority={false}
+              />
+            </div>
 
-            {/* Soft atmospheric white mist vignetting along top and bottom */}
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-16 sm:h-24 bg-gradient-to-b from-white via-white/80 to-transparent" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 sm:h-28 bg-gradient-to-t from-white via-white/80 to-transparent" />
+            {/* Subtle top sky scrim beneath the navbar without creating a white band */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#081318]/40 via-[#081318]/10 to-transparent" />
+
+            {/* Drifting valley mist clouds */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-44 sm:h-56 overflow-hidden will-change-transform"
+              style={{
+                transform: "translate3d(0, calc((1 - var(--bp)) * 20px), 0)",
+              }}
+            >
+              <div className="absolute inset-x-0 bottom-6 h-36 w-[200%] flex opacity-50 animate-cloud-drift-left">
+                <svg
+                  className="w-1/2 h-full shrink-0"
+                  viewBox="0 0 1200 240"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <linearGradient
+                      id="heroBridgeMist1"
+                      x1="0%"
+                      y1="0%"
+                      x2="0%"
+                      y2="100%"
+                    >
+                      <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
+                      <stop offset="55%" stopColor="#ffffff" stopOpacity="0.45" />
+                      <stop offset="100%" stopColor="#ffffff" stopOpacity="0.85" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M0,130 Q240,55 480,120 T960,105 Q1120,75 1200,115 L1200,240 L0,240 Z"
+                    fill="url(#heroBridgeMist1)"
+                  />
+                </svg>
+                <svg
+                  className="w-1/2 h-full shrink-0"
+                  viewBox="0 0 1200 240"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M0,130 Q240,55 480,120 T960,105 Q1120,75 1200,115 L1200,240 L0,240 Z"
+                    fill="url(#heroBridgeMist1)"
+                  />
+                </svg>
+              </div>
+
+              <div className="absolute inset-x-0 bottom-0 h-40 w-[200%] flex opacity-65 animate-cloud-drift-right">
+                <svg
+                  className="w-1/2 h-full shrink-0"
+                  viewBox="0 0 1200 240"
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    <linearGradient
+                      id="heroBridgeMist2"
+                      x1="0%"
+                      y1="0%"
+                      x2="0%"
+                      y2="100%"
+                    >
+                      <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
+                      <stop offset="45%" stopColor="#ffffff" stopOpacity="0.55" />
+                      <stop offset="100%" stopColor="#ffffff" stopOpacity="0.95" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M0,115 Q300,40 600,110 T1080,85 Q1160,65 1200,95 L1200,240 L0,240 Z"
+                    fill="url(#heroBridgeMist2)"
+                  />
+                </svg>
+                <svg
+                  className="w-1/2 h-full shrink-0"
+                  viewBox="0 0 1200 240"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d="M0,115 Q300,40 600,110 T1080,85 Q1160,65 1200,95 L1200,240 L0,240 Z"
+                    fill="url(#heroBridgeMist2)"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Clean compact bottom mist transition into Why Choose Us */}
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-24 sm:h-32"
+              style={{
+                background:
+                  "linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.88) 34%, rgba(255,255,255,0.28) 70%, transparent 100%)",
+              }}
+            />
           </div>
 
-          {/* Seamless feathering into the following #ffffff Topographic Survey section */}
+          {/* Scroll-choreographed editorial headline in upper sky zone */}
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-16 sm:h-24"
+            className="pointer-events-none absolute inset-x-0 top-[13vh] z-20 px-6 text-center will-change-transform"
             style={{
-              background:
-                "linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.55) 50%, #ffffff 100%)",
+              opacity: "var(--bt)",
+              transform:
+                "translate3d(calc(var(--mx) * 6px), calc((1 - var(--bt)) * 28px), 0) scale(calc(0.95 + var(--bt) * 0.05))",
             }}
-          />
+          >
+            <span className="inline-flex items-center gap-2 text-[11px] font-sans font-semibold uppercase tracking-[0.28em] text-white/95 drop-shadow-[0_2px_10px_rgba(7,21,38,0.75)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#f05e25]" />
+              Khumbu Valley · High Pass Crossing
+            </span>
+            <h2 className="mt-2 font-heading text-4xl xl:text-6xl font-bold uppercase tracking-[0.06em] text-white drop-shadow-[0_6px_28px_rgba(7,21,38,0.72)]">
+              “Welcomes You To The Mountains”
+            </h2>
+            <div
+              className="mt-3 h-[2px] w-28 mx-auto bg-gradient-to-r from-transparent via-[#f05e25] to-transparent origin-center will-change-transform"
+              style={{ transform: "scaleX(var(--bt))" }}
+            />
+          </div>
         </div>
       </div>
     </section>

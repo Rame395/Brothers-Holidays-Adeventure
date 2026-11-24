@@ -16,8 +16,13 @@ import {
 } from "@/lib/seo";
 
 export async function generateStaticParams() {
-  const posts = await getPublishedJournalPosts();
-  return posts.map((post) => ({ slug: post.slug }));
+  try {
+    const posts = await getPublishedJournalPosts();
+    if (posts.length === 0) return [{ slug: "__placeholder__" }];
+    return posts.map((post) => ({ slug: post.slug }));
+  } catch {
+    return [{ slug: "__placeholder__" }];
+  }
 }
 
 export async function generateMetadata({

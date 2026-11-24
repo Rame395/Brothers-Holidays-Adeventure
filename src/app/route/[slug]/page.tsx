@@ -11,10 +11,15 @@ import { buildBreadcrumbJsonLd, buildTrekRouteMetadata } from "@/lib/seo";
 import RouteDetailsClient from "./RouteDetailsClient";
 
 export async function generateStaticParams() {
-  const treks = await getPublishedTrekRoutes();
-  return treks.map((trek) => ({
-    slug: trek.slug,
-  }));
+  try {
+    const treks = await getPublishedTrekRoutes();
+    if (treks.length === 0) return [{ slug: "__placeholder__" }];
+    return treks.map((trek) => ({
+      slug: trek.slug,
+    }));
+  } catch {
+    return [{ slug: "__placeholder__" }];
+  }
 }
 
 export async function generateMetadata({
