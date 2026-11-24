@@ -34,11 +34,11 @@ export default async function HomePage() {
       {/* SECTION 1: HIMALAYAN HERO + ANIMATED SUSPENSION BRIDGE REVEAL */}
       <Hero />
 
-      {/* SECTION 2: WHY CHOOSE US (SHERPA HERITAGE & PARALLAX MOUNTAIN) */}
-      <WhyChooseUs />
-
-      {/* SECTION 3: TREKKING REGIONS CAROUSEL */}
+      {/* SECTION 2: TREKKING REGIONS CAROUSEL */}
       <TrekkingRegions />
+
+      {/* SECTION 3: WHY CHOOSE US (SHERPA HERITAGE & PARALLAX MOUNTAIN) */}
+      <WhyChooseUs />
 
       {/* SECTION 4: SELECTED HIGH ROUTES DIRECTORY PREVIEW */}
       <MirrorHighRoutes treks={trekRoutes} />

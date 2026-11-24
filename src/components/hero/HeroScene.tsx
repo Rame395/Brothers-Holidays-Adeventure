@@ -14,7 +14,7 @@ const MOUSE_SHIFT_X = 2.4;
 const MOUSE_SHIFT_Y = 0.9;
 const MOUSE_DAMP = 2.2;
 const ROLL = 0.035;
-const FOG_COLOR = "#97adc2";
+const FOG_COLOR = "#aec4da";
 
 /* ---------- shared deterministic terrain sampler ---------- */
 interface RidgeSpec {
@@ -257,19 +257,18 @@ function Ridge({
     const normals = geo.attributes["normal"] as THREE.BufferAttribute;
     const colors = new Float32Array(pos.count * 3);
 
-    const rockDark = new THREE.Color("#222b34");
-    const rockGranite = new THREE.Color("#49535d");
-    const wetRiverRock = new THREE.Color("#1b2329");
-    const khumbuOlive = new THREE.Color("#253421");
-    const khumbuMoss = new THREE.Color("#3a4b2b");
-    const alpineGrassDry = new THREE.Color("#5c4e32");
-    const autumnScrubRed = new THREE.Color("#6b3326");
-    const trailStone = new THREE.Color("#8f8270");
+    const rockDark = new THREE.Color("#232e3a");
+    const rockGranite = new THREE.Color("#4b5b6b");
+    const wetRiverRock = new THREE.Color("#1d2a35");
+    const snowShadow = new THREE.Color("#a9c0d8");
+    const snowMid = new THREE.Color("#dce8f5");
+    const snowBright = new THREE.Color("#f4f9ff");
+    const packedTrailSnow = new THREE.Color("#c6d6e6");
     const snow = new THREE.Color("#eef4fa");
     const snowShade = new THREE.Color("#b4c5d7");
 
     const tmp = new THREE.Color();
-    const tmpScrub = new THREE.Color();
+    const tmpPack = new THREE.Color();
     const tmpSnow = new THREE.Color();
 
     for (let i = 0; i < pos.count; i++) {
@@ -283,41 +282,40 @@ function Ridge({
       const patch = valueNoise(x * 0.19 + 4.1, lz * 0.19 - 2.3, seed + 33);
 
       if (terrainStyle === "foothill") {
-        // Exposed rocky slate cliffs & gorge walls
+        // Exposed dark granite on steep cliffs & gorge walls
         tmp.lerpColors(rockDark, rockGranite, n * 0.85);
 
-        // Mottled Khumbu hillside scrub: olive + moss + golden dry grass + autumn rust rhododendron
-        tmpScrub.lerpColors(khumbuOlive, khumbuMoss, smoothstep(0.18, 0.82, n));
-        tmpScrub.lerp(alpineGrassDry, smoothstep(0.45, 0.85, patch) * 0.52);
-        const rustMix = smoothstep(0.68, 0.9, patch) * smoothstep(0.35, 0.8, n);
-        tmpScrub.lerp(autumnScrubRed, rustMix * 0.65);
+        // Layered, wind-sculpted snowpack on gentle & moderate slopes
+        tmpPack.lerpColors(snowShadow, snowMid, smoothstep(0.5, 0.82, ny));
+        tmpPack.lerp(snowBright, smoothstep(0.78, 0.97, ny) * (0.55 + 0.45 * patch));
+        tmpPack.lerp(snowShadow, smoothstep(0.62, 0.9, n) * 0.25);
+        const snowCover =
+          smoothstep(0.42, 0.62, ny + (patch - 0.5) * 0.12) *
+          (0.88 + 0.12 * smoothstep(0.2, 0.8, n));
+        tmp.lerp(tmpPack, snowCover);
 
-        const vegetatedSlope =
-          smoothstep(0.55, 0.77, ny) * (1 - smoothstep(0.54, 0.8, hn));
-        tmp.lerp(tmpScrub, vegetatedSlope);
-
-        // Subtle stone/dirt trekking trail winding along left approach toward bridge abutment
+        // Packed-snow trekking trail winding along left approach toward bridge abutment
         if (zWorld > -10 && zWorld < 11 && x < -9.2 && x > -18.5) {
           const trailCenterX = -11.4 - Math.sin((zWorld + 1.5) * 0.25) * 1.4;
           const distTrail = Math.abs(x - trailCenterX);
           const trailMask =
             (1 - smoothstep(0.35, 1.05, distTrail)) * smoothstep(0.6, 0.82, ny);
-          tmp.lerp(trailStone, trailMask * 0.78);
+          tmp.lerp(packedTrailSnow, trailMask * 0.7);
         }
 
-        // Dark wet scoured slate & river gorge banks near flowing glacial channel
+        // Dark wet icy slate right at the glacial river edge
         const riverDist = Math.abs(x - riverCenterX(zWorld));
-        if (riverDist < 3.6) {
-          const wetMask = 1 - smoothstep(2.0, 3.6, riverDist);
-          tmp.lerp(wetRiverRock, wetMask * 0.88);
+        if (riverDist < 3.4) {
+          const wetMask = 1 - smoothstep(1.9, 3.4, riverDist);
+          tmp.lerp(wetRiverRock, wetMask * 0.9);
         }
 
-        // Light alpine frost on the highest back foothill ridges
+        // Extra bright snow accumulation on upper ridges
         const frostAmt =
           smoothstep(snowLine - 0.04, snowLine + 0.16, hn + (ny - 0.75) * 0.35) *
-          smoothstep(0.62, 0.88, ny);
+          smoothstep(0.5, 0.85, ny);
         tmpSnow.lerpColors(snowShade, snow, smoothstep(0.6, 0.95, ny));
-        tmp.lerp(tmpSnow, frostAmt * 0.82);
+        tmp.lerp(tmpSnow, frostAmt * 0.7);
       } else {
         // Massive snow-covered Khumbu granite faces in background
         tmp.lerpColors(rockDark, rockGranite, n * 0.72);
@@ -345,8 +343,8 @@ function Ridge({
         vertexColors
         map={detailMap}
         bumpMap={bumpMap}
-        bumpScale={terrainStyle === "foothill" ? 1.15 : 0.45}
-        roughness={0.94}
+        bumpScale={terrainStyle === "foothill" ? 0.65 : 0.42}
+        roughness={terrainStyle === "foothill" ? 0.86 : 0.9}
         metalness={0.02}
       />
     </mesh>
@@ -434,21 +432,22 @@ function HillsideDetails() {
     }[] = [];
 
     const rockColors = [
-      new THREE.Color("#525a62"),
-      new THREE.Color("#636c74"),
-      new THREE.Color("#454d55"),
-      new THREE.Color("#6f767c"),
+      new THREE.Color("#6d7e8f"),
+      new THREE.Color("#8a9dad"),
+      new THREE.Color("#556473"),
+      new THREE.Color("#a7bacb"),
     ];
     const scrubColors = [
-      new THREE.Color("#2b3c25"),
-      new THREE.Color("#3b4d2b"),
-      new THREE.Color("#635131"),
-      new THREE.Color("#6f3225"), // autumn Khumbu crimson bush
+      new THREE.Color("#d6e4f2"),
+      new THREE.Color("#bfd2e5"),
+      new THREE.Color("#e8f2fc"),
+      new THREE.Color("#aec4da"),
     ];
     const pineColors = [
-      new THREE.Color("#1b3322"),
-      new THREE.Color("#253f28"),
-      new THREE.Color("#2e4b2f"),
+      new THREE.Color("#2b4a4b"),
+      new THREE.Color("#3f6163"),
+      new THREE.Color("#5d7e82"),
+      new THREE.Color("#88a5ab"),
     ];
 
     const nearForbiddenZone = (x: number, z: number) => {
@@ -612,7 +611,7 @@ function HillsideDetails() {
       {pines.length > 0 && (
         <>
           <instancedMesh ref={trunkRef} args={[trunkGeo, undefined, pines.length]}>
-            <meshStandardMaterial color="#3c2e22" roughness={0.95} />
+            <meshStandardMaterial color="#4a433d" roughness={0.95} />
           </instancedMesh>
           <instancedMesh ref={foliageRef} args={[foliageGeo, undefined, pines.length]}>
             <meshStandardMaterial roughness={0.88} metalness={0.02} />

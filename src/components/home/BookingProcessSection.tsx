@@ -76,7 +76,6 @@ const BOOKING_STEPS: BookingStep[] = [
 
 export default function BookingProcessSection() {
   const sectionRef = useRef<HTMLElement>(null);
-  const bgRef = useRef<HTMLDivElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [beaconPos, setBeaconPos] = useState({ x: 460, y: 110 });
@@ -84,7 +83,6 @@ export default function BookingProcessSection() {
 
   useEffect(() => {
     const section = sectionRef.current;
-    const bg = bgRef.current;
     const path = pathRef.current;
     if (!section) return;
 
@@ -119,13 +117,7 @@ export default function BookingProcessSection() {
 
         setScrollProgress(p);
 
-        // 1. Kinetic Parallax on mountain background image
-        if (bg) {
-          const parallaxShift = (p - 0.5) * 75;
-          bg.style.transform = `translate3d(0, ${parallaxShift.toFixed(1)}px, 0)`;
-        }
-
-        // 2. Animate SVG Trail Draw along the mountain path
+        // 1. Animate SVG Trail Draw along the mountain path
         if (path) {
           const total = pathTotalLen || 860;
           const offset = total * (1 - p);
@@ -197,24 +189,6 @@ export default function BookingProcessSection() {
       id="booking-process"
       className="w-full relative py-20 sm:py-28 lg:py-36 bg-[#f8fafc] text-[#1c1917] border-t border-stone-200/90 overflow-hidden content-auto"
     >
-      {/* KINETIC PARALLAX MOUNTAIN BACKGROUND (Properly visible, high-res Nepal snow ridge) */}
-      <div
-        ref={bgRef}
-        aria-hidden="true"
-        className="absolute -top-[12%] -bottom-[12%] inset-x-0 w-full pointer-events-none will-change-transform"
-        style={{
-          backgroundImage: "url('/images/booking-mountain-hero.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center 22%",
-        }}
-      />
-
-      {/* Atmospheric translucent alpine overlay - mountains remain clearly visible */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-gradient-to-b from-[#f8fafc]/75 via-[#f8fafc]/45 to-[#f8fafc]/80 pointer-events-none"
-      />
-
       {/* Subtle topographic contour pattern */}
       <div
         aria-hidden="true"

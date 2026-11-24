@@ -90,11 +90,7 @@ export function Hero() {
       sm.y += dmy * 0.08;
       sm.p += dp * 0.16;
 
-      const bp = Math.min(1, Math.max(0, (sm.p - 0.42) / 0.58));
-      const bt = Math.min(1, Math.max(0, (bp - 0.14) / 0.48));
       el.style.setProperty("--p", sm.p.toFixed(4));
-      el.style.setProperty("--bp", bp.toFixed(4));
-      el.style.setProperty("--bt", bt.toFixed(4));
       el.style.setProperty("--mx", sm.x.toFixed(4));
       el.style.setProperty("--my", sm.y.toFixed(4));
 
@@ -153,8 +149,6 @@ export function Hero() {
         heroState.mouseY = 0;
         heroState.progress = 0;
         el.style.setProperty("--p", "0");
-        el.style.setProperty("--bp", "0");
-        el.style.setProperty("--bt", "0");
         el.style.setProperty("--mx", "0");
         el.style.setProperty("--my", "0");
       }
@@ -234,11 +228,9 @@ export function Hero() {
     <section
       id="hero"
       ref={sectionRef}
-      className="relative h-svh lg:h-[170vh] bg-[#081318] text-white"
+      className="relative h-svh lg:h-[135vh] bg-[#081318] text-white"
       style={{
         "--p": 0,
-        "--bp": 0,
-        "--bt": 0,
         "--mx": 0,
         "--my": 0,
       } as CSSProperties}
@@ -314,6 +306,16 @@ export function Hero() {
           }}
         />
 
+        {/* Localized Dark Scrim Above 3D Scene for Left Editorial Text Contrast */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[5]"
+          style={{
+            background:
+              "radial-gradient(ellipse 58% 52% at 20% 74%, rgba(10, 15, 20, 0.62) 0%, rgba(10, 15, 20, 0.28) 52%, transparent 78%)",
+          }}
+        />
+
         {/* 4 — Foreground Editorial Interface */}
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-end px-6 sm:px-8 md:px-12 pb-[108px] sm:pb-28 lg:pb-[14vh]">
           <div
@@ -324,24 +326,22 @@ export function Hero() {
               opacity: "calc(1 - var(--p) * 3)",
             }}
           >
-            <div className="max-w-2xl">
+            <div className="max-w-3xl">
               <p
-                className="animate-rise mb-3 sm:mb-4 flex items-center gap-2.5 sm:gap-3 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.22em] sm:tracking-[0.26em] text-[#e5b96b]"
+                className="animate-rise mb-3 sm:mb-4 flex items-center gap-2.5 sm:gap-3 font-sans text-[11px] sm:text-xs font-semibold uppercase tracking-[0.26em] sm:tracking-[0.3em] text-[#f3ca7e] drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]"
                 style={{ animationDelay: "0.08s" }}
               >
-                <span className="h-px w-6 sm:w-8 shrink-0 bg-[#e5b96b]" />
+                <span className="h-[1.5px] w-7 sm:w-9 shrink-0 bg-[#e5b96b]" />
                 <span>Kathmandu-Based Mountain Outfitters</span>
               </p>
 
               {/* Single semantic H1 per page for strong SEO & crisp hierarchy */}
               <h1
-                className="animate-rise font-serif text-[clamp(2.1rem,8.5vw,3.75rem)] sm:text-5xl lg:text-[64px] font-bold uppercase leading-[1.05] tracking-[0.02em] text-white [text-shadow:0_4px_28px_rgba(0,0,0,0.8)]"
+                className="animate-rise font-serif text-[clamp(2rem,7.8vw,3.4rem)] sm:text-5xl lg:text-[60px] font-bold uppercase leading-[1.06] tracking-[0.02em] text-white [text-shadow:0_4px_28px_rgba(0,0,0,0.8)]"
                 style={{ animationDelay: "0.14s" }}
               >
-                Walk the high passes{" "}
-                <br className="sm:hidden" />
-                of{" "}
-                <br className="hidden sm:inline" />
+                Walk the high passes of
+                <br />
                 <span className="text-[#f05e25]">the Himalayas.</span>
               </h1>
 
@@ -358,7 +358,7 @@ export function Hero() {
                 </a>
                 <Link
                   href="/destinations"
-                  className="group inline-flex h-11 sm:h-12 w-full sm:w-auto items-center justify-center gap-1.5 sm:gap-2 rounded-[6px] border border-white/25 bg-[#081318]/75 lg:bg-[#081318]/65 px-3 sm:px-6 text-[10.5px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white transition-colors hover:border-[#e5b96b] hover:text-[#e5b96b] cursor-pointer whitespace-nowrap"
+                  className="group inline-flex h-11 sm:h-12 w-full sm:w-auto items-center justify-center gap-1.5 sm:gap-2 rounded-[6px] border border-white/35 bg-[#081318]/45 backdrop-blur-md px-3 sm:px-6 text-[10.5px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white shadow-md transition-colors hover:border-[#e5b96b] hover:bg-[#081318]/65 hover:text-[#e5b96b] cursor-pointer whitespace-nowrap"
                 >
                   <span>Browse Routes</span>
                   <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
@@ -372,8 +372,7 @@ export function Hero() {
         <div
           className="pointer-events-none absolute inset-0 z-10 hidden lg:flex flex-col items-center justify-center px-6 text-center select-none"
           style={{
-            opacity:
-              "min(calc((var(--p) - 0.18) * 6), calc((0.68 - var(--p)) * 6))",
+            opacity: "min(1, max(0, calc((var(--p) - 0.22) * 3.5)))",
             transform: "scale(calc(0.92 + var(--p) * 0.16))",
           }}
         >
@@ -406,19 +405,14 @@ export function Hero() {
         {/* Bottom altitude & coordinates telemetry bar */}
         <div
           className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-6 pb-7 sm:pb-6 md:px-12"
-          style={{ opacity: "calc(1 - var(--p) * 2.5)" }}
+          style={{ opacity: "calc(1 - var(--p) * 1.45)" }}
         >
-          <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 border-t border-white/15 pt-3 text-[10px] uppercase tracking-[0.2em] text-white/65">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <span className="relative block h-6 sm:h-8 w-px overflow-hidden bg-white/20">
-                <span className="animate-scroll-line absolute inset-0 bg-[#f05e25]" />
-              </span>
-              <span>Scroll to explore</span>
-            </div>
+          <div className="mx-auto grid max-w-[1440px] grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 border-t border-white/15 pt-3.5 text-[10px] uppercase tracking-[0.2em] text-white/70">
+            <div className="hidden md:block" aria-hidden="true" />
 
-            <div className="hidden items-center gap-5 md:flex tabular-nums">
+            <div className="flex items-center justify-center gap-4 sm:gap-5 tabular-nums">
               <span>Elevation</span>
-              <span className="relative block h-px w-36 bg-white/20">
+              <span className="relative block h-px w-24 sm:w-36 bg-white/20">
                 <span
                   ref={meterRef}
                   className="absolute inset-0 origin-left bg-[#f05e25]"
@@ -430,158 +424,84 @@ export function Hero() {
               </span>
             </div>
 
-            <div className="hidden sm:block text-right tabular-nums text-[9px] sm:text-[10px]">
-              <span className="block text-white/75">27°59′N · 86°55′E</span>
-              <span className="mt-0.5 hidden text-white/45 sm:block">
+            <div className="hidden md:flex flex-col items-end text-right tabular-nums text-[10px] pr-16 lg:pr-20">
+              <span className="block text-white/80">27°59′N · 86°55′E</span>
+              <span className="mt-0.5 block text-white/50">
                 Prime Seasons · Mar–May · Sep–Nov
               </span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* 5 — The Iconic Suspension Bridge Crossing Reveal right above Why Choose Us */}
+      {/* Seamless multi-layered Himalayan cloud-mist transition into Trekking Regions */}
+      <div
+        data-paused={inView ? "false" : "true"}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 -bottom-px z-20 h-16 sm:h-24 lg:h-64 overflow-hidden"
+      >
+        {/* Multi-stop vertical atmospheric gradient */}
         <div
-          data-paused={inView ? "false" : "true"}
-          className="pointer-events-none absolute inset-0 z-20 hidden lg:flex items-center justify-center overflow-hidden bg-white will-change-[opacity]"
+          className="absolute inset-0"
           style={{
-            opacity: "min(1, calc(var(--bp) * 2.5))",
+            background:
+              "linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.08) 28%, rgba(255,255,255,0.38) 58%, rgba(255,255,255,0.82) 82%, #ffffff 100%)",
           }}
-        >
-          {/* Crisp, High-Resolution Panoramic Visual with Kinetic Dolly Motion */}
-          <div className="relative h-full w-full max-w-[2560px] flex items-center justify-center overflow-hidden">
-            <div
-              className="absolute -inset-6 will-change-transform"
-              style={{
-                transform:
-                  "translate3d(calc((var(--bp) - 0.5) * -28px + var(--mx) * -12px), calc((1 - var(--bp)) * 26px + var(--my) * 8px), 0) scale(calc(1.14 - var(--bp) * 0.11))",
-              }}
-            >
-              <Image
-                src="/images/himalaya-suspension-bridge-trekkers.jpg"
-                alt="Himalayan Suspension Bridge Crossing with Trekkers"
-                fill
-                sizes="100vw"
-                className="object-cover object-center"
-                priority={false}
-              />
-            </div>
+        />
 
-            {/* Subtle top sky scrim beneath the navbar without creating a white band */}
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#081318]/40 via-[#081318]/10 to-transparent" />
-
-            {/* Drifting valley mist clouds */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-44 sm:h-56 overflow-hidden will-change-transform"
-              style={{
-                transform: "translate3d(0, calc((1 - var(--bp)) * 20px), 0)",
-              }}
-            >
-              <div className="absolute inset-x-0 bottom-6 h-36 w-[200%] flex opacity-50 animate-cloud-drift-left">
-                <svg
-                  className="w-1/2 h-full shrink-0"
-                  viewBox="0 0 1200 240"
-                  preserveAspectRatio="none"
-                >
-                  <defs>
-                    <linearGradient
-                      id="heroBridgeMist1"
-                      x1="0%"
-                      y1="0%"
-                      x2="0%"
-                      y2="100%"
-                    >
-                      <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
-                      <stop offset="55%" stopColor="#ffffff" stopOpacity="0.45" />
-                      <stop offset="100%" stopColor="#ffffff" stopOpacity="0.85" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M0,130 Q240,55 480,120 T960,105 Q1120,75 1200,115 L1200,240 L0,240 Z"
-                    fill="url(#heroBridgeMist1)"
-                  />
-                </svg>
-                <svg
-                  className="w-1/2 h-full shrink-0"
-                  viewBox="0 0 1200 240"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M0,130 Q240,55 480,120 T960,105 Q1120,75 1200,115 L1200,240 L0,240 Z"
-                    fill="url(#heroBridgeMist1)"
-                  />
-                </svg>
-              </div>
-
-              <div className="absolute inset-x-0 bottom-0 h-40 w-[200%] flex opacity-65 animate-cloud-drift-right">
-                <svg
-                  className="w-1/2 h-full shrink-0"
-                  viewBox="0 0 1200 240"
-                  preserveAspectRatio="none"
-                >
-                  <defs>
-                    <linearGradient
-                      id="heroBridgeMist2"
-                      x1="0%"
-                      y1="0%"
-                      x2="0%"
-                      y2="100%"
-                    >
-                      <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
-                      <stop offset="45%" stopColor="#ffffff" stopOpacity="0.55" />
-                      <stop offset="100%" stopColor="#ffffff" stopOpacity="0.95" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M0,115 Q300,40 600,110 T1080,85 Q1160,65 1200,95 L1200,240 L0,240 Z"
-                    fill="url(#heroBridgeMist2)"
-                  />
-                </svg>
-                <svg
-                  className="w-1/2 h-full shrink-0"
-                  viewBox="0 0 1200 240"
-                  preserveAspectRatio="none"
-                >
-                  <path
-                    d="M0,115 Q300,40 600,110 T1080,85 Q1160,65 1200,95 L1200,240 L0,240 Z"
-                    fill="url(#heroBridgeMist2)"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            {/* Clean compact bottom mist transition into Why Choose Us */}
-            <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-24 sm:h-32"
-              style={{
-                background:
-                  "linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.88) 34%, rgba(255,255,255,0.28) 70%, transparent 100%)",
-              }}
-            />
-          </div>
-
-          {/* Scroll-choreographed editorial headline in upper sky zone */}
-          <div
-            className="pointer-events-none absolute inset-x-0 top-[13vh] z-20 px-6 text-center will-change-transform"
-            style={{
-              opacity: "var(--bt)",
-              transform:
-                "translate3d(calc(var(--mx) * 6px), calc((1 - var(--bt)) * 28px), 0) scale(calc(0.95 + var(--bt) * 0.05))",
-            }}
+        {/* Desktop drifting valley cloud ribbon */}
+        <div className="hidden lg:flex absolute inset-x-0 bottom-4 h-40 w-[200%] opacity-55 animate-cloud-drift-left">
+          <svg
+            className="w-1/2 h-full shrink-0"
+            viewBox="0 0 1200 240"
+            preserveAspectRatio="none"
           >
-            <span className="inline-flex items-center gap-2 text-[11px] font-sans font-semibold uppercase tracking-[0.28em] text-white/95 drop-shadow-[0_2px_10px_rgba(7,21,38,0.75)]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#f05e25]" />
-              Khumbu Valley · High Pass Crossing
-            </span>
-            <h2 className="mt-2 font-heading text-4xl xl:text-6xl font-bold uppercase tracking-[0.06em] text-white drop-shadow-[0_6px_28px_rgba(7,21,38,0.72)]">
-              “Welcomes You To The Mountains”
-            </h2>
-            <div
-              className="mt-3 h-[2px] w-28 mx-auto bg-gradient-to-r from-transparent via-[#f05e25] to-transparent origin-center will-change-transform"
-              style={{ transform: "scaleX(var(--bt))" }}
+            <defs>
+              <linearGradient id="heroExitMist" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
+                <stop offset="50%" stopColor="#ffffff" stopOpacity="0.45" />
+                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.92" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M0,125 Q240,45 480,115 T960,95 Q1120,70 1200,110 L1200,240 L0,240 Z"
+              fill="url(#heroExitMist)"
             />
-          </div>
+          </svg>
+          <svg
+            className="w-1/2 h-full shrink-0"
+            viewBox="0 0 1200 240"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M0,125 Q240,45 480,115 T960,95 Q1120,70 1200,110 L1200,240 L0,240 Z"
+              fill="url(#heroExitMist)"
+            />
+          </svg>
         </div>
+
+        {/* Layered static organic mist ridges anchored to bottom edge */}
+        <svg
+          viewBox="0 0 1440 160"
+          preserveAspectRatio="none"
+          className="absolute inset-x-0 bottom-0 w-full h-14 sm:h-20 lg:h-32"
+        >
+          <path
+            d="M0,78 C240,22 440,120 720,68 C980,20 1210,112 1440,56 L1440,160 L0,160 Z"
+            fill="#ffffff"
+            fillOpacity="0.2"
+          />
+          <path
+            d="M0,104 C280,58 520,136 820,88 C1080,46 1270,124 1440,86 L1440,160 L0,160 Z"
+            fill="#ffffff"
+            fillOpacity="0.48"
+          />
+          <path
+            d="M0,128 C340,94 600,148 920,114 C1180,86 1330,138 1440,118 L1440,160 L0,160 Z"
+            fill="#ffffff"
+            fillOpacity="1"
+          />
+        </svg>
       </div>
     </section>
   );

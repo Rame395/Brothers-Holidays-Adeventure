@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES, COUNTRIES, REGIONS } from "@/data/trips";
 import type {
@@ -120,14 +121,14 @@ export function MegaPanel({
 
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7dd3fc]">
+        <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f05e25]">
             {headingLabel}
           </p>
           <Link
             href={viewAllHref}
             onClick={onClose}
-            className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#7dd3fc] hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#f05e25] hover:underline"
           >
             View all <ArrowUpRight className="h-3.5 w-3.5" />
           </Link>
@@ -143,7 +144,7 @@ export function MegaPanel({
                 <Link
                   href={`/destinations/region/${encodeURIComponent(region.slug)}`}
                   onClick={onClose}
-                  className="block text-[11px] font-semibold uppercase tracking-wider text-white/95 hover:text-[#7dd3fc] transition-colors"
+                  className="block text-[11px] font-semibold uppercase tracking-wider text-[#1c1917] hover:text-[#f05e25] transition-colors"
                 >
                   {region.name}
                 </Link>
@@ -156,12 +157,12 @@ export function MegaPanel({
                           onClick={onClose}
                           onMouseEnter={() => onHoverTrip(trip.image)}
                           onMouseLeave={() => onHoverTrip(null)}
-                          className="group flex items-center justify-between text-xs text-white/75 transition-colors hover:text-white"
+                          className="group flex items-center justify-between text-xs text-stone-600 transition-colors hover:text-[#1c1917]"
                         >
                           <span className="truncate transition-transform group-hover:translate-x-0.5">
                             {trip.name}
                           </span>
-                          <span className="ml-2 text-[11px] text-white/45 tabular-nums group-hover:text-[#7dd3fc]">
+                          <span className="ml-2 text-[11px] text-stone-400 tabular-nums group-hover:text-[#f05e25]">
                             {trip.days}d
                           </span>
                         </Link>
@@ -169,7 +170,7 @@ export function MegaPanel({
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-[11px] text-white/40 italic">
+                  <p className="text-[11px] text-stone-400 italic">
                     Routes opening soon
                   </p>
                 )}
@@ -179,7 +180,7 @@ export function MegaPanel({
 
           {unassignedTrips.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-white/90">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#1c1917]">
                 Other {activeCountry.name} Routes
               </p>
               <ul className="space-y-1">
@@ -190,12 +191,12 @@ export function MegaPanel({
                       onClick={onClose}
                       onMouseEnter={() => onHoverTrip(trip.image)}
                       onMouseLeave={() => onHoverTrip(null)}
-                      className="group flex items-center justify-between text-xs text-white/75 transition-colors hover:text-white"
+                      className="group flex items-center justify-between text-xs text-stone-600 transition-colors hover:text-[#1c1917]"
                     >
                       <span className="truncate transition-transform group-hover:translate-x-0.5">
                         {trip.name}
                       </span>
-                      <span className="ml-2 text-[11px] text-white/45 tabular-nums group-hover:text-[#7dd3fc]">
+                      <span className="ml-2 text-[11px] text-stone-400 tabular-nums group-hover:text-[#f05e25]">
                         {trip.days}d
                       </span>
                     </Link>
@@ -211,14 +212,14 @@ export function MegaPanel({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7dd3fc]">
+      <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f05e25]">
           {headingLabel}
         </p>
         <Link
           href={viewAllHref}
           onClick={onClose}
-          className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#7dd3fc] hover:underline"
+          className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#f05e25] hover:underline"
         >
           View all <ArrowUpRight className="h-3.5 w-3.5" />
         </Link>
@@ -233,26 +234,26 @@ export function MegaPanel({
               onClick={onClose}
               onMouseEnter={() => onHoverTrip(trip.image)}
               onMouseLeave={() => onHoverTrip(null)}
-              className="group flex items-center justify-between rounded-[6px] px-2 py-1 text-xs text-white/80 transition-colors hover:bg-white/5 hover:text-white"
+              className="group flex items-center justify-between rounded-[6px] px-2 py-1 text-xs text-stone-600 transition-colors hover:bg-stone-100 hover:text-[#1c1917]"
             >
               <span className="truncate transition-transform group-hover:translate-x-0.5">
                 {trip.name}
               </span>
-              <span className="ml-2 text-[11px] text-white/45 tabular-nums group-hover:text-[#7dd3fc]">
+              <span className="ml-2 text-[11px] text-stone-400 tabular-nums group-hover:text-[#f05e25]">
                 {trip.days}d
               </span>
             </Link>
           ))}
         </div>
       ) : (
-        <div className="rounded-[10px] border border-white/10 bg-white/[0.03] p-5 space-y-2">
-          <p className="text-xs text-white/75 leading-relaxed">
+        <div className="rounded-[10px] border border-stone-200 bg-stone-50 p-5 space-y-2">
+          <p className="text-xs text-stone-600 leading-relaxed">
             No published routes in {headingLabel} yet. Our Kathmandu team builds bespoke private departures on request.
           </p>
           <Link
             href="/contact"
             onClick={onClose}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#7dd3fc] hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#f05e25] hover:underline"
           >
             <span>Plan a custom route in {activeCountry.name}</span>
             <ArrowRight className="h-3.5 w-3.5" />
@@ -298,6 +299,15 @@ export function Nav({
   const [scrolled, setScrolled] = useState(false);
   const [customerName, setCustomerName] = useState<string | null>(null);
   const closeTimer = useRef<number | null>(null);
+  const pathname = usePathname();
+  const hasDarkHero =
+    pathname === "/" ||
+    pathname === "/about" ||
+    pathname === "/destinations" ||
+    pathname.startsWith("/destinations/country/") ||
+    pathname.startsWith("/destinations/category/") ||
+    pathname.startsWith("/destinations/region/");
+  const isSolid = !hasDarkHero || scrolled || megaOpen || open;
 
   useEffect(() => {
     const onScroll = () => {
@@ -392,17 +402,15 @@ export function Nav({
 
   return (
     <header
-      className="fixed inset-x-0 top-0 z-50 pt-3 sm:pt-4 px-3 sm:px-6 pointer-events-none transition-colors duration-300"
+      className={`fixed inset-x-0 top-0 z-50 w-full transition-all duration-300 ${
+        isSolid
+          ? "bg-white/95 backdrop-blur-md border-b border-stone-200/80 shadow-[0_4px_24px_rgba(28,25,23,0.06)]"
+          : "bg-gradient-to-b from-black/45 via-black/15 to-transparent border-b border-transparent"
+      }`}
       onMouseLeave={scheduleCloseMega}
     >
-      <div className="max-w-7xl mx-auto relative pointer-events-auto">
-        <nav
-          className={`w-full rounded-[14px] border transition-colors duration-300 px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4 ${
-            scrolled || megaOpen
-              ? "bg-[#071526]/95 border-white/15 shadow-2xl"
-              : "bg-[#071526]/92 border-white/12 shadow-xl"
-          }`}
-        >
+      <div className="max-w-7xl mx-auto relative">
+        <nav className="w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
           {/* Left: Brand Logo */}
           <Link
             href="/"
@@ -411,14 +419,16 @@ export function Nav({
               setMegaOpen(false);
             }}
             onMouseEnter={scheduleCloseMega}
-            className="group flex items-center text-white shrink-0 cursor-pointer"
+            className="group flex items-center shrink-0 cursor-pointer"
             aria-label="BROTHERS Holidays Adventure Home"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/brothers_logo_navbar.png"
               alt="BROTHERS Holidays Adventure"
-              className="h-7 sm:h-9 w-auto max-w-[140px] sm:max-w-[165px] object-contain"
+              className={`h-7 sm:h-9 w-auto max-w-[140px] sm:max-w-[165px] object-contain transition-all duration-300 ${
+                isSolid ? "brightness-0" : ""
+              }`}
             />
           </Link>
 
@@ -448,35 +458,55 @@ export function Nav({
             <Link
               href="/destinations"
               onMouseEnter={scheduleCloseMega}
-              className="text-xs font-medium uppercase tracking-[0.14em] text-white/85 hover:text-[#7dd3fc] transition-colors whitespace-nowrap"
+              className={`text-xs font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
+                isSolid
+                  ? "text-[#1c1917]/85 hover:text-[#f05e25]"
+                  : "text-white/95 hover:text-[#ff8a50] drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
+              }`}
             >
               All Trips
             </Link>
             <Link
               href="/treks"
               onMouseEnter={scheduleCloseMega}
-              className="text-xs font-medium uppercase tracking-[0.14em] text-white/85 hover:text-[#7dd3fc] transition-colors whitespace-nowrap"
+              className={`text-xs font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
+                isSolid
+                  ? "text-[#1c1917]/85 hover:text-[#f05e25]"
+                  : "text-white/95 hover:text-[#ff8a50] drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
+              }`}
             >
               Treks
             </Link>
             <Link
               href="/expeditions"
               onMouseEnter={scheduleCloseMega}
-              className="text-xs font-medium uppercase tracking-[0.14em] text-white/85 hover:text-[#7dd3fc] transition-colors whitespace-nowrap"
+              className={`text-xs font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
+                isSolid
+                  ? "text-[#1c1917]/85 hover:text-[#f05e25]"
+                  : "text-white/95 hover:text-[#ff8a50] drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
+              }`}
             >
               Expeditions
             </Link>
             <Link
               href="/journal"
               onMouseEnter={scheduleCloseMega}
-              className="text-xs font-medium uppercase tracking-[0.14em] text-white/85 hover:text-[#7dd3fc] transition-colors whitespace-nowrap"
+              className={`text-xs font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
+                isSolid
+                  ? "text-[#1c1917]/85 hover:text-[#f05e25]"
+                  : "text-white/95 hover:text-[#ff8a50] drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
+              }`}
             >
               Journal
             </Link>
             <Link
               href="/#who-we-are"
               onMouseEnter={scheduleCloseMega}
-              className="text-xs font-medium uppercase tracking-[0.14em] text-white/85 hover:text-[#7dd3fc] transition-colors whitespace-nowrap"
+              className={`text-xs font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
+                isSolid
+                  ? "text-[#1c1917]/85 hover:text-[#f05e25]"
+                  : "text-white/95 hover:text-[#ff8a50] drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
+              }`}
             >
               About
             </Link>
@@ -487,7 +517,11 @@ export function Nav({
             <Link
               href="/#enquiry"
               onMouseEnter={scheduleCloseMega}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-[8px] border border-[#f05e25]/70 hover:border-[#ff7a45] bg-[#f05e25]/15 hover:bg-[#f05e25] text-[#ff7a45] hover:text-white text-xs font-semibold uppercase tracking-[0.14em] transition-colors whitespace-nowrap"
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[8px] border text-xs font-semibold uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
+                isSolid
+                  ? "border-[#f05e25]/70 hover:border-[#f05e25] bg-[#f05e25]/10 hover:bg-[#f05e25] text-[#f05e25] hover:text-white"
+                  : "border-white/40 hover:border-[#f05e25] bg-white/10 hover:bg-[#f05e25] text-white backdrop-blur-xs"
+              }`}
             >
               <Send className="w-3 h-3" />
               <span>Enquire</span>
@@ -496,9 +530,17 @@ export function Nav({
             <Link
               href={customerName ? "/account" : "/login"}
               onMouseEnter={scheduleCloseMega}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border border-white/15 hover:border-[#7dd3fc]/60 bg-white/[0.04] hover:bg-white/[0.08] text-white/90 hover:text-[#7dd3fc] text-xs font-medium tracking-wide transition-colors whitespace-nowrap"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border text-xs font-medium tracking-wide transition-colors whitespace-nowrap ${
+                isSolid
+                  ? "border-stone-200 hover:border-stone-300 bg-stone-50 hover:bg-stone-100 text-[#1c1917]"
+                  : "border-white/25 hover:border-white/50 bg-white/10 hover:bg-white/20 text-white backdrop-blur-xs"
+              }`}
             >
-              <User className="w-3.5 h-3.5 text-[#7dd3fc] shrink-0" />
+              <User
+                className={`w-3.5 h-3.5 shrink-0 ${
+                  isSolid ? "text-[#f05e25]" : "text-white"
+                }`}
+              />
               <span>{customerName ?? "Sign In"}</span>
             </Link>
           </div>
@@ -507,18 +549,34 @@ export function Nav({
           <div className="flex lg:hidden items-center gap-2.5">
             <Link
               href="/#enquiry"
-              className="flex items-center gap-1.5 px-3 py-1 rounded-[6px] border border-[#f05e25]/70 bg-[#f05e25]/15 text-[#ff7a45] text-[11px] font-semibold uppercase tracking-wider"
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-[6px] border text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                isSolid
+                  ? "border-[#f05e25]/70 bg-[#f05e25]/10 text-[#f05e25]"
+                  : "border-white/40 bg-white/10 text-white backdrop-blur-xs"
+              }`}
             >
               <span>Enquire</span>
             </Link>
 
             <button
               type="button"
-              className="w-8 h-8 rounded-[8px] bg-white/5 border border-white/15 text-white flex items-center justify-center cursor-pointer hover:border-[#7dd3fc]/50 transition-colors"
+              className={`w-8 h-8 rounded-[8px] border flex items-center justify-center cursor-pointer transition-colors ${
+                isSolid
+                  ? "bg-stone-100 border-stone-200 text-[#1c1917] hover:border-stone-300"
+                  : "bg-white/10 border-white/25 text-white hover:border-white/50 backdrop-blur-xs"
+              }`}
               onClick={() => setOpen((v) => !v)}
               aria-label={open ? "Close navigation menu" : "Open navigation menu"}
             >
-              {open ? <X className="h-4 w-4 text-[#7dd3fc]" /> : <Menu className="h-4 w-4" />}
+              {open ? (
+                <X
+                  className={`h-4 w-4 ${
+                    isSolid ? "text-[#f05e25]" : "text-white"
+                  }`}
+                />
+              ) : (
+                <Menu className="h-4 w-4" />
+              )}
             </button>
           </div>
         </nav>
@@ -529,14 +587,14 @@ export function Nav({
           aria-hidden={!megaOpen}
           className={
             megaOpen
-              ? "hidden lg:block mt-2 rounded-[14px] border border-white/15 bg-[#071526]/98 shadow-2xl lg:backdrop-blur-md overflow-hidden"
+              ? "hidden lg:block mx-4 sm:mx-6 lg:mx-8 mt-0 rounded-b-2xl border border-t-0 border-stone-200 bg-white shadow-2xl overflow-hidden"
               : "hidden"
           }
         >
           <div className="grid grid-cols-[155px_195px_1fr] xl:grid-cols-[155px_195px_1fr_210px] gap-6 p-6 xl:p-7">
             {/* Column 1: Countries */}
-            <div className="border-r border-white/10 pr-4 space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] px-2.5 text-[#7dd3fc]/85 mb-2">
+            <div className="border-r border-stone-200 pr-4 space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] px-2.5 text-stone-400 mb-2">
                 Countries
               </p>
               {countries.map((c) => {
@@ -560,13 +618,13 @@ export function Nav({
                     }}
                     className={`flex w-full items-center justify-between rounded-[8px] px-2.5 py-2 text-left text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
                       isSelected
-                        ? "bg-[#104b87] text-[#7dd3fc] border border-white/15"
-                        : "text-white/80 hover:bg-white/5 hover:text-white"
+                        ? "bg-[#1c1917] text-white"
+                        : "text-stone-700 hover:bg-stone-100 hover:text-[#1c1917]"
                     }`}
                   >
                     <span className="truncate">{c.name}</span>
                     {isSelected ? (
-                      <ChevronsRight className="h-3.5 w-3.5 shrink-0 text-[#7dd3fc]" />
+                      <ChevronsRight className="h-3.5 w-3.5 shrink-0 text-[#f05e25]" />
                     ) : (
                       <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
                     )}
@@ -576,8 +634,8 @@ export function Nav({
             </div>
 
             {/* Column 2: Categories for Active Country */}
-            <div className="border-r border-white/10 pr-4 space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] px-2.5 text-[#7dd3fc]/85 mb-2">
+            <div className="border-r border-stone-200 pr-4 space-y-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] px-2.5 text-stone-400 mb-2">
                 Categories
               </p>
               {categoriesForCountry.map((cat) => {
@@ -594,8 +652,8 @@ export function Nav({
                     onClick={() => setSelectedCategorySlug(cat.slug)}
                     className={`block w-full rounded-[8px] px-2.5 py-2 text-left text-xs font-medium transition-colors cursor-pointer ${
                       isSelected
-                        ? "bg-white/10 text-[#7dd3fc] font-semibold border border-[#7dd3fc]/30"
-                        : "text-white/75 hover:bg-white/5 hover:text-white"
+                        ? "bg-[#f05e25]/10 text-[#c2410c] font-semibold border border-[#f05e25]/30"
+                        : "text-stone-600 hover:bg-stone-100 hover:text-[#1c1917]"
                     }`}
                   >
                     {cat.name}
@@ -619,7 +677,7 @@ export function Nav({
             </div>
 
             {/* Column 4: Contextual Feature Image (xl screens) */}
-            <div className="hidden xl:block relative overflow-hidden rounded-[12px] border border-white/12 bg-[#05101d]">
+            <div className="hidden xl:block relative overflow-hidden rounded-[12px] border border-stone-200 bg-stone-900">
               {megaOpen && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -628,9 +686,9 @@ export function Nav({
                   className="absolute inset-0 h-full w-full object-cover transition-all duration-300"
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#05101d] via-[#05101d]/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
               <div className="relative z-10 flex h-full flex-col justify-end p-4">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-[#7dd3fc] font-semibold">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[#ff8a50] font-semibold">
                   {activeCountry?.name ?? "Himalaya"} Dispatch
                 </p>
                 <p className="mt-1 font-serif text-sm leading-snug text-white">
@@ -644,8 +702,8 @@ export function Nav({
 
         {/* Mobile Drawer */}
         {open && (
-          <div className="mt-2 rounded-[14px] border border-white/15 bg-[#071526]/98 px-5 py-6 lg:hidden shadow-2xl max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[#7dd3fc] mb-2 font-semibold">
+          <div className="border-t border-stone-200 bg-white text-[#1c1917] px-5 py-6 lg:hidden shadow-2xl max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[#f05e25] mb-2 font-semibold">
               <MapPin className="w-3 h-3" />
               <span>Explore by Country</span>
             </div>
@@ -656,7 +714,7 @@ export function Nav({
               );
               const isExpanded = mobileExpanded === country.slug;
               return (
-                <div key={country.slug} className="border-b border-white/10">
+                <div key={country.slug} className="border-b border-stone-200">
                   <button
                     type="button"
                     onClick={() =>
@@ -664,12 +722,12 @@ export function Nav({
                         prev === country.slug ? null : country.slug
                       )
                     }
-                    className="flex w-full items-center justify-between py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-white/90 hover:text-white"
+                    className="flex w-full items-center justify-between py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-[#1c1917] hover:text-[#f05e25]"
                   >
                     <span>{country.name}</span>
                     <ChevronDown
                       className={`h-3.5 w-3.5 transition-transform ${
-                        isExpanded ? "rotate-180 text-[#7dd3fc]" : ""
+                        isExpanded ? "rotate-180 text-[#f05e25]" : ""
                       }`}
                     />
                   </button>
@@ -678,7 +736,7 @@ export function Nav({
                       <Link
                         href={`/destinations?country=${encodeURIComponent(country.slug)}`}
                         onClick={() => setOpen(false)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-[#7dd3fc]"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-[#f05e25]"
                       >
                         <span>All {country.name} journeys</span>
                         <ArrowUpRight className="h-3 w-3" />
@@ -689,10 +747,10 @@ export function Nav({
                             <Link
                               href={`/destinations/${t.slug}`}
                               onClick={() => setOpen(false)}
-                              className="flex items-center justify-between text-[11px] text-white/75 hover:text-[#7dd3fc]"
+                              className="flex items-center justify-between text-[11px] text-stone-600 hover:text-[#f05e25]"
                             >
                               <span className="truncate">{t.name}</span>
-                              <span className="ml-2 text-[10px] text-white/40 tabular-nums">
+                              <span className="ml-2 text-[10px] text-stone-400 tabular-nums">
                                 {t.days}d
                               </span>
                             </Link>
@@ -709,35 +767,35 @@ export function Nav({
               <Link
                 href="/destinations"
                 onClick={() => setOpen(false)}
-                className="block py-2 text-sm text-white font-medium hover:text-[#7dd3fc]"
+                className="block py-2 text-sm text-[#1c1917] font-medium hover:text-[#f05e25]"
               >
                 All Trips
               </Link>
               <Link
                 href="/treks"
                 onClick={() => setOpen(false)}
-                className="block py-2 text-sm text-white font-medium hover:text-[#7dd3fc]"
+                className="block py-2 text-sm text-[#1c1917] font-medium hover:text-[#f05e25]"
               >
                 Treks
               </Link>
               <Link
                 href="/expeditions"
                 onClick={() => setOpen(false)}
-                className="block py-2 text-sm text-white font-medium hover:text-[#7dd3fc]"
+                className="block py-2 text-sm text-[#1c1917] font-medium hover:text-[#f05e25]"
               >
                 Expeditions
               </Link>
               <Link
                 href="/journal"
                 onClick={() => setOpen(false)}
-                className="block py-2 text-sm text-white font-medium hover:text-[#7dd3fc]"
+                className="block py-2 text-sm text-[#1c1917] font-medium hover:text-[#f05e25]"
               >
                 Journal
               </Link>
               <Link
                 href="/#who-we-are"
                 onClick={() => setOpen(false)}
-                className="block py-2 text-sm text-white font-medium hover:text-[#7dd3fc]"
+                className="block py-2 text-sm text-[#1c1917] font-medium hover:text-[#f05e25]"
               >
                 About
               </Link>
@@ -753,9 +811,9 @@ export function Nav({
                 <Link
                   href={customerName ? "/account" : "/login"}
                   onClick={() => setOpen(false)}
-                  className="flex items-center justify-center gap-2 w-full border border-white/15 bg-white/[0.04] text-white/90 py-2.5 rounded-[8px] text-xs font-semibold uppercase tracking-wider hover:border-[#7dd3fc]/50 hover:text-[#7dd3fc]"
+                  className="flex items-center justify-center gap-2 w-full border border-stone-200 bg-stone-50 text-[#1c1917] py-2.5 rounded-[8px] text-xs font-semibold uppercase tracking-wider hover:border-[#f05e25] hover:text-[#f05e25]"
                 >
-                  <User className="w-3.5 h-3.5 text-[#7dd3fc]" />
+                  <User className="w-3.5 h-3.5 text-[#f05e25]" />
                   <span>
                     {customerName ? `My Account (${customerName})` : "Traveler Sign In"}
                   </span>

@@ -111,10 +111,10 @@ export default function TrekkingRegions() {
   };
 
   return (
-    <section className="relative w-full py-20 sm:py-28 lg:py-32 bg-white text-[#1c1917] overflow-hidden content-auto">
+    <section className="relative w-full pt-12 pb-20 sm:pt-16 sm:pb-28 lg:pt-20 lg:pb-32 bg-white text-[#1c1917] overflow-hidden content-auto">
       {/* SECTION HEADER (MATCHING THE REFERENCE) */}
       <div className="text-center max-w-4xl mx-auto px-6 mb-12 sm:mb-16 space-y-4">
-        <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl lg:text-[2.8vw] text-[#104b87] tracking-tight leading-tight">
+        <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl lg:text-[2.8vw] text-[#1c1917] tracking-tight leading-tight">
           Trekking Regions
         </h2>
 
@@ -132,7 +132,7 @@ export default function TrekkingRegions() {
             type="button"
             onClick={() => scrollByCard("left")}
             aria-label="Previous trekking regions"
-            className="absolute left-6 lg:left-14 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/95 text-stone-900 shadow-xl border border-slate-200/80 flex items-center justify-center hover:bg-[#104b87] hover:text-white transition-all cursor-pointer"
+            className="absolute left-6 lg:left-14 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/95 text-stone-900 shadow-xl border border-slate-200/80 flex items-center justify-center hover:bg-[#1c1917] hover:text-white transition-all cursor-pointer"
           >
             <ChevronLeft className="w-6 h-6 stroke-[2]" />
           </button>
@@ -144,7 +144,7 @@ export default function TrekkingRegions() {
             type="button"
             onClick={() => scrollByCard("right")}
             aria-label="Next trekking regions"
-            className="absolute right-6 lg:right-14 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/95 text-stone-900 shadow-xl border border-slate-200/80 flex items-center justify-center hover:bg-[#104b87] hover:text-white transition-all cursor-pointer"
+            className="absolute right-6 lg:right-14 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-full bg-white/95 text-stone-900 shadow-xl border border-slate-200/80 flex items-center justify-center hover:bg-[#1c1917] hover:text-white transition-all cursor-pointer"
           >
             <ChevronRight className="w-6 h-6 stroke-[2]" />
           </button>
@@ -216,7 +216,7 @@ export default function TrekkingRegions() {
               }}
               className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                 activeIndex === idx
-                  ? "w-8 bg-[#104b87]"
+                  ? "w-8 bg-[#f05e25]"
                   : "w-2 bg-slate-200 hover:bg-slate-300"
               }`}
             />

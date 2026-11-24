@@ -133,7 +133,7 @@ export default function MirrorHighRoutes({ treks }: { treks: TrekRouteDTO[] }) {
         </p>
       </div>
 
-      {/* Smooth 5-Slot Daylight Coverflow Stage */}
+      {/* Smooth 3-Slot Daylight Coverflow Stage */}
       <div
         role="region"
         aria-label="High altitude trekking route spotlight"
@@ -166,7 +166,7 @@ export default function MirrorHighRoutes({ treks }: { treks: TrekRouteDTO[] }) {
             goNext();
           }
         }}
-        className="relative mx-auto w-full h-[520px] sm:h-[540px] flex items-center justify-center select-none focus:outline-none"
+        className="relative mx-auto w-full h-[560px] sm:h-[600px] lg:h-[630px] flex items-center justify-center select-none focus:outline-none"
       >
         {/* Soft horizontal mist vignettes matching stage background */}
         <div
@@ -181,25 +181,19 @@ export default function MirrorHighRoutes({ treks }: { treks: TrekRouteDTO[] }) {
         {treks.map((trek, idx) => {
           const offset = getCircularOffset(idx, safeActiveIndex, treks.length);
           const absOffset = Math.abs(offset);
-          if (absOffset > 2) return null;
+          if (absOffset > 1) return null;
 
           const isCenter = offset === 0;
           const visibilityClass =
-            absOffset === 0
-              ? "flex"
-              : absOffset === 1
-                ? "hidden sm:flex"
-                : "hidden lg:flex";
+            absOffset === 0 ? "flex" : "hidden sm:flex";
 
           const slotTransform =
             offset === 0
               ? "translate3d(0, 0, 0) scale(1)"
-              : absOffset === 1
-                ? `translate3d(${offset * 78}%, 10px, 0) scale(0.86)`
-                : `translate3d(${offset * 68}%, 22px, 0) scale(0.74)`;
+              : `translate3d(${offset * 88}%, 14px, 0) scale(0.86)`;
 
-          const slotOpacity = offset === 0 ? 1 : absOffset === 1 ? 0.72 : 0.38;
-          const slotZIndex = offset === 0 ? 30 : absOffset === 1 ? 20 : 10;
+          const slotOpacity = offset === 0 ? 1 : 0.78;
+          const slotZIndex = offset === 0 ? 30 : 20;
 
           return (
             <article
@@ -209,7 +203,7 @@ export default function MirrorHighRoutes({ treks }: { treks: TrekRouteDTO[] }) {
                 opacity: slotOpacity,
                 zIndex: slotZIndex,
               }}
-              className={`group absolute w-[320px] sm:w-[370px] rounded-3xl overflow-hidden flex-col justify-between transition-[transform,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${visibilityClass} ${
+              className={`group absolute w-[330px] sm:w-[430px] lg:w-[470px] rounded-3xl overflow-hidden flex-col justify-between transition-[transform,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${visibilityClass} ${
                 isCenter
                   ? "bg-white border border-slate-200/90 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.18)]"
                   : "bg-[#f8fafc] border border-slate-200/80 shadow-md hover:border-slate-300"
@@ -231,7 +225,7 @@ export default function MirrorHighRoutes({ treks }: { treks: TrekRouteDTO[] }) {
                     src={trek.image}
                     alt={trek.name}
                     fill
-                    sizes="(max-width: 640px) 320px, 370px"
+                    sizes="(max-width: 640px) 330px, (max-width: 1024px) 430px, 470px"
                     className={`object-cover transition-transform duration-700 ${
                       isCenter ? "group-hover:scale-105" : ""
                     }`}
