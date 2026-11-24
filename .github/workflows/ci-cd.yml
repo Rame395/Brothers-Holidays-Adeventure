@@ -1,0 +1,138 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Prevent overlapping deployments from running simultaneously
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  # =========================================================================
+  # JOB 1: Full-Stack Next.js Integrity, Typecheck, Lint & Build Verification
+  # =========================================================================
+  verify:
+    name: Typecheck, Lint & Production Build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: brothers_holidays_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install --prefer-offline --no-audit
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      - name: Apply Prisma Migrations to Test Database
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: "postgresql://postgres:password@localhost:5432/brothers_holidays_test?schema=public"
+
+      - name: Typecheck (TypeScript & Imports Check)
+        run: npm run typecheck
+
+      - name: Lint Codebase
+        run: npm run lint
+
+      - name: Test Production Build Compilation
+        run: npm run build
+        env:
+          DATABASE_URL: "postgresql://postgres:password@localhost:5432/brothers_holidays_test?schema=public"
+          NEXT_PUBLIC_SITE_URL: "https://brothersholidays.com"
+          ADMIN_SESSION_SECRET: "ci-build-test-secret-minimum-64-characters-long-0000000000000000"
+          AUTH_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
+  # =========================================================================
+  # JOB 2: Zero-Downtime Production Deployment to Hostinger VPS
+  # =========================================================================
+  deploy:
+    name: Deploy to Hostinger VPS
+    needs: [verify]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy & Zero-Downtime Reload via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          APP_DIR: ${{ vars.VPS_APP_DIR || '/home/brotherholidays' }}
+          PM2_APP_NAME: ${{ vars.VPS_PM2_APP || 'brotherholidays' }}
+          APP_PORT: ${{ vars.VPS_APP_PORT || '3000' }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: APP_DIR,PM2_APP_NAME,APP_PORT
+          script_stop: true
+          script: |
+            set -e
+
+            # 0. Load NVM environment (Node.js, npm, pm2) for non-interactive SSH
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            export PATH="$PATH:/usr/local/bin"
+
+            echo "Starting Automated Deployment on $(hostname)..."
+            echo "Node: $(node -v) | NPM: $(npm -v)"
+
+            cd "$APP_DIR"
+
+            # 1. Pull latest verified commits cleanly
+            echo "Fetching and syncing latest code from origin/main..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 2. Install packages & synchronize Prisma schema
+            echo "Installing packages & updating database schema..."
+            npm install --prefer-offline --no-audit
+            npx prisma generate
+            npx prisma migrate deploy
+
+            # 3. Build Next.js Production Bundle
+            echo "Compiling Next.js production bundle..."
+            npm run build
+
+            # 4. Graceful Zero-Downtime Reload with PM2
+            echo "Reloading PM2 process ($PM2_APP_NAME)..."
+            pm2 reload "$PM2_APP_NAME" --update-env || pm2 restart "$PM2_APP_NAME" --update-env
+
+            # 5. Automated Post-Deployment Smoke Test
+            echo "Running live healthcheck verification on port $APP_PORT..."
+            sleep 3
+            if curl -f -s -I "http://127.0.0.1:${APP_PORT}/" | grep -q -E "200|308|307"; then
+              echo "Health check PASSED! BROTHERS Holidays Adventure is online and healthy."
+            else
+              echo "Health check FAILED! Application did not start properly."
+              pm2 logs "$PM2_APP_NAME" --lines 25 --nostream
+              exit 1
+            fi
+
+            echo "Deployment successfully completed!"

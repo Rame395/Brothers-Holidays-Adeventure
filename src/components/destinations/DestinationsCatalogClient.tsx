@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Compass, ArrowUpRight, X, RotateCcw } from "lucide-react";
+import {
+  Search,
+  Compass,
+  ArrowUpRight,
+  X,
+  RotateCcw,
+  MapPin,
+  SlidersHorizontal,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { TripCard } from "@/components/destinations/TripCard";
 import type { DestinationTaxonomyDTO, TripDTO } from "@/lib/types";
@@ -12,34 +20,46 @@ function FilterChip({
   onClick,
   children,
   count,
+  variant = "type",
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
   count?: number;
+  variant?: "type" | "region";
 }) {
+  const baseClass =
+    "group inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-sans font-medium transition-all duration-150 cursor-pointer";
+
+  const stateClass =
+    variant === "region"
+      ? active
+        ? "bg-[#f05e25]/10 text-[#c2410c] border border-[#f05e25]/35 font-semibold"
+        : "bg-white text-stone-600 border border-stone-200/80 hover:border-stone-300 hover:bg-stone-50 hover:text-[#1c1917]"
+      : active
+      ? "bg-[#1c1917] text-white border border-[#1c1917] shadow-xs"
+      : "bg-stone-100/80 text-stone-700 border border-transparent hover:bg-white hover:border-stone-300/90 hover:text-[#1c1917] hover:shadow-2xs";
+
+  const countClass =
+    variant === "region"
+      ? active
+        ? "text-[#f05e25] font-semibold tabular-nums text-[11px]"
+        : "text-stone-400 group-hover:text-stone-600 tabular-nums text-[11px]"
+      : active
+      ? "text-[#ff8a50] font-semibold tabular-nums text-[11px]"
+      : "text-stone-400 group-hover:text-stone-600 tabular-nums text-[11px]";
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group inline-flex items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-heading font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
-        active
-          ? "bg-[#1c1917] text-white shadow-xs ring-1 ring-black/10"
-          : "bg-white text-[#57534d] border border-stone-200/90 hover:border-stone-300 hover:bg-stone-50 hover:text-[#1c1917]"
-      }`}
+      className={`${baseClass} ${stateClass}`}
     >
-      <span>{children}</span>
-      {typeof count === "number" && (
-        <span
-          className={`text-[10px] font-sans font-medium px-1.5 py-0.5 rounded-full transition-colors ${
-            active
-              ? "bg-white/20 text-white"
-              : "bg-stone-100 text-stone-500 group-hover:bg-stone-200 group-hover:text-stone-700"
-          }`}
-        >
-          {count}
-        </span>
+      {variant === "region" && active && (
+        <span className="h-1.5 w-1.5 rounded-full bg-[#f05e25] shrink-0" />
       )}
+      <span>{children}</span>
+      {typeof count === "number" && <span className={countClass}>{count}</span>}
     </button>
   );
 }
@@ -313,34 +333,36 @@ export function DestinationsCatalogClient({
         </section>
       )}
 
-      {/* Sticky Filter & Search Bar - Upgraded to Professional Website Typography & Styling */}
-      <section className="sticky top-16 z-30 border-b border-stone-200/90 bg-white/95 backdrop-blur-md shadow-xs">
-        <div className="mx-auto max-w-7xl space-y-3.5 px-5 py-4 lg:px-8">
-          {/* ROW 1: Country Segmented Control & Search Input */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Country Pills Container */}
-            <div className="inline-flex items-center gap-1 p-1 bg-stone-100 rounded-full border border-stone-200/90 shadow-2xs overflow-x-auto no-scrollbar">
+      {/* Sticky Filter & Search Bar */}
+      <section className="sticky top-16 z-30 border-b border-stone-200/80 bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(28,25,23,0.04)]">
+        <div className="mx-auto max-w-7xl px-5 lg:px-8">
+          {/* ROW 1: Architectural Country Tabs & Sleek Search */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-stone-200/75 pt-3 pb-0">
+            <div className="flex items-center gap-6 overflow-x-auto no-scrollbar -mb-px">
               <button
                 type="button"
                 onClick={() =>
                   setFilter({ country: undefined, region: undefined })
                 }
-                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-heading font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                className={`relative inline-flex items-baseline gap-1.5 whitespace-nowrap pb-3 pt-1 font-heading text-[13px] font-bold uppercase tracking-[0.1em] transition-colors cursor-pointer ${
                   !country
-                    ? "bg-[#1c1917] text-white shadow-xs"
-                    : "text-stone-600 hover:text-[#1c1917] hover:bg-white/60"
+                    ? "text-[#1c1917]"
+                    : "text-stone-500 hover:text-[#1c1917]"
                 }`}
               >
                 <span>All Countries</span>
                 <span
-                  className={`text-[10px] font-sans font-medium px-1.5 py-0.2 rounded-full transition-colors ${
+                  className={`font-sans text-[11px] tabular-nums ${
                     !country
-                      ? "bg-white/20 text-white"
-                      : "bg-stone-200/80 text-stone-600"
+                      ? "font-semibold text-[#f05e25]"
+                      : "font-medium text-stone-400"
                   }`}
                 >
                   {trips.length}
                 </span>
+                {!country && (
+                  <span className="absolute inset-x-0 bottom-0 h-[2.5px] rounded-full bg-[#f05e25]" />
+                )}
               </button>
 
               {countries.map((c) => {
@@ -362,121 +384,137 @@ export function DestinationsCatalogClient({
                         region: keepsRegion ? region : undefined,
                       })
                     }
-                    className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-heading font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                    className={`relative inline-flex items-baseline gap-1.5 whitespace-nowrap pb-3 pt-1 font-heading text-[13px] font-bold uppercase tracking-[0.1em] transition-colors cursor-pointer ${
                       isActive
-                        ? "bg-[#1c1917] text-white shadow-xs"
-                        : "text-stone-600 hover:text-[#1c1917] hover:bg-white/60"
+                        ? "text-[#1c1917]"
+                        : "text-stone-500 hover:text-[#1c1917]"
                     }`}
                   >
                     <span>{c.name}</span>
                     <span
-                      className={`text-[10px] font-sans font-medium px-1.5 py-0.2 rounded-full transition-colors ${
+                      className={`font-sans text-[11px] tabular-nums ${
                         isActive
-                          ? "bg-white/20 text-white"
-                          : "bg-stone-200/80 text-stone-600"
+                          ? "font-semibold text-[#f05e25]"
+                          : "font-medium text-stone-400"
                       }`}
                     >
                       {count}
                     </span>
+                    {isActive && (
+                      <span className="absolute inset-x-0 bottom-0 h-[2.5px] rounded-full bg-[#f05e25]" />
+                    )}
                   </button>
                 );
               })}
             </div>
 
-            {/* Polished Search Box */}
-            <div className="relative ml-auto flex min-w-[220px] flex-1 items-center sm:flex-none">
-              <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-stone-400" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search a trek, peak or region…"
-                className="w-full sm:w-80 rounded-full border border-stone-200/90 bg-white py-2 pl-9.5 pr-8 text-xs font-sans text-[#1c1917] placeholder:text-stone-400 focus:border-[#f05e25] focus:ring-2 focus:ring-[#f05e25]/20 focus:outline-none transition-all shadow-xs"
-              />
-              {q && (
-                <button
-                  type="button"
-                  onClick={() => setQ("")}
-                  className="absolute right-2.5 p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
-                  aria-label="Clear search"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* ROW 2: Trip Types (Categories) */}
-          <div className="flex items-center gap-2.5">
-            <span className="hidden sm:inline-block font-heading font-bold text-[11px] uppercase tracking-wider text-stone-400 shrink-0">
-              Types:
-            </span>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-              <FilterChip
-                active={!category}
-                onClick={() =>
-                  setFilter({ category: undefined, region: undefined })
-                }
-                count={countryFilteredCount}
-              >
-                All Types
-              </FilterChip>
-              {categories.map((c) => (
-                <FilterChip
-                  key={c.slug}
-                  active={category === c.slug}
-                  onClick={() =>
-                    setFilter({
-                      category: c.slug,
-                      region: c.groupByRegion ? region : undefined,
-                    })
-                  }
-                  count={categoryCounts.get(c.slug) ?? 0}
-                >
-                  {c.name}
-                </FilterChip>
-              ))}
-            </div>
-          </div>
-
-          {/* ROW 3: Regions (Visible when applicable) */}
-          {visibleRegions.length > 0 &&
-            (!category || activeCategoryObj?.groupByRegion) && (
-              <div className="flex items-center gap-2.5 pt-2.5 border-t border-stone-200/70">
-                <span className="hidden sm:inline-block font-heading font-bold text-[11px] uppercase tracking-wider text-stone-400 shrink-0">
-                  Regions:
-                </span>
-                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                  <FilterChip
-                    active={!region}
-                    onClick={() => setFilter({ region: undefined })}
-                    count={categoryFilteredCount}
+            {/* Sleek Search Box */}
+            <div className="relative pb-3 md:pb-2.5 w-full md:w-80 lg:w-96 shrink-0">
+              <div className="relative flex items-center">
+                <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-stone-400" />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="Search a trek, peak or region…"
+                  className="w-full rounded-xl border border-stone-200/90 bg-stone-50/90 hover:bg-stone-100/60 focus:bg-white py-2 pl-9.5 pr-20 text-[13px] font-sans text-[#1c1917] placeholder:text-stone-400 focus:border-[#f05e25] focus:ring-4 focus:ring-[#f05e25]/10 focus:outline-none transition-all"
+                />
+                {q ? (
+                  <button
+                    type="button"
+                    onClick={() => setQ("")}
+                    className="absolute right-2.5 p-1 rounded-lg text-stone-400 hover:text-[#1c1917] hover:bg-stone-200/60 transition-colors cursor-pointer"
+                    aria-label="Clear search"
                   >
-                    All Regions
-                  </FilterChip>
-                  {visibleRegions.map((r) => (
-                    <FilterChip
-                      key={r.slug}
-                      active={region === r.slug}
-                      onClick={() => setFilter({ region: r.slug })}
-                      count={regionCounts.get(r.slug) ?? 0}
-                    >
-                      {r.name}
-                    </FilterChip>
-                  ))}
-                </div>
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <span className="pointer-events-none absolute right-3 text-[11px] font-sans font-medium text-stone-400 tabular-nums">
+                    {results.length} trips
+                  </span>
+                )}
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* ROW 2 & ROW 3: Compact Scannable Types & Regions */}
+          <div className="py-3 space-y-2.5">
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline-flex items-center gap-1.5 w-20 shrink-0 font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-400">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-[#f05e25]" />
+                <span>Types</span>
+              </span>
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                <FilterChip
+                  variant="type"
+                  active={!category}
+                  onClick={() =>
+                    setFilter({ category: undefined, region: undefined })
+                  }
+                  count={countryFilteredCount}
+                >
+                  All Types
+                </FilterChip>
+                {categories.map((c) => (
+                  <FilterChip
+                    key={c.slug}
+                    variant="type"
+                    active={category === c.slug}
+                    onClick={() =>
+                      setFilter({
+                        category: c.slug,
+                        region: c.groupByRegion ? region : undefined,
+                      })
+                    }
+                    count={categoryCounts.get(c.slug) ?? 0}
+                  >
+                    {c.name}
+                  </FilterChip>
+                ))}
+              </div>
+            </div>
+
+            {visibleRegions.length > 0 &&
+              (!category || activeCategoryObj?.groupByRegion) && (
+                <div className="flex items-center gap-3">
+                  <span className="hidden sm:inline-flex items-center gap-1.5 w-20 shrink-0 font-sans text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-400">
+                    <MapPin className="w-3.5 h-3.5 text-stone-400" />
+                    <span>Regions</span>
+                  </span>
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                    <FilterChip
+                      variant="region"
+                      active={!region}
+                      onClick={() => setFilter({ region: undefined })}
+                      count={categoryFilteredCount}
+                    >
+                      All Regions
+                    </FilterChip>
+                    {visibleRegions.map((r) => (
+                      <FilterChip
+                        key={r.slug}
+                        variant="region"
+                        active={region === r.slug}
+                        onClick={() => setFilter({ region: r.slug })}
+                        count={regionCounts.get(r.slug) ?? 0}
+                      >
+                        {r.name}
+                      </FilterChip>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </div>
 
           {/* ROW 4: Active Filters Strip & Reset */}
           {hasActiveFilters && (
-            <div className="pt-2.5 border-t border-stone-200/70 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="py-2.5 border-t border-stone-200/70 flex flex-wrap items-center justify-between gap-2 text-xs">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-heading font-bold text-stone-400 uppercase tracking-wider text-[11px]">
-                  Active Filters:
+                <span className="font-sans font-semibold text-stone-400 uppercase tracking-[0.12em] text-[10px]">
+                  Active:
                 </span>
 
                 {country && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[#1c1917] font-medium text-xs">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f05e25]/8 border border-[#f05e25]/25 text-[#1c1917] font-sans font-medium text-xs">
                     <span>
                       {countries.find((c) => c.slug === country)?.name ?? country}
                     </span>
@@ -485,7 +523,7 @@ export function DestinationsCatalogClient({
                       onClick={() =>
                         setFilter({ country: undefined, region: undefined })
                       }
-                      className="hover:text-[#f05e25] transition-colors cursor-pointer"
+                      className="text-stone-400 hover:text-[#f05e25] transition-colors cursor-pointer"
                       aria-label="Remove country filter"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -494,7 +532,7 @@ export function DestinationsCatalogClient({
                 )}
 
                 {category && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[#1c1917] font-medium text-xs">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f05e25]/8 border border-[#f05e25]/25 text-[#1c1917] font-sans font-medium text-xs">
                     <span>
                       {categories.find((c) => c.slug === category)?.name ??
                         category}
@@ -504,7 +542,7 @@ export function DestinationsCatalogClient({
                       onClick={() =>
                         setFilter({ category: undefined, region: undefined })
                       }
-                      className="hover:text-[#f05e25] transition-colors cursor-pointer"
+                      className="text-stone-400 hover:text-[#f05e25] transition-colors cursor-pointer"
                       aria-label="Remove category filter"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -513,14 +551,14 @@ export function DestinationsCatalogClient({
                 )}
 
                 {region && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[#1c1917] font-medium text-xs">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f05e25]/8 border border-[#f05e25]/25 text-[#1c1917] font-sans font-medium text-xs">
                     <span>
                       {regions.find((r) => r.slug === region)?.name ?? region}
                     </span>
                     <button
                       type="button"
                       onClick={() => setFilter({ region: undefined })}
-                      className="hover:text-[#f05e25] transition-colors cursor-pointer"
+                      className="text-stone-400 hover:text-[#f05e25] transition-colors cursor-pointer"
                       aria-label="Remove region filter"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -529,12 +567,12 @@ export function DestinationsCatalogClient({
                 )}
 
                 {q && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[#1c1917] font-medium text-xs">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f05e25]/8 border border-[#f05e25]/25 text-[#1c1917] font-sans font-medium text-xs">
                     <span>&ldquo;{q}&rdquo;</span>
                     <button
                       type="button"
                       onClick={() => setQ("")}
-                      className="hover:text-[#f05e25] transition-colors cursor-pointer"
+                      className="text-stone-400 hover:text-[#f05e25] transition-colors cursor-pointer"
                       aria-label="Remove search query"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -549,7 +587,7 @@ export function DestinationsCatalogClient({
                   setQ("");
                   router.replace("/destinations", { scroll: false });
                 }}
-                className="inline-flex items-center gap-1.5 text-[#f05e25] hover:text-[#d94e18] font-heading font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer ml-auto"
+                className="inline-flex items-center gap-1.5 text-[#f05e25] hover:text-[#d94e18] font-sans font-semibold text-xs transition-colors cursor-pointer ml-auto"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset all filters</span>
