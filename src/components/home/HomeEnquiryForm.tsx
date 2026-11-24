@@ -184,7 +184,7 @@ export function HomeEnquiryForm() {
           <div className="w-14 h-14 rounded-full bg-[#f2efe8] text-[#0f4c54] flex items-center justify-center">
             <CheckCircle2 className="w-7 h-7" />
           </div>
-          <h4 className="font-serif text-2xl text-[#141c1f] font-normal">
+          <h4 className="font-serif text-2xl text-[#141c1f] font-semibold tracking-wide">
             Enquiry Received
           </h4>
           {reference && (

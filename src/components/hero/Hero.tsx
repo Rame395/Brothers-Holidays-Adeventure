@@ -43,12 +43,10 @@ export function Hero() {
       const isDesktop =
         window.innerWidth >= 1024 &&
         !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      setVideoAllowed(isDesktop);
-      if (isDesktop && hasWebGL()) {
-        setScene(true);
-      } else {
-        setScene(false);
-      }
+      const webglAvailable = isDesktop && hasWebGL();
+      setScene(webglAvailable);
+      // Avoid running a 13.7 MB HD video underneath the active 3D WebGL scene; fall back to video only if WebGL is unavailable
+      setVideoAllowed(isDesktop && !webglAvailable);
     };
 
     const winWithIdle = window as Window & {
@@ -191,7 +189,7 @@ export function Hero() {
         setInView(visible);
         if (visible && isDesktop) wake();
       },
-      { rootMargin: "200px 0px" }
+      { rootMargin: "0px" }
     );
     observer.observe(el);
 
@@ -329,14 +327,14 @@ export function Hero() {
 
               {/* Single semantic H1 per page for strong SEO & crisp hierarchy */}
               <h1
-                className="animate-rise font-serif text-[clamp(1.85rem,8.2vw,2.625rem)] sm:text-5xl lg:text-[58px] font-normal leading-[1.08] tracking-[-0.02em] text-white [text-shadow:0_4px_24px_rgba(0,0,0,0.7)]"
+                className="animate-rise font-serif text-[clamp(2.1rem,8.5vw,3.75rem)] sm:text-5xl lg:text-[64px] font-bold uppercase leading-[1.05] tracking-[0.02em] text-white [text-shadow:0_4px_28px_rgba(0,0,0,0.8)]"
                 style={{ animationDelay: "0.14s" }}
               >
                 Walk the high passes{" "}
                 <br className="sm:hidden" />
                 of{" "}
                 <br className="hidden sm:inline" />
-                <span className="italic text-[#e5b96b]">the Himalayas.</span>
+                <span className="text-[#f05e25]">the Himalayas.</span>
               </h1>
 
               <div
@@ -352,7 +350,7 @@ export function Hero() {
                 </a>
                 <Link
                   href="/destinations"
-                  className="group inline-flex h-11 sm:h-12 w-full sm:w-auto items-center justify-center gap-1.5 sm:gap-2 rounded-[6px] border border-white/25 bg-[#081318]/75 lg:bg-[#081318]/45 lg:backdrop-blur-md px-3 sm:px-6 text-[10.5px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white transition-colors hover:border-[#e5b96b] hover:text-[#e5b96b] cursor-pointer whitespace-nowrap"
+                  className="group inline-flex h-11 sm:h-12 w-full sm:w-auto items-center justify-center gap-1.5 sm:gap-2 rounded-[6px] border border-white/25 bg-[#081318]/75 lg:bg-[#081318]/65 px-3 sm:px-6 text-[10.5px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white transition-colors hover:border-[#e5b96b] hover:text-[#e5b96b] cursor-pointer whitespace-nowrap"
                 >
                   <span>Browse Routes</span>
                   <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
@@ -389,11 +387,11 @@ export function Hero() {
             Brothers Holidays Adventure
           </h2>
           <div className="mt-2.5 flex items-center gap-3">
-            <span className="h-px w-5 sm:w-16 shrink-0 bg-gradient-to-r from-transparent to-[#e5b96b]" />
-            <p className="text-[10px] sm:text-sm font-sans uppercase tracking-[0.18em] sm:tracking-[0.3em] text-[#e5b96b] font-medium drop-shadow-md">
+            <span className="h-px w-5 sm:w-16 shrink-0 bg-gradient-to-r from-transparent to-[#7dd3fc]" />
+            <p className="text-[10px] sm:text-sm font-sans uppercase tracking-[0.18em] sm:tracking-[0.3em] text-[#7dd3fc] font-medium drop-shadow-md">
               Himalayan Expeditions & High Passes · Nepal
             </p>
-            <span className="h-px w-5 sm:w-16 shrink-0 bg-gradient-to-l from-transparent to-[#e5b96b]" />
+            <span className="h-px w-5 sm:w-16 shrink-0 bg-gradient-to-l from-transparent to-[#7dd3fc]" />
           </div>
         </div>
 
@@ -405,7 +403,7 @@ export function Hero() {
           <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 border-t border-white/15 pt-3 text-[10px] uppercase tracking-[0.2em] text-white/65">
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="relative block h-6 sm:h-8 w-px overflow-hidden bg-white/20">
-                <span className="animate-scroll-line absolute inset-0 bg-[#e5b96b]" />
+                <span className="animate-scroll-line absolute inset-0 bg-[#f05e25]" />
               </span>
               <span>Scroll to explore</span>
             </div>
@@ -415,7 +413,7 @@ export function Hero() {
               <span className="relative block h-px w-36 bg-white/20">
                 <span
                   ref={meterRef}
-                  className="absolute inset-0 origin-left bg-[#e5b96b]"
+                  className="absolute inset-0 origin-left bg-[#f05e25]"
                   style={{ transform: "scaleX(0.08)" }}
                 />
               </span>
@@ -456,12 +454,12 @@ export function Hero() {
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 sm:h-28 bg-gradient-to-t from-white via-white/80 to-transparent" />
           </div>
 
-          {/* Seamless feathering into the following #f6f4ef Topographic Survey section */}
+          {/* Seamless feathering into the following #ffffff Topographic Survey section */}
           <div
             className="pointer-events-none absolute inset-x-0 bottom-0 h-16 sm:h-24"
             style={{
               background:
-                "linear-gradient(to bottom, transparent 0%, rgba(246,244,239,0.5) 50%, #f6f4ef 100%)",
+                "linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.55) 50%, #ffffff 100%)",
             }}
           />
         </div>

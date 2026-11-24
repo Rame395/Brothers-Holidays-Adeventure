@@ -47,43 +47,43 @@ export default function AdminForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#f8fafc] bg-[radial-gradient(ellipse_at_top,_rgba(16,75,135,0.08),_transparent_55%)]">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-[#d99f38]/40 bg-[#0b1922] text-[#e8b765]">
-            <ShieldAlert className="h-5 w-5" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#071526] text-[#ff8a50] shadow-md">
+            <ShieldAlert className="h-6 w-6" />
           </div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#e8b765]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f05e25]">
             Admin Recovery
           </p>
-          <h1 className="font-serif text-3xl text-white">
+          <h1 className="font-heading font-bold text-3xl text-[#1c1917]">
             Reset Admin Passphrase
           </h1>
-          <p className="text-xs text-white/60">
+          <p className="text-sm text-[#57534d]">
             Single-use recovery links expire in 30 minutes and sign out all active sessions.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-[#d99f38]/30 bg-[#0b161e] p-6 sm:p-8 shadow-2xl">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-lg">
           {sentMessage ? (
             <div className="space-y-4 text-center py-4">
-              <MailCheck className="h-10 w-10 text-emerald-400 mx-auto" />
-              <p className="text-sm text-white/90">{sentMessage}</p>
-              <p className="text-xs text-white/50">
+              <MailCheck className="h-10 w-10 text-emerald-600 mx-auto" />
+              <p className="text-sm text-[#1c1917] font-medium">{sentMessage}</p>
+              <p className="text-xs text-[#57534d]">
                 (In local development without SMTP, inspect your server console logs for the reset URL.)
               </p>
               <Link
                 href="/admin/login"
-                className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#e8b765] hover:underline"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[#104b87] hover:underline"
               >
-                <ArrowLeft className="h-3.5 w-3.5" />
+                <ArrowLeft className="h-4 w-4" />
                 Return to Admin Login
               </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               {error && (
-                <div className="rounded-lg border border-rose-500/40 bg-rose-950/50 px-4 py-3 text-xs text-rose-200">
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
                   {error}
                 </div>
               )}
@@ -91,7 +91,7 @@ export default function AdminForgotPasswordPage() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="forgot-admin-email"
-                  className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[#e8b765]"
+                  className="block text-xs font-semibold uppercase tracking-wider text-slate-700"
                 >
                   Administrator Email
                 </label>
@@ -102,16 +102,16 @@ export default function AdminForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@brothersholidays.com"
-                  className="w-full rounded-lg border border-white/15 bg-[#0a171f] px-4 py-3 text-sm text-white placeholder-white/35 focus:border-[#d99f38] focus:outline-none"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
                 />
               </div>
 
-              <TurnstileWidget theme="dark" onToken={setTurnstileToken} />
+              <TurnstileWidget theme="light" onToken={setTurnstileToken} />
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full rounded-lg bg-[#d99f38] px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] text-[#060d12] hover:bg-[#e8b765] disabled:opacity-60 cursor-pointer"
+                className="w-full rounded-xl bg-[#f05e25] hover:bg-[#d94e18] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60 cursor-pointer shadow-sm"
               >
                 {submitting ? "Sending..." : "Send Recovery Link"}
               </button>
@@ -119,7 +119,7 @@ export default function AdminForgotPasswordPage() {
               <div className="text-center">
                 <Link
                   href="/admin/login"
-                  className="text-xs text-white/60 hover:text-[#e8b765]"
+                  className="text-xs font-semibold text-[#104b87] hover:underline"
                 >
                   ← Back to Admin Sign In
                 </Link>

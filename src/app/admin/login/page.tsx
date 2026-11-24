@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Lock, Mountain, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Lock, ShieldCheck } from "lucide-react";
 import { authFetch } from "@/lib/auth/client";
 import TurnstileWidget from "@/components/auth/TurnstileWidget";
 
@@ -65,7 +65,7 @@ function AdminLoginForm() {
       {error && (
         <div
           role="alert"
-          className="rounded-lg border border-rose-500/40 bg-rose-950/50 px-4 py-3 text-xs text-rose-200"
+          className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
         >
           {error}
         </div>
@@ -74,7 +74,7 @@ function AdminLoginForm() {
       <div className="space-y-1.5">
         <label
           htmlFor="admin-email"
-          className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[#e8b765]"
+          className="block text-xs font-semibold uppercase tracking-wider text-slate-700"
         >
           Administrator Email
         </label>
@@ -86,7 +86,7 @@ function AdminLoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="admin@brothersholidays.com"
-          className="w-full rounded-lg border border-white/15 bg-[#0a171f] px-4 py-3 text-sm text-white placeholder-white/35 focus:border-[#d99f38] focus:outline-none focus:ring-1 focus:ring-[#d99f38]"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
         />
       </div>
 
@@ -94,13 +94,13 @@ function AdminLoginForm() {
         <div className="flex items-center justify-between">
           <label
             htmlFor="admin-password"
-            className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[#e8b765]"
+            className="block text-xs font-semibold uppercase tracking-wider text-slate-700"
           >
             Passphrase
           </label>
           <Link
             href="/admin/forgot-password"
-            className="text-xs text-[#89d6e2] hover:underline"
+            className="text-xs font-semibold text-[#104b87] hover:underline"
           >
             Forgot passphrase?
           </Link>
@@ -114,13 +114,13 @@ function AdminLoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••••••"
-            className="w-full rounded-lg border border-white/15 bg-[#0a171f] px-4 py-3 pr-11 text-sm text-white placeholder-white/35 focus:border-[#d99f38] focus:outline-none focus:ring-1 focus:ring-[#d99f38]"
+            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
             aria-label={showPassword ? "Hide passphrase" : "Show passphrase"}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white cursor-pointer"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#1c1917] cursor-pointer"
           >
             {showPassword ? (
               <EyeOff className="h-4 w-4" />
@@ -131,14 +131,14 @@ function AdminLoginForm() {
         </div>
       </div>
 
-      <TurnstileWidget theme="dark" onToken={setTurnstileToken} />
+      <TurnstileWidget theme="light" onToken={setTurnstileToken} />
 
       <button
         type="submit"
         disabled={submitting}
-        className="w-full flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#e8b765] via-[#d99f38] to-[#c48b28] px-5 py-3 text-xs font-bold uppercase tracking-[0.22em] text-[#060d12] transition-all hover:brightness-110 disabled:opacity-60 cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#f05e25] hover:bg-[#d94e18] px-5 py-3 text-sm font-semibold text-white transition-colors disabled:opacity-60 cursor-pointer shadow-sm"
       >
-        <Lock className="h-3.5 w-3.5" />
+        <Lock className="h-4 w-4" />
         <span>{submitting ? "Verifying..." : "Authenticate to Command"}</span>
       </button>
     </form>
@@ -147,27 +147,32 @@ function AdminLoginForm() {
 
 export default function AdminLoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[radial-gradient(ellipse_at_top,_rgba(217,159,56,0.12),_transparent_55%)]">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#f8fafc] bg-[radial-gradient(ellipse_at_top,_rgba(16,75,135,0.08),_transparent_55%)]">
       <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-[#d99f38]/40 bg-[#0b1922] text-[#e8b765] shadow-lg">
-            <Mountain className="h-6 w-6" />
+        <div className="text-center space-y-2.5">
+          <div className="mx-auto inline-flex items-center justify-center rounded-xl bg-[#071526] px-4 py-2.5 shadow-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/brothers_logo_navbar.png"
+              alt="BROTHERS Holidays Adventure"
+              className="h-8 w-auto object-contain"
+            />
           </div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-[#e8b765]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f05e25]">
             BROTHERS Holidays · Operations
           </p>
-          <h1 className="font-serif text-3xl text-white tracking-tight">
+          <h1 className="font-heading font-bold text-3xl text-[#1c1917] tracking-tight">
             Administrator Sign In
           </h1>
-          <p className="text-xs text-white/60">
+          <p className="text-sm text-[#57534d]">
             Hardware-grade session isolation with mandatory Two-Factor Authentication.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-[#d99f38]/30 bg-[#0b161e]/95 p-6 sm:p-8 shadow-2xl">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-lg">
           <Suspense
             fallback={
-              <div className="py-12 text-center font-mono text-xs text-white/50">
+              <div className="py-12 text-center text-sm font-medium text-[#104b87]">
                 Loading secure portal...
               </div>
             }
@@ -176,12 +181,15 @@ export default function AdminLoginPage() {
           </Suspense>
         </div>
 
-        <div className="flex items-center justify-between px-2 text-[11px] text-white/50">
-          <span className="inline-flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#89d6e2]" />
+        <div className="flex items-center justify-between px-2 text-xs text-[#57534d]">
+          <span className="inline-flex items-center gap-1.5 font-medium">
+            <ShieldCheck className="h-4 w-4 text-[#104b87]" />
             Isolated Admin Boundary
           </span>
-          <Link href="/" className="hover:text-[#e8b765] transition-colors">
+          <Link
+            href="/"
+            className="font-semibold text-[#104b87] hover:underline transition-colors"
+          >
             ← Public Website
           </Link>
         </div>

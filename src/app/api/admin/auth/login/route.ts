@@ -20,7 +20,7 @@ import {
   verifyCsrf,
   verifyTurnstile,
 } from "@/lib/auth/request";
-import { createAdminSession } from "@/lib/auth/session";
+import { createAdminSession, hasValidAdminTrustedDevice } from "@/lib/auth/session";
 import { adminLoginSchema } from "@/lib/auth/validation";
 
 const GENERIC_LOGIN_ERROR = "Invalid email or password";
@@ -84,6 +84,8 @@ export async function POST(request: Request) {
         isActive: true,
         mfaEnabled: true,
         mfaRequired: true,
+        passwordChangedAt: true,
+        mfaVerifiedAt: true,
         failedLoginAttempts: true,
         lockedUntil: true,
       },
@@ -160,7 +162,21 @@ export async function POST(request: Request) {
 
     const upgradedHash = needsRehash ? await hashPassword(password) : undefined;
     const mustEnrollMfa = !admin.mfaEnabled && admin.mfaRequired;
-    const mfaSatisfied = !admin.mfaEnabled && !admin.mfaRequired;
+    const trustedDevice = admin.mfaEnabled
+      ? await hasValidAdminTrustedDevice({
+          adminUserId: admin.id,
+          passwordChangedAt: admin.passwordChangedAt,
+          mfaVerifiedAt: admin.mfaVerifiedAt,
+        })
+      : false;
+    const mfaSatisfied =
+      (!admin.mfaEnabled && !admin.mfaRequired) ||
+      (admin.mfaEnabled && trustedDevice);
+    const nextStep = mustEnrollMfa
+      ? "mfa_setup"
+      : mfaSatisfied
+      ? "done"
+      : "mfa_verify";
 
     await prisma.adminUser.update({
       where: { id: admin.id },
@@ -191,22 +207,15 @@ export async function POST(request: Request) {
       userAgent,
       metadata: {
         upgradedHash: Boolean(upgradedHash),
-        nextStep: mustEnrollMfa
-          ? "mfa_setup"
-          : admin.mfaEnabled
-          ? "mfa_verify"
-          : "done",
+        trustedDevice,
+        nextStep,
       },
     });
 
     return NextResponse.json(
       {
         ok: true,
-        nextStep: mustEnrollMfa
-          ? "mfa_setup"
-          : admin.mfaEnabled
-          ? "mfa_verify"
-          : "done",
+        nextStep,
       },
       { status: 200 }
     );

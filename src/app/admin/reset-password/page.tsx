@@ -49,12 +49,12 @@ function AdminResetForm() {
   if (!token) {
     return (
       <div className="space-y-4 text-center py-4">
-        <p className="text-sm text-rose-300">
+        <p className="text-sm font-medium text-rose-700">
           Missing or invalid password reset token.
         </p>
         <Link
           href="/admin/forgot-password"
-          className="inline-block text-xs font-mono uppercase tracking-wider text-[#e8b765] hover:underline"
+          className="inline-block text-sm font-semibold text-[#104b87] hover:underline"
         >
           Request a New Reset Link
         </Link>
@@ -65,14 +65,16 @@ function AdminResetForm() {
   if (done) {
     return (
       <div className="space-y-4 text-center py-4">
-        <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto" />
-        <h2 className="font-serif text-2xl text-white">Passphrase Updated</h2>
-        <p className="text-xs text-white/70">
+        <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
+        <h2 className="font-heading font-bold text-2xl text-[#1c1917]">
+          Passphrase Updated
+        </h2>
+        <p className="text-sm text-[#57534d]">
           All previous administrator sessions have been terminated. Sign in with your new passphrase and authenticator code.
         </p>
         <Link
           href="/admin/login"
-          className="inline-block rounded-lg bg-[#d99f38] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-[#060d12] hover:bg-[#e8b765]"
+          className="inline-block rounded-xl bg-[#f05e25] hover:bg-[#d94e18] px-6 py-2.5 text-sm font-semibold text-white"
         >
           Go to Admin Login
         </Link>
@@ -83,7 +85,7 @@ function AdminResetForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="rounded-lg border border-rose-500/40 bg-rose-950/50 px-4 py-3 text-xs text-rose-200">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           {error}
         </div>
       )}
@@ -91,7 +93,7 @@ function AdminResetForm() {
       <div className="space-y-1.5">
         <label
           htmlFor="new-admin-pass"
-          className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[#e8b765]"
+          className="block text-xs font-semibold uppercase tracking-wider text-slate-700"
         >
           New Passphrase (12+ characters)
         </label>
@@ -104,29 +106,29 @@ function AdminResetForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Minimum 12 characters"
-          className="w-full rounded-lg border border-white/15 bg-[#0a171f] px-4 py-3 text-sm text-white placeholder-white/35 focus:border-[#d99f38] focus:outline-none"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
         />
         <div className="pt-1 space-y-1">
-          <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
             <div
               className={`h-full transition-all ${
                 strength.score >= 3
-                  ? "bg-emerald-400"
+                  ? "bg-emerald-500"
                   : strength.score === 2
-                  ? "bg-amber-400"
-                  : "bg-rose-400"
+                  ? "bg-amber-500"
+                  : "bg-rose-500"
               }`}
               style={{ width: `${strength.score * 25}%` }}
             />
           </div>
-          <p className="text-[11px] text-white/55">{strength.label}</p>
+          <p className="text-xs font-medium text-[#57534d]">{strength.label}</p>
         </div>
       </div>
 
       <div className="space-y-1.5">
         <label
           htmlFor="confirm-admin-pass"
-          className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[#e8b765]"
+          className="block text-xs font-semibold uppercase tracking-wider text-slate-700"
         >
           Confirm New Passphrase
         </label>
@@ -138,14 +140,14 @@ function AdminResetForm() {
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full rounded-lg border border-white/15 bg-[#0a171f] px-4 py-3 text-sm text-white focus:border-[#d99f38] focus:outline-none"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
         />
       </div>
 
       <button
         type="submit"
         disabled={submitting || !strength.meetsMinLength}
-        className="w-full rounded-lg bg-[#d99f38] px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] text-[#060d12] hover:bg-[#e8b765] disabled:opacity-60 cursor-pointer"
+        className="w-full rounded-xl bg-[#f05e25] hover:bg-[#d94e18] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60 cursor-pointer shadow-sm"
       >
         {submitting ? "Updating..." : "Save New Passphrase"}
       </button>
@@ -155,24 +157,24 @@ function AdminResetForm() {
 
 export default function AdminResetPasswordPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#f8fafc] bg-[radial-gradient(ellipse_at_top,_rgba(16,75,135,0.08),_transparent_55%)]">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-[#d99f38]/40 bg-[#0b1922] text-[#e8b765]">
-            <KeyRound className="h-5 w-5" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#071526] text-[#ff8a50] shadow-md">
+            <KeyRound className="h-6 w-6" />
           </div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#e8b765]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f05e25]">
             Credential Recovery
           </p>
-          <h1 className="font-serif text-3xl text-white">
+          <h1 className="font-heading font-bold text-3xl text-[#1c1917]">
             Set New Admin Passphrase
           </h1>
         </div>
 
-        <div className="rounded-2xl border border-[#d99f38]/30 bg-[#0b161e] p-6 sm:p-8 shadow-2xl">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-lg">
           <Suspense
             fallback={
-              <div className="py-8 text-center font-mono text-xs text-white/50">
+              <div className="py-8 text-center text-sm font-medium text-[#104b87]">
                 Validating token...
               </div>
             }

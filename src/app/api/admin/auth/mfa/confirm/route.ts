@@ -7,7 +7,7 @@ import { sendSecurityAlertEmail } from "@/lib/auth/email";
 import { requireAdminApi } from "@/lib/auth/guards";
 import { applyProgressiveDelay, checkRateLimit } from "@/lib/auth/rate-limit";
 import { getClientIp, getUserAgent } from "@/lib/auth/request";
-import { rotateAdminSession } from "@/lib/auth/session";
+import { issueAdminTrustedDevice, rotateAdminSession } from "@/lib/auth/session";
 import { replaceBackupCodes, verifyTotpToken } from "@/lib/auth/totp";
 import { totpCodeSchema } from "@/lib/auth/validation";
 
@@ -51,6 +51,7 @@ export async function POST(request: Request) {
         name: true,
         mfaEnabled: true,
         mfaSecretEncrypted: true,
+        passwordChangedAt: true,
       },
     });
 
@@ -106,6 +107,12 @@ export async function POST(request: Request) {
       mfaVerified: true,
       ipAddress,
       userAgent,
+    });
+
+    await issueAdminTrustedDevice({
+      adminUserId: adminRow.id,
+      passwordChangedAt: adminRow.passwordChangedAt,
+      mfaVerifiedAt: now,
     });
 
     await logAuthEvent({

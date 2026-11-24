@@ -62,6 +62,10 @@ export default function BackgroundAudio() {
     };
   }, []);
 
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <div
       className={`fixed right-4 sm:right-6 z-50 transition-all duration-300 ${

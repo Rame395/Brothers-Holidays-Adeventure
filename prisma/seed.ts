@@ -1,6 +1,6 @@
 import { PrismaClient, AdminRole, DepartureStatus } from "@prisma/client";
 import { hash as argon2Hash } from "@node-rs/argon2";
-import { TRIPS } from "../src/data/trips";
+import { CATEGORIES, COUNTRIES, REGIONS, TRIPS } from "../src/data/trips";
 import { TREKS } from "../src/data/treks";
 import { EXPEDITION_OBJECTIVES } from "../src/data/expeditions";
 import { JOURNAL_STORIES } from "../src/data/journal";
@@ -201,6 +201,82 @@ async function main() {
       isActive: true,
     },
   });
+
+  // 1b. Seed Dynamic Destination Taxonomy (Countries, Categories, Regions)
+  const seededCountries = new Map<string, string>();
+  for (let i = 0; i < COUNTRIES.length; i++) {
+    const c = COUNTRIES[i];
+    const row = await prisma.destinationCountry.upsert({
+      where: { slug: c.id },
+      update: {
+        name: c.label,
+        blurb: c.blurb,
+        heroImage: c.image,
+        sortOrder: i + 1,
+        isActive: true,
+      },
+      create: {
+        slug: c.id,
+        name: c.label,
+        blurb: c.blurb,
+        heroImage: c.image,
+        sortOrder: i + 1,
+        isActive: true,
+      },
+    });
+    seededCountries.set(c.id, row.id);
+  }
+
+  for (let i = 0; i < CATEGORIES.length; i++) {
+    const cat = CATEGORIES[i];
+    await prisma.tripCategory.upsert({
+      where: { slug: cat.id },
+      update: {
+        name: cat.label,
+        blurb: cat.blurb,
+        heroImage: cat.image,
+        groupByRegion: cat.id === "trekking",
+        sortOrder: i + 1,
+        isActive: true,
+      },
+      create: {
+        slug: cat.id,
+        name: cat.label,
+        blurb: cat.blurb,
+        heroImage: cat.image,
+        groupByRegion: cat.id === "trekking",
+        sortOrder: i + 1,
+        isActive: true,
+      },
+    });
+  }
+
+  const nepalCountryId = seededCountries.get("nepal");
+  if (nepalCountryId) {
+    for (let i = 0; i < REGIONS.length; i++) {
+      const reg = REGIONS[i];
+      await prisma.destinationRegion.upsert({
+        where: { slug: reg.id },
+        update: {
+          name: reg.label,
+          countryId: nepalCountryId,
+          countrySlug: "nepal",
+          heroImage: reg.image,
+          sortOrder: i + 1,
+          isActive: true,
+        },
+        create: {
+          slug: reg.id,
+          name: reg.label,
+          countryId: nepalCountryId,
+          countrySlug: "nepal",
+          heroImage: reg.image,
+          sortOrder: i + 1,
+          isActive: true,
+        },
+      });
+    }
+  }
 
   // 2. Seed Trips + Itinerary Days + Upcoming Departures
   let totalItineraryDays = 0;
@@ -590,6 +666,9 @@ async function main() {
 
   const [
     tripsCount,
+    countriesCount,
+    categoriesCount,
+    regionsCount,
     daysCount,
     departuresCount,
     treksCount,
@@ -601,6 +680,9 @@ async function main() {
     adminCount,
   ] = await Promise.all([
     prisma.trip.count(),
+    prisma.destinationCountry.count(),
+    prisma.tripCategory.count(),
+    prisma.destinationRegion.count(),
     prisma.tripItineraryDay.count(),
     prisma.tripDeparture.count(),
     prisma.trekRoute.count(),
@@ -614,6 +696,9 @@ async function main() {
 
   console.log("Seed completed successfully:");
   console.log(`- AdminUser: ${adminCount}`);
+  console.log(`- DestinationCountry: ${countriesCount}`);
+  console.log(`- TripCategory: ${categoriesCount}`);
+  console.log(`- DestinationRegion: ${regionsCount}`);
   console.log(`- Trip: ${tripsCount}`);
   console.log(`- TripItineraryDay: ${daysCount} (synced ${totalItineraryDays})`);
   console.log(`- TripDeparture: ${departuresCount} (created ${totalDeparturesCreated} this run)`);

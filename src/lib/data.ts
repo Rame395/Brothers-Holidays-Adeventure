@@ -1,7 +1,13 @@
 import { cacheLife, cacheTag } from "next/cache";
 import prisma from "@/lib/prisma";
+import {
+  parseCustomSections,
+  parsePriceTiers,
+  parseServiceGroups,
+} from "@/lib/weather-locations";
 import type {
   ArchiveEntryDTO,
+  DestinationTaxonomyDTO,
   ExpeditionObjectiveDTO,
   JournalPostDTO,
   NavTripDTO,
@@ -34,9 +40,9 @@ const DEFAULT_SITE_SETTINGS: SiteSettingDTO = {
   bingSiteVerification: null,
   facebookPixelId: null,
   defaultMetaTitle:
-    "BROTHERS Holidays Adventure — Himalayan Field Journal & Premium Expeditions",
+    "Nepal Trekking & Himalayan Expeditions | Everest, Annapurna & Manaslu — BROTHERS Holidays Adventure",
   defaultMetaDescription:
-    "An alpine editorial journal of routes across Nepal, mapped with absolute elevation, topographic precision, and zero commercial filler.",
+    "Licensed Kathmandu Sherpa guides leading Everest Base Camp, Annapurna Circuit, Manaslu, Langtang, Tibet & Bhutan treks. Transparent pricing, acclimatization-first itineraries, and 24/7 mountain safety.",
   defaultOgImage: "/images/trips/hero-ama-dablam.jpg",
 };
 
@@ -86,10 +92,21 @@ function serializeTrip(t: PrismaTripFull): TripDTO {
     end: t.endPoint,
     tagline: t.tagline,
     overview: t.overview,
+    itineraryIntro: t.itineraryIntro,
     highlights: t.highlights,
     includes: t.includes,
     excludes: t.excludes,
     gearList: t.gearList,
+    accommodationSummary: t.accommodationSummary,
+    mealsSummary: t.mealsSummary,
+    transportSummary: t.transportSummary,
+    weatherLocation: t.weatherLocation,
+    weatherLat: t.weatherLat,
+    weatherLon: t.weatherLon,
+    customSections: parseCustomSections(t.customSections),
+    includeGroups: parseServiceGroups(t.includeGroups),
+    excludeGroups: parseServiceGroups(t.excludeGroups),
+    priceTiers: parsePriceTiers(t.priceTiers),
     badge: t.badge,
     isPublished: t.isPublished,
     isFeatured: t.isFeatured,
@@ -112,6 +129,10 @@ function serializeTrip(t: PrismaTripFull): TripDTO {
       accommodation: d.accommodation,
       distanceKm: d.distanceKm,
       durationHrs: d.durationHrs,
+      transport: d.transport,
+      image: d.image,
+      guideLabel: d.guideLabel,
+      guideUrl: d.guideUrl,
     })),
     departures: t.departures.map((dep) => ({
       id: dep.id,
@@ -207,10 +228,63 @@ export async function getPageSeo(routePath: string): Promise<PageSeoDTO | null> 
   };
 }
 
+export async function getDestinationTaxonomy(): Promise<DestinationTaxonomyDTO> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("taxonomy", "trips");
+
+  const [countries, categories, regions] = await Promise.all([
+    prisma.destinationCountry.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        blurb: true,
+        heroImage: true,
+        sortOrder: true,
+        isActive: true,
+      },
+    }),
+    prisma.tripCategory.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        blurb: true,
+        heroImage: true,
+        groupByRegion: true,
+        sortOrder: true,
+        isActive: true,
+      },
+    }),
+    prisma.destinationRegion.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        countryId: true,
+        countrySlug: true,
+        blurb: true,
+        heroImage: true,
+        sortOrder: true,
+        isActive: true,
+      },
+    }),
+  ]);
+
+  return { countries, categories, regions };
+}
+
 export async function getPublishedTrips(): Promise<TripDTO[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag("trips");
+  cacheTag("trips", "taxonomy");
 
   const rows = await prisma.trip.findMany({
     where: { isPublished: true },
@@ -232,10 +306,79 @@ export async function getPublishedTrips(): Promise<TripDTO[]> {
   return rows.map(serializeTrip);
 }
 
+export async function getCountryBySlug(slug: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("taxonomy", `country-${slug}`);
+
+  return prisma.destinationCountry.findFirst({
+    where: { slug, isActive: true },
+  });
+}
+
+export async function getRegionBySlug(slug: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("taxonomy", `region-${slug}`);
+
+  return prisma.destinationRegion.findFirst({
+    where: { slug, isActive: true },
+    include: {
+      country: {
+        select: { slug: true, name: true },
+      },
+    },
+  });
+}
+
+export async function getCategoryBySlug(slug: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("taxonomy", `category-${slug}`);
+
+  return prisma.tripCategory.findFirst({
+    where: { slug, isActive: true },
+  });
+}
+
+export async function getPublishedTripsByFilter(filter: {
+  country?: string;
+  region?: string;
+  category?: string;
+}): Promise<TripDTO[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("trips", "taxonomy");
+
+  const rows = await prisma.trip.findMany({
+    where: {
+      isPublished: true,
+      ...(filter.country ? { country: filter.country } : {}),
+      ...(filter.region ? { region: filter.region } : {}),
+      ...(filter.category ? { categories: { has: filter.category } } : {}),
+    },
+    orderBy: [{ isFeatured: "desc" }, { featuredOrder: "asc" }, { name: "asc" }],
+    include: {
+      itinerary: { orderBy: { dayOrder: "asc" } },
+      departures: {
+        where: { status: { not: "CANCELLED" } },
+        orderBy: { startDate: "asc" },
+      },
+      faqs: { orderBy: { sortOrder: "asc" } },
+      reviews: {
+        where: { isPublished: true },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+
+  return rows.map(serializeTrip);
+}
+
 export async function getNavTrips(): Promise<NavTripDTO[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag("trips");
+  cacheTag("trips", "taxonomy");
 
   return prisma.trip.findMany({
     where: { isPublished: true },

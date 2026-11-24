@@ -154,33 +154,35 @@ export default function AdminMfaSetupClient({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[radial-gradient(ellipse_at_top,_rgba(217,159,56,0.12),_transparent_55%)]">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#f8fafc] bg-[radial-gradient(ellipse_at_top,_rgba(16,75,135,0.08),_transparent_55%)]">
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-[#d99f38]/40 bg-[#0b1922] text-[#e8b765]">
-            <ShieldCheck className="h-5 w-5" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[#071526] text-[#ff8a50] shadow-md">
+            <ShieldCheck className="h-6 w-6" />
           </div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#e8b765]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#f05e25]">
             Mandatory Administrator MFA
           </p>
-          <h1 className="font-serif text-3xl text-white">
+          <h1 className="font-heading font-bold text-3xl text-[#1c1917]">
             {backupCodes ? "Save Your Recovery Codes" : "Enroll Authenticator App"}
           </h1>
-          <p className="text-xs text-white/60">
-            Signed in as <span className="text-white font-medium">{adminName}</span> ({adminEmail})
+          <p className="text-sm text-[#57534d]">
+            Signed in as{" "}
+            <span className="text-[#1c1917] font-semibold">{adminName}</span> (
+            {adminEmail})
           </p>
         </div>
 
-        <div className="rounded-2xl border border-[#d99f38]/30 bg-[#0b161e] p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-lg space-y-6">
           {error && (
-            <div className="rounded-lg border border-rose-500/40 bg-rose-950/50 px-4 py-3 text-xs text-rose-200">
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
               {error}
             </div>
           )}
 
           {backupCodes ? (
             <div className="space-y-5">
-              <div className="rounded-xl border border-amber-400/30 bg-amber-950/30 px-4 py-3 text-xs text-amber-100 leading-relaxed">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900 leading-relaxed">
                 Store these 10 one-time recovery codes in a password manager or printed vault. They will <strong>never</strong> be shown again.
               </div>
 
@@ -188,7 +190,7 @@ export default function AdminMfaSetupClient({
                 {backupCodes.map((c) => (
                   <div
                     key={c}
-                    className="rounded-lg border border-white/10 bg-[#060d12] px-3 py-2 font-mono text-xs text-center text-[#e8b765] tracking-wider"
+                    className="rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-2 font-mono text-xs text-center font-semibold text-[#104b87] tracking-wider"
                   >
                     {c}
                   </div>
@@ -199,16 +201,16 @@ export default function AdminMfaSetupClient({
                 <button
                   type="button"
                   onClick={handleCopyBackupCodes}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-medium text-white hover:bg-white/10 cursor-pointer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-[#f8fafc] px-4 py-2.5 text-sm font-medium text-[#1c1917] hover:border-[#104b87] cursor-pointer"
                 >
                   {copiedCodes ? (
                     <>
-                      <Check className="h-3.5 w-3.5 text-emerald-400" />
+                      <Check className="h-4 w-4 text-emerald-600" />
                       <span>Copied</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="h-3.5 w-3.5" />
+                      <Copy className="h-4 w-4" />
                       <span>Copy All</span>
                     </>
                   )}
@@ -216,9 +218,9 @@ export default function AdminMfaSetupClient({
                 <button
                   type="button"
                   onClick={handleDownloadBackupCodes}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-medium text-white hover:bg-white/10 cursor-pointer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-[#f8fafc] px-4 py-2.5 text-sm font-medium text-[#1c1917] hover:border-[#104b87] cursor-pointer"
                 >
-                  <Download className="h-3.5 w-3.5" />
+                  <Download className="h-4 w-4" />
                   <span>Download .txt</span>
                 </button>
               </div>
@@ -229,19 +231,19 @@ export default function AdminMfaSetupClient({
                   router.push("/admin");
                   router.refresh();
                 }}
-                className="w-full rounded-lg bg-[#d99f38] px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] text-[#060d12] hover:bg-[#e8b765] cursor-pointer"
+                className="w-full rounded-xl bg-[#f05e25] hover:bg-[#d94e18] px-5 py-3 text-sm font-semibold text-white cursor-pointer shadow-sm"
               >
                 Continue to Admin Portal →
               </button>
             </div>
           ) : loadingSetup ? (
-            <div className="py-14 text-center font-mono text-xs text-white/60">
+            <div className="py-14 text-center text-sm font-medium text-[#104b87]">
               Generating encrypted TOTP secret...
             </div>
           ) : (
             <>
               <div className="flex flex-col sm:flex-row items-center gap-6">
-                <div className="rounded-xl bg-white p-2.5 shrink-0">
+                <div className="rounded-xl border border-slate-200 bg-white p-2.5 shrink-0 shadow-xs">
                   {qrDataUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -250,25 +252,25 @@ export default function AdminMfaSetupClient({
                       className="h-44 w-44"
                     />
                   ) : (
-                    <div className="h-44 w-44 flex items-center justify-center text-xs text-slate-600">
+                    <div className="h-44 w-44 flex items-center justify-center text-xs text-slate-500">
                       Unavailable
                     </div>
                   )}
                 </div>
-                <div className="space-y-3 text-xs text-white/75 leading-relaxed">
+                <div className="space-y-3 text-sm text-[#57534d] leading-relaxed">
                   <p>
                     Scan this QR code using{" "}
-                    <strong className="text-white">
+                    <strong className="text-[#1c1917]">
                       Google Authenticator, 1Password, Authy, or Microsoft Authenticator
                     </strong>
                     .
                   </p>
                   {manualKey && (
                     <div className="space-y-1">
-                      <span className="block font-mono text-[10px] uppercase tracking-wider text-[#e8b765]">
+                      <span className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                         Manual Entry Key
                       </span>
-                      <code className="block break-all rounded-md border border-white/10 bg-[#060d12] px-2.5 py-2 font-mono text-[11px] text-[#89d6e2]">
+                      <code className="block break-all rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-2 font-mono text-xs text-[#104b87]">
                         {manualKey}
                       </code>
                     </div>
@@ -276,19 +278,22 @@ export default function AdminMfaSetupClient({
                   <button
                     type="button"
                     onClick={handleRegenerate}
-                    className="inline-flex items-center gap-1.5 text-[11px] text-white/50 hover:text-white cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#104b87] hover:underline cursor-pointer"
                   >
-                    <RefreshCw className="h-3 w-3" />
+                    <RefreshCw className="h-3.5 w-3.5" />
                     Regenerate Secret
                   </button>
                 </div>
               </div>
 
-              <form onSubmit={handleConfirm} className="space-y-4 pt-2 border-t border-white/10">
+              <form
+                onSubmit={handleConfirm}
+                className="space-y-4 pt-3 border-t border-slate-200"
+              >
                 <div className="space-y-1.5">
                   <label
                     htmlFor="admin-totp-confirm"
-                    className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[#e8b765]"
+                    className="block text-xs font-semibold uppercase tracking-wider text-slate-700"
                   >
                     6-Digit Authenticator Code
                   </label>
@@ -302,16 +307,18 @@ export default function AdminMfaSetupClient({
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="000000"
-                    className="w-full rounded-lg border border-white/15 bg-[#0a171f] px-4 py-3 text-center font-mono text-lg tracking-[0.4em] text-white placeholder-white/25 focus:border-[#d99f38] focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-mono text-xl tracking-[0.4em] text-[#1c1917] placeholder:text-slate-300 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full rounded-lg bg-[#d99f38] px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] text-[#060d12] hover:bg-[#e8b765] disabled:opacity-60 cursor-pointer"
+                  className="w-full rounded-xl bg-[#f05e25] hover:bg-[#d94e18] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60 cursor-pointer shadow-sm"
                 >
-                  {submitting ? "Confirming..." : "Activate Two-Factor Authentication"}
+                  {submitting
+                    ? "Confirming..."
+                    : "Activate Two-Factor Authentication"}
                 </button>
               </form>
             </>
@@ -322,9 +329,9 @@ export default function AdminMfaSetupClient({
           <button
             type="button"
             onClick={handleLogout}
-            className="inline-flex items-center gap-1.5 text-xs text-white/50 hover:text-white cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#57534d] hover:text-[#1c1917] cursor-pointer"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="h-4 w-4" />
             Sign Out
           </button>
         </div>

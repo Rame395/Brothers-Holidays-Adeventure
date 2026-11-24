@@ -1,14 +1,46 @@
-export type Country = "nepal" | "tibet" | "bhutan";
-export type Category =
-  | "trekking"
-  | "tours"
-  | "peak-climbing"
-  | "short-trek"
-  | "day-tours"
-  | "wildlife-safari"
-  | "helicopter-tours";
-export type Region = "everest" | "annapurna" | "langtang" | "restricted";
+export type Country = string;
+export type Category = string;
+export type Region = string;
 export type Difficulty = "Easy" | "Moderate" | "Challenging" | "Strenuous" | "Extreme";
+
+export interface DestinationCountryDTO {
+  id: string;
+  slug: string;
+  name: string;
+  blurb: string;
+  heroImage: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export interface TripCategoryDTO {
+  id: string;
+  slug: string;
+  name: string;
+  blurb: string;
+  heroImage: string;
+  groupByRegion: boolean;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export interface DestinationRegionDTO {
+  id: string;
+  slug: string;
+  name: string;
+  countryId: string;
+  countrySlug: string;
+  blurb: string;
+  heroImage: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export interface DestinationTaxonomyDTO {
+  countries: DestinationCountryDTO[];
+  categories: TripCategoryDTO[];
+  regions: DestinationRegionDTO[];
+}
 
 export interface TripItineraryDayDTO {
   id?: string;
@@ -21,6 +53,10 @@ export interface TripItineraryDayDTO {
   accommodation?: string | null;
   distanceKm?: number | null;
   durationHrs?: string | null;
+  transport?: string | null;
+  image?: string | null;
+  guideLabel?: string | null;
+  guideUrl?: string | null;
 }
 
 export interface TripDepartureDTO {
@@ -52,6 +88,48 @@ export interface TripReviewDTO {
   verified: boolean;
 }
 
+export type TripCustomSectionStyle = "callout" | "note" | "article" | "warning";
+export type TripCustomSectionPlacement =
+  | "overview"
+  | "itinerary"
+  | "know_before_you_go"
+  | "bottom";
+
+export interface TripCustomSectionDTO {
+  id: string;
+  title: string;
+  content: string;
+  style: TripCustomSectionStyle;
+  placement: TripCustomSectionPlacement;
+}
+
+export type TripServiceIconKey =
+  | "accommodation"
+  | "meals"
+  | "transport"
+  | "guide"
+  | "equipment"
+  | "permits"
+  | "support"
+  | "info";
+
+export interface TripServiceGroupDTO {
+  id: string;
+  title: string;
+  icon: TripServiceIconKey;
+  subtitle?: string | null;
+  items: string[];
+}
+
+export interface TripPriceTierDTO {
+  id: string;
+  minGroup: number;
+  maxGroup: number;
+  label?: string | null;
+  price: number;
+  priceUsd?: number | null;
+}
+
 export interface TripDTO {
   id: string;
   slug: string;
@@ -75,10 +153,21 @@ export interface TripDTO {
   end: string;
   tagline: string;
   overview: string;
+  itineraryIntro?: string | null;
   highlights: string[];
   includes: string[];
   excludes: string[];
   gearList: string[];
+  accommodationSummary?: string | null;
+  mealsSummary?: string | null;
+  transportSummary?: string | null;
+  weatherLocation?: string | null;
+  weatherLat?: number | null;
+  weatherLon?: number | null;
+  customSections: TripCustomSectionDTO[];
+  includeGroups: TripServiceGroupDTO[];
+  excludeGroups: TripServiceGroupDTO[];
+  priceTiers: TripPriceTierDTO[];
   badge?: string | null;
   isPublished: boolean;
   isFeatured: boolean;

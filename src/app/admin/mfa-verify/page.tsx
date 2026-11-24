@@ -19,7 +19,7 @@ export default function AdminMfaVerifyPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center font-mono text-xs text-white/60">
+        <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] font-sans text-sm font-medium text-[#104b87]">
           Loading verification...
         </div>
       }

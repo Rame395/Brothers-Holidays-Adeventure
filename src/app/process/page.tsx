@@ -105,9 +105,9 @@ export default function ProcessPage() {
             </span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal leading-[1.05] tracking-tight text-white">
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase leading-[1.05] tracking-wide text-white">
             Precision planning,{" "}
-            <em className="text-[#e8b765] font-serif not-italic">
+            <em className="text-[#f05e25] font-serif not-italic">
               uncompromising safety.
             </em>
           </h1>
@@ -143,7 +143,7 @@ export default function ProcessPage() {
           <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#e8b765]">
             Stage by Stage
           </span>
-          <h2 className="font-serif text-3xl sm:text-4xl text-white font-normal">
+          <h2 className="font-serif text-3xl sm:text-4xl text-white font-semibold leading-tight">
             The Journey From Kathmandu to the High Summits
           </h2>
         </div>

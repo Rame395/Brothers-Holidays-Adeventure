@@ -1,18 +1,90 @@
 import "server-only";
 import prisma from "@/lib/prisma";
 import {
+  ADMIN_TRUSTED_DEVICE_TTL_MS,
   clearAdminSessionCookie,
   clearCustomerSessionCookie,
   getAdminSessionCookie,
+  getAdminTrustedDeviceCookie,
   getCustomerSessionCookie,
   setAdminSessionCookie,
+  setAdminTrustedDeviceCookie,
   setCustomerSessionCookie,
 } from "./cookies";
-import { generateSecureToken, sha256Hex } from "./crypto";
+import {
+  generateSecureToken,
+  hmacHex,
+  sha256Hex,
+  timingSafeEqualHex,
+} from "./crypto";
 import { parseDeviceLabel } from "./validation";
 
-export const ADMIN_IDLE_TIMEOUT_MS = 2 * 60 * 60 * 1000; // 2 hours
-export const ADMIN_ABSOLUTE_TIMEOUT_MS = 12 * 60 * 60 * 1000; // 12 hours
+export const ADMIN_IDLE_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
+export const ADMIN_ABSOLUTE_TIMEOUT_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+const ADMIN_TRUSTED_DEVICE_CONTEXT = "admin-trusted-device-v1";
+
+function buildAdminTrustedDevicePayload(params: {
+  adminUserId: string;
+  expiresAtMs: number;
+  passwordChangedAt?: Date | null;
+  mfaVerifiedAt?: Date | null;
+}): string {
+  const pwdTs = params.passwordChangedAt?.getTime() ?? 0;
+  const mfaTs = params.mfaVerifiedAt?.getTime() ?? 0;
+  return `${params.adminUserId}:${params.expiresAtMs}:${pwdTs}:${mfaTs}`;
+}
+
+/** Issues an HMAC-signed 30-day trusted-device cookie bound to current credentials. */
+export async function issueAdminTrustedDevice(params: {
+  adminUserId: string;
+  passwordChangedAt?: Date | null;
+  mfaVerifiedAt?: Date | null;
+}): Promise<void> {
+  const expiresAt = new Date(Date.now() + ADMIN_TRUSTED_DEVICE_TTL_MS);
+  const expiresAtMs = expiresAt.getTime();
+  const payload = buildAdminTrustedDevicePayload({
+    adminUserId: params.adminUserId,
+    expiresAtMs,
+    passwordChangedAt: params.passwordChangedAt,
+    mfaVerifiedAt: params.mfaVerifiedAt,
+  });
+  const signature = hmacHex(payload, ADMIN_TRUSTED_DEVICE_CONTEXT);
+  const token = `${params.adminUserId}.${expiresAtMs}.${signature}`;
+  await setAdminTrustedDeviceCookie(token, expiresAt);
+}
+
+/** Verifies whether the incoming request carries a valid non-expired trusted-device cookie. */
+export async function hasValidAdminTrustedDevice(params: {
+  adminUserId: string;
+  passwordChangedAt?: Date | null;
+  mfaVerifiedAt?: Date | null;
+}): Promise<boolean> {
+  try {
+    const raw = await getAdminTrustedDeviceCookie();
+    if (!raw) return false;
+
+    const parts = raw.split(".");
+    if (parts.length !== 3) return false;
+
+    const [uid, expStr, sig] = parts;
+    if (!uid || uid !== params.adminUserId || !sig) return false;
+
+    const expMs = Number(expStr);
+    if (!Number.isFinite(expMs) || expMs <= Date.now()) return false;
+
+    const payload = buildAdminTrustedDevicePayload({
+      adminUserId: params.adminUserId,
+      expiresAtMs: expMs,
+      passwordChangedAt: params.passwordChangedAt,
+      mfaVerifiedAt: params.mfaVerifiedAt,
+    });
+    const expected = hmacHex(payload, ADMIN_TRUSTED_DEVICE_CONTEXT);
+    return timingSafeEqualHex(sig, expected);
+  } catch {
+    return false;
+  }
+}
 
 export const CUSTOMER_IDLE_TIMEOUT_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 export const CUSTOMER_ABSOLUTE_TIMEOUT_MS = 30 * 24 * 60 * 60 * 1000; // 30 days

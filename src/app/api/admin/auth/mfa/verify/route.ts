@@ -10,7 +10,7 @@ import {
   clearRateLimit,
 } from "@/lib/auth/rate-limit";
 import { getClientIp, getUserAgent } from "@/lib/auth/request";
-import { rotateAdminSession } from "@/lib/auth/session";
+import { issueAdminTrustedDevice, rotateAdminSession } from "@/lib/auth/session";
 import { verifyAndConsumeBackupCode, verifyTotpToken } from "@/lib/auth/totp";
 import { mfaVerifySchema, sanitizeRedirectPath } from "@/lib/auth/validation";
 
@@ -58,6 +58,8 @@ export async function POST(request: Request) {
         name: true,
         mfaEnabled: true,
         mfaSecretEncrypted: true,
+        passwordChangedAt: true,
+        mfaVerifiedAt: true,
       },
     });
 
@@ -124,6 +126,14 @@ export async function POST(request: Request) {
       userAgent,
     });
 
+    if (parsed.data.rememberDevice) {
+      await issueAdminTrustedDevice({
+        adminUserId: adminRow.id,
+        passwordChangedAt: adminRow.passwordChangedAt,
+        mfaVerifiedAt: adminRow.mfaVerifiedAt,
+      });
+    }
+
     await detectAndAlertNewDevice({
       actorType: "ADMIN",
       userId: adminRow.id,
@@ -141,7 +151,7 @@ export async function POST(request: Request) {
       success: true,
       ipAddress,
       userAgent,
-      metadata: { methodUsed },
+      metadata: { methodUsed, rememberDevice: parsed.data.rememberDevice },
     });
 
     const redirectTo = sanitizeRedirectPath(

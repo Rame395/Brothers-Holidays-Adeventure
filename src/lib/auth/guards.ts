@@ -1,7 +1,7 @@
 import "server-only";
 import { AdminRole } from "@prisma/client";
 import { redirect } from "next/navigation";
-import { NextResponse } from "next/server";
+import { connection, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyCsrf } from "./request";
 import { getAdminSession, getCustomerSession } from "./session";
@@ -68,6 +68,7 @@ export async function requireAdmin(options?: {
   permission?: AdminPermission;
   allowPendingMfa?: boolean;
 }) {
+  await connection();
   const session = await getAdminSession();
   if (!session) {
     redirect("/admin/login");
@@ -243,6 +244,7 @@ export async function getOptionalCustomer() {
 }
 
 export async function requireCustomer(options?: { allowPendingMfa?: boolean }) {
+  await connection();
   const session = await getCustomerSession();
   if (!session) {
     redirect("/login");

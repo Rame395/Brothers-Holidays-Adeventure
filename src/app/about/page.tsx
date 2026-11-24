@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { buildBreadcrumbJsonLd, buildPageMetadata } from "@/lib/seo";
+import { AboutHeroParallax } from "@/components/about/AboutHeroParallax";
 import {
   Compass,
   CheckCircle2,
@@ -23,54 +24,49 @@ export default function AboutPage() {
       />
     <div className="flex flex-col w-full bg-[#071116] text-white selection:bg-[#c9a46a] selection:text-white">
       {/* ──────────────────────────────────────────────────────────
-          1. EDITORIAL HERO SECTION
+          1. EDITORIAL HERO SECTION WITH PARALLAX
           ────────────────────────────────────────────────────────── */}
-      <section className="relative w-full pt-16 sm:pt-24 pb-20 sm:pb-28 px-6 lg:px-12 overflow-hidden border-b border-[#c59a4a]/25">
-        {/* Background glow & subtle mountain backdrop */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ backgroundImage: "url('/images/cta-himalaya-bg.jpg')" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#071116]/80 via-[#071116]/90 to-[#071116]" />
+      <section className="relative w-full overflow-hidden border-b border-[#c59a4a]/25">
+        <AboutHeroParallax>
+          <div className="pt-16 sm:pt-24 pb-20 sm:pb-28 px-6 lg:px-12 max-w-5xl mx-auto text-center space-y-6">
+            {/* Eyebrow badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#c59a4a]/50 bg-[#0c1b22]/80 backdrop-blur-md text-[#e8b765] shadow-lg">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c59a4a] animate-pulse" />
+              <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.25em]">
+                Our Heritage · Est. Nepal
+              </span>
+            </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-6">
-          {/* Eyebrow badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#c59a4a]/50 bg-[#0c1b22]/80 backdrop-blur-md text-[#e8b765] shadow-lg">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#c59a4a] animate-pulse" />
-            <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.25em]">
-              Our Heritage · Est. Nepal
-            </span>
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold uppercase leading-[1.05] tracking-wide text-white">
+              Rooted in the high passes,{" "}
+              <em className="text-[#f05e25] font-serif not-italic">
+                crafted for the silence.
+              </em>
+            </h1>
+
+            <p className="text-white/75 text-base sm:text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed">
+              BROTHERS Holidays Adventure was built by Himalayan mountain guides with
+              a single conviction: true expeditions are small, patient, and deeply
+              respectful of the mountains and the Sherpa community who call them home.
+            </p>
+
+            <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
+              <Link
+                href="/destinations"
+                className="px-8 py-3.5 rounded-full bg-gradient-to-r from-[#e8b765] via-[#dfa851] to-[#c59a4a] text-[#071317] font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
+              >
+                Explore Our Routes
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/contact"
+                className="px-8 py-3.5 rounded-full border border-[#c59a4a]/60 bg-[#0c1b22]/70 hover:bg-[#0c1b22] text-white font-medium text-xs sm:text-sm uppercase tracking-wider backdrop-blur-md transition-all flex items-center gap-2"
+              >
+                Talk With a Lead Guide
+              </Link>
+            </div>
           </div>
-
-          <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal leading-[1.05] tracking-tight text-white">
-            Rooted in the high passes,{" "}
-            <em className="text-[#e8b765] font-serif not-italic">
-              crafted for the silence.
-            </em>
-          </h1>
-
-          <p className="text-white/75 text-base sm:text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed">
-            BROTHERS Holidays Adventure was built by Himalayan mountain guides with
-            a single conviction: true expeditions are small, patient, and deeply
-            respectful of the mountains and the Sherpa community who call them home.
-          </p>
-
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/destinations"
-              className="px-8 py-3.5 rounded-full bg-gradient-to-r from-[#e8b765] via-[#dfa851] to-[#c59a4a] text-[#071317] font-semibold text-xs sm:text-sm uppercase tracking-wider shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
-            >
-              Explore Our Routes
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              href="/contact"
-              className="px-8 py-3.5 rounded-full border border-[#c59a4a]/60 bg-[#0c1b22]/70 hover:bg-[#0c1b22] text-white font-medium text-xs sm:text-sm uppercase tracking-wider backdrop-blur-md transition-all flex items-center gap-2"
-            >
-              Talk With a Lead Guide
-            </Link>
-          </div>
-        </div>
+        </AboutHeroParallax>
       </section>
 
       {/* ──────────────────────────────────────────────────────────
@@ -83,7 +79,7 @@ export default function AboutPage() {
             <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#e8b765]">
               Chapter I · The Brothers Ethos
             </span>
-            <h2 className="font-serif text-3xl sm:text-4xl text-white font-normal leading-tight">
+            <h2 className="font-serif text-3xl sm:text-4xl text-white font-semibold leading-tight">
               A refusal to turn sacred peaks into crowded tourist conveyer belts.
             </h2>
             <div className="space-y-4 text-white/75 text-sm sm:text-base leading-relaxed font-light">

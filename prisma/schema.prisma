@@ -131,6 +131,56 @@ model AdminUser {
 // 2. CORE EXPEDITIONS / DESTINATIONS CATALOG
 // ─────────────────────────────────────────────────────────────────────────────
 
+model DestinationCountry {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  blurb     String   @default("") @db.Text
+  heroImage String   @default("/images/trips/everest.jpg")
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  regions DestinationRegion[]
+
+  @@index([isActive, sortOrder])
+}
+
+model TripCategory {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  name          String
+  blurb         String   @default("") @db.Text
+  heroImage     String   @default("/images/trips/everest.jpg")
+  groupByRegion Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model DestinationRegion {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  countryId   String
+  countrySlug String
+  blurb       String   @default("") @db.Text
+  heroImage   String   @default("/images/trips/everest.jpg")
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  country DestinationCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
+
+  @@index([countrySlug, isActive, sortOrder])
+  @@index([countryId])
+}
+
 model Trip {
   id              String   @id @default(cuid())
   slug            String   @unique
@@ -152,13 +202,24 @@ model Trip {
   seasonMonths    Int[]
   startPoint      String
   endPoint        String
-  tagline         String
-  overview        String   @db.Text
-  highlights      String[]
-  includes        String[]
-  excludes        String[]
-  gearList        String[] @default([])
-  badge           String?
+  tagline              String
+  overview             String   @db.Text
+  itineraryIntro       String?  @db.Text
+  highlights           String[]
+  includes             String[]
+  excludes             String[]
+  gearList             String[] @default([])
+  accommodationSummary String?
+  mealsSummary         String?
+  transportSummary     String?
+  weatherLocation      String?
+  weatherLat           Float?
+  weatherLon           Float?
+  customSections       Json     @default("[]")
+  includeGroups        Json     @default("[]")
+  excludeGroups        Json     @default("[]")
+  priceTiers           Json     @default("[]")
+  badge                String?
   isPublished     Boolean  @default(true)
   isFeatured      Boolean  @default(false)
   featuredOrder   Int      @default(0)
@@ -198,6 +259,10 @@ model TripItineraryDay {
   accommodation String?
   distanceKm    Float?
   durationHrs   String?
+  transport     String?
+  image         String?
+  guideLabel    String?
+  guideUrl      String?
 
   trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
 

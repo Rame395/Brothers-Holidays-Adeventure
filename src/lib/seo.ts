@@ -295,6 +295,12 @@ export function buildBreadcrumbJsonLd(
   };
 }
 
+function formatSchemaDayLabel(day: string): string {
+  const trimmed = day.trim();
+  if (/^(day|stage)\b/i.test(trimmed)) return trimmed;
+  return `Day ${trimmed}`;
+}
+
 export function buildTouristTripJsonLd(
   trip: TripDTO,
   settings: SiteSettingDTO
@@ -309,14 +315,53 @@ export function buildTouristTripJsonLd(
         )
       : null;
 
+  const images = Array.from(
+    new Set(
+      [
+        trip.image,
+        ...(trip.gallery ?? []),
+        ...(trip.mapImage ? [trip.mapImage] : []),
+      ].filter(Boolean)
+    )
+  ).map((img) => absoluteUrl(img));
+
+  const tripUrl = absoluteUrl(`/destinations/${trip.slug}`);
+  const bookUrl = absoluteUrl(`/destinations/${trip.slug}#book`);
+
+  const nprOffer = {
+    "@type": "Offer",
+    price: trip.price,
+    priceCurrency: settings.defaultCurrency || "NPR",
+    availability: "https://schema.org/InStock",
+    url: bookUrl,
+  };
+
+  const offers =
+    trip.priceUsd && trip.priceUsd > 0
+      ? [
+          nprOffer,
+          {
+            "@type": "Offer",
+            price: trip.priceUsd,
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+            url: bookUrl,
+          },
+        ]
+      : nprOffer;
+
   return {
     "@context": "https://schema.org",
-    "@type": "TouristTrip",
+    "@type": ["TouristTrip", "Product"],
     name: trip.name,
     description: trip.overview,
-    url: absoluteUrl(`/destinations/${trip.slug}`),
-    image: [trip.image, ...trip.gallery].map((img) => absoluteUrl(img)),
+    url: tripUrl,
+    image: images,
     touristType: trip.categories,
+    brand: {
+      "@type": "Organization",
+      name: settings.siteName,
+    },
     provider: {
       "@type": "TravelAgency",
       name: settings.siteName,
@@ -328,26 +373,68 @@ export function buildTouristTripJsonLd(
       itemListElement: trip.itinerary.map((day, idx) => ({
         "@type": "ListItem",
         position: idx + 1,
-        name: `Day ${day.day}: ${day.title} (${day.altitude}m)`,
+        name: `${formatSchemaDayLabel(day.day)}: ${day.title} (${day.altitude}m)`,
         ...(day.note ? { description: day.note } : {}),
       })),
     },
-    offers: {
-      "@type": "Offer",
-      price: trip.price,
-      priceCurrency: settings.defaultCurrency || "NPR",
-      availability: "https://schema.org/InStock",
-      url: absoluteUrl(`/destinations/${trip.slug}#book`),
-    },
+    offers,
     ...(avgRating !== null
       ? {
           aggregateRating: {
             "@type": "AggregateRating",
             ratingValue: avgRating,
             reviewCount,
+            bestRating: 5,
+            worstRating: 1,
           },
+          review: trip.reviews.slice(0, 10).map((r) => ({
+            "@type": "Review",
+            author: {
+              "@type": "Person",
+              name: r.authorName,
+            },
+            reviewRating: {
+              "@type": "Rating",
+              ratingValue: r.rating,
+              bestRating: 5,
+              worstRating: 1,
+            },
+            reviewBody: r.comment,
+            ...(r.title ? { name: r.title } : {}),
+            ...(r.tripDate ? { datePublished: r.tripDate } : {}),
+          })),
         }
       : {}),
+  };
+}
+
+export function buildCollectionItemListJsonLd({
+  name,
+  description,
+  path,
+  trips,
+}: {
+  name: string;
+  description: string;
+  path: string;
+  trips: TripDTO[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name,
+    description,
+    url: absoluteUrl(path),
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: trips.length,
+      itemListElement: trips.map((t, idx) => ({
+        "@type": "ListItem",
+        position: idx + 1,
+        url: absoluteUrl(`/destinations/${t.slug}`),
+        name: t.name,
+      })),
+    },
   };
 }
 

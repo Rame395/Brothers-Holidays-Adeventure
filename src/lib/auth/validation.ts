@@ -66,6 +66,7 @@ export const mfaVerifySchema = z.object({
     .min(6, "Enter your 6-digit authenticator code or backup code")
     .max(32, "Verification code is too long"),
   useBackupCode: z.boolean().optional().default(false),
+  rememberDevice: z.boolean().optional().default(true),
 });
 
 export const backupCodeSchema = z.object({

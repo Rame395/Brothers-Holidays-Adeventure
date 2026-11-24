@@ -2,165 +2,393 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { ArrowRight, Clock, Mountain } from "lucide-react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import {
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Pause,
+  Play,
+} from "lucide-react";
 import type { TrekRouteDTO } from "@/lib/types";
 import AnimatedElevationGraph from "./AnimatedElevationGraph";
 
+function getCircularOffset(index: number, activeIndex: number, total: number): number {
+  if (total <= 1) return 0;
+  let diff = index - activeIndex;
+  const half = total / 2;
+  if (diff > half) diff -= total;
+  if (diff < -half) diff += total;
+  return diff;
+}
+
+function subscribeReducedMotion(callback: () => void) {
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+}
+
+function getReducedMotionSnapshot() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function getReducedMotionServerSnapshot() {
+  return false;
+}
+
 export default function MirrorHighRoutes({ treks }: { treks: TrekRouteDTO[] }) {
-  const [selectedRegion, setSelectedRegion] = useState<string>("All");
+  const sectionRef = useRef<HTMLElement>(null);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [autoPlay, setAutoPlay] = useState<boolean>(true);
+  const [isPausedByUser, setIsPausedByUser] = useState<boolean>(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const touchStartXRef = useRef<number | null>(null);
 
-  const regions = useMemo(() => {
-    const set = new Set<string>();
-    for (const t of treks) {
-      if (t.region) set.add(t.region);
-    }
-    return ["All", ...Array.from(set)];
-  }, [treks]);
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot
+  );
 
-  const filtered = useMemo(() => {
-    const list =
-      selectedRegion === "All"
-        ? treks
-        : treks.filter((t) => t.region === selectedRegion);
-    return list.slice(0, 6);
-  }, [treks, selectedRegion]);
+  const safeActiveIndex =
+    treks.length > 0 ? ((activeIndex % treks.length) + treks.length) % treks.length : 0;
+
+  const goPrev = useCallback(() => {
+    if (treks.length <= 1) return;
+    setActiveIndex((prev) => (prev - 1 + treks.length) % treks.length);
+  }, [treks.length]);
+
+  const goNext = useCallback(() => {
+    if (treks.length <= 1) return;
+    setActiveIndex((prev) => (prev + 1) % treks.length);
+  }, [treks.length]);
+
+  const effectiveAutoPlay = autoPlay && !reducedMotion;
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry?.isIntersecting ?? false);
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!effectiveAutoPlay || isPausedByUser || !isVisible || treks.length <= 1) return;
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % treks.length);
+    }, 6500);
+
+    return () => window.clearInterval(timer);
+  }, [effectiveAutoPlay, isPausedByUser, isVisible, treks.length]);
 
   if (treks.length === 0) return null;
 
   return (
-    <section className="relative w-full py-16 lg:py-24 bg-[#0b181f] text-white border-y border-white/10 content-auto">
-      <div className="max-w-7xl mx-auto px-6 lg:px-10 space-y-10">
-        {/* Section Header + Region Filter Tabs */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-6 border-b border-white/10">
-          <div className="space-y-2 max-w-2xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#e5b96b]">
-              Regional Trail Guide
-            </p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-normal text-white tracking-tight">
-              Selected High Routes
-            </h2>
-            <p className="text-sm text-white/70 leading-relaxed">
-              Proven high-altitude corridors across Nepal with elevation gradients,
-              permit requirements, and straightforward local tariffs.
-            </p>
-          </div>
+    <section
+      ref={sectionRef}
+      className="relative w-full py-20 lg:py-28 bg-[#edf2f7] text-[#1c1917] overflow-hidden content-auto"
+    >
+      {/* Soft top & bottom white mist transition fades */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-px inset-x-0 h-16 z-10"
+        style={{
+          background:
+            "linear-gradient(to bottom, #ffffff 0%, rgba(237,242,247,0) 100%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-px inset-x-0 h-16 z-10"
+        style={{
+          background:
+            "linear-gradient(to top, #ffffff 0%, rgba(237,242,247,0) 100%)",
+        }}
+      />
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:overflow-visible sm:pb-0">
-            {regions.map((region) => {
-              const active = selectedRegion === region;
-              return (
-                <button
-                  key={region}
-                  type="button"
-                  onClick={() => setSelectedRegion(region)}
-                  className={`shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                    active
-                      ? "bg-[#c89b4b] text-[#081318] font-semibold"
-                      : "border border-white/15 bg-white/[0.04] text-white/75 hover:bg-white/[0.08] hover:text-white"
-                  }`}
-                >
-                  {region}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      {/* Centered Editorial Header */}
+      <div className="relative z-20 max-w-2xl mx-auto px-6 text-center mb-10 lg:mb-12 space-y-2.5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#104b87]">
+          Regional Trail Guide
+        </p>
+        <h2 className="font-serif text-3xl sm:text-4xl lg:text-[42px] font-semibold text-[#1c1917] tracking-wide uppercase leading-tight">
+          Selected High Routes
+        </h2>
+        <p className="text-sm sm:text-[15px] text-[#57534d] leading-relaxed">
+          Handpicked high-altitude traverses across Nepal with proven acclimatization
+          schedules and transparent NPR tariffs.
+        </p>
+      </div>
 
-        {/* Clean 3-Column Editorial Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((trek) => (
+      {/* Smooth 5-Slot Daylight Coverflow Stage */}
+      <div
+        role="region"
+        aria-label="High altitude trekking route spotlight"
+        tabIndex={0}
+        onMouseEnter={() => setIsPausedByUser(true)}
+        onMouseLeave={() => setIsPausedByUser(false)}
+        onFocusCapture={() => setIsPausedByUser(true)}
+        onBlurCapture={() => setIsPausedByUser(false)}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            goPrev();
+          } else if (e.key === "ArrowRight") {
+            e.preventDefault();
+            goNext();
+          }
+        }}
+        onTouchStart={(e) => {
+          touchStartXRef.current = e.touches[0]?.clientX ?? null;
+        }}
+        onTouchEnd={(e) => {
+          if (touchStartXRef.current === null) return;
+          const endX = e.changedTouches[0]?.clientX ?? touchStartXRef.current;
+          const deltaX = endX - touchStartXRef.current;
+          touchStartXRef.current = null;
+          if (Math.abs(deltaX) < 45) return;
+          if (deltaX > 0) {
+            goPrev();
+          } else {
+            goNext();
+          }
+        }}
+        className="relative mx-auto w-full h-[520px] sm:h-[540px] flex items-center justify-center select-none focus:outline-none"
+      >
+        {/* Soft horizontal mist vignettes matching stage background */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none hidden lg:block absolute inset-y-0 left-0 w-24 xl:w-36 z-30 bg-gradient-to-r from-[#edf2f7] to-transparent"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none hidden lg:block absolute inset-y-0 right-0 w-24 xl:w-36 z-30 bg-gradient-to-l from-[#edf2f7] to-transparent"
+        />
+
+        {treks.map((trek, idx) => {
+          const offset = getCircularOffset(idx, safeActiveIndex, treks.length);
+          const absOffset = Math.abs(offset);
+          if (absOffset > 2) return null;
+
+          const isCenter = offset === 0;
+          const visibilityClass =
+            absOffset === 0
+              ? "flex"
+              : absOffset === 1
+                ? "hidden sm:flex"
+                : "hidden lg:flex";
+
+          const slotTransform =
+            offset === 0
+              ? "translate3d(0, 0, 0) scale(1)"
+              : absOffset === 1
+                ? `translate3d(${offset * 78}%, 10px, 0) scale(0.86)`
+                : `translate3d(${offset * 68}%, 22px, 0) scale(0.74)`;
+
+          const slotOpacity = offset === 0 ? 1 : absOffset === 1 ? 0.72 : 0.38;
+          const slotZIndex = offset === 0 ? 30 : absOffset === 1 ? 20 : 10;
+
+          return (
             <article
               key={trek.id}
-              className="group rounded-2xl overflow-hidden border border-white/12 bg-[#0e2029] flex flex-col justify-between transition-colors hover:border-[#c89b4b]/60"
+              style={{
+                transform: slotTransform,
+                opacity: slotOpacity,
+                zIndex: slotZIndex,
+              }}
+              className={`group absolute w-[320px] sm:w-[370px] rounded-3xl overflow-hidden flex-col justify-between transition-[transform,opacity] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${visibilityClass} ${
+                isCenter
+                  ? "bg-white border border-slate-200/90 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.18)]"
+                  : "bg-[#f8fafc] border border-slate-200/80 shadow-md hover:border-slate-300"
+              }`}
             >
+              {!isCenter && (
+                <button
+                  type="button"
+                  onClick={() => setActiveIndex(idx)}
+                  aria-label={`Focus ${trek.name}`}
+                  className="absolute inset-0 z-20 cursor-pointer rounded-3xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#104b87]"
+                />
+              )}
+
               <div>
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#081318]">
+                {/* Top Card Photography */}
+                <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-900">
                   <Image
                     src={trek.image}
                     alt={trek.name}
                     fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    sizes="(max-width: 640px) 320px, 370px"
+                    className={`object-cover transition-transform duration-700 ${
+                      isCenter ? "group-hover:scale-105" : ""
+                    }`}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0e2029] via-transparent to-black/25" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
 
-                  <div className="absolute top-3 left-3">
-                    <span className="rounded-md bg-[#081318]/85 border border-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[#e5b96b]">
+                  <div className="absolute top-3.5 left-3.5">
+                    <span className="inline-block rounded-full bg-white/95 border border-white/60 shadow-xs px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#104b87]">
                       {trek.statusBadge}
                     </span>
                   </div>
 
-                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-white/90 tabular-nums">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-[#e5b96b]" />
-                      {trek.duration} Days
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 font-medium">
-                      <Mountain className="w-3.5 h-3.5 text-[#e5b96b]" />
-                      {trek.highestPoint.toLocaleString("en-US")} m
+                  <div className="absolute bottom-3 right-3.5">
+                    <span className="inline-block rounded-full bg-black/75 border border-white/15 px-3 py-1 text-[11px] text-white/95 tabular-nums">
+                      {trek.duration} Days · {trek.highestPoint.toLocaleString("en-US")} m
                     </span>
                   </div>
                 </div>
 
-                <div className="p-5 space-y-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#e5b96b]">
-                    {trek.region} · {trek.difficulty}
-                  </p>
-                  <h3 className="font-serif text-xl text-white font-normal leading-snug">
+                {/* Card Body */}
+                <div className="p-5 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2 text-[11px]">
+                    <span className="font-semibold uppercase tracking-[0.16em] text-[#104b87] truncate">
+                      {trek.region}
+                    </span>
+                    <span className="text-slate-500 shrink-0">{trek.difficulty}</span>
+                  </div>
+
+                  <h3 className="font-serif text-xl sm:text-[22px] text-[#1c1917] font-semibold tracking-wide leading-snug line-clamp-1">
                     {trek.name}
                   </h3>
-                  <p className="text-xs text-white/70 leading-relaxed line-clamp-2">
+
+                  <p className="text-xs sm:text-[13px] text-[#57534d] leading-relaxed line-clamp-2 min-h-[2.4rem]">
                     {trek.description}
                   </p>
 
-                  <div className="pt-2 border-t border-white/10">
+                  <div className="pt-2 border-t border-slate-100">
                     <AnimatedElevationGraph
                       svgPath={trek.elevationPoints.svgPath}
                       peakCoords={trek.elevationPoints.peakCoords}
                       startLabel={trek.elevationPoints.start}
-                      midLabel={trek.highestPointName}
                       peakLabel={trek.elevationPoints.peak}
-                      strokeColor="#e5b96b"
-                      fillColor="rgba(229, 185, 107, 0.14)"
-                      height="h-9"
+                      strokeColor="#104b87"
+                      fillColor="rgba(16, 75, 135, 0.12)"
+                      peakStrokeColor="#ffffff"
+                      labelClassName="text-slate-500"
+                      height="h-8"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="px-5 py-4 border-t border-white/10 bg-[#0b181f]/60 flex items-center justify-between tabular-nums">
+              {/* Card Footer */}
+              <div className="px-5 py-4 border-t border-slate-100 bg-[#f8fafc] flex items-center justify-between tabular-nums">
                 <div>
-                  <span className="block text-[10px] uppercase tracking-wider text-white/50">
+                  <span className="block text-[10px] uppercase tracking-wider text-slate-500">
                     From / person
                   </span>
-                  <span className="font-serif text-base font-medium text-[#e5b96b]">
+                  <span className="font-serif text-lg font-medium text-[#1c1917]">
                     NPR {(trek.priceFrom * 100).toLocaleString("en-US")}
                   </span>
                 </div>
 
-                <Link
-                  href={`/route/${trek.slug}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#c89b4b] hover:bg-[#e5b96b] px-3.5 py-2 text-xs font-semibold text-[#081318] transition-colors"
-                >
-                  <span>Logbook</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
+                {isCenter ? (
+                  <Link
+                    href={`/route/${trek.slug}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[#104b87] hover:bg-[#0a355f] px-5 py-2 text-xs font-semibold uppercase tracking-wider text-white transition-colors shadow-xs"
+                  >
+                    <span>Logbook</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-200/80 px-5 py-2 text-xs font-semibold uppercase tracking-wider text-slate-600">
+                    <span>Logbook</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                )}
               </div>
             </article>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
-        {/* Directory CTA Row */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-white/10">
-          <p className="text-xs text-white/65 tabular-nums">
-            Showing {filtered.length} of {treks.length} mapped Himalayan routes.
+      {/* Symmetrical Controls & Balanced Directory Strip */}
+      <div className="relative z-20 max-w-7xl mx-auto px-6 lg:px-10 mt-8">
+        {treks.length > 1 && (
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={goPrev}
+              aria-label="Previous route"
+              className="w-9 h-9 rounded-full bg-white border border-slate-200/90 shadow-xs hover:border-[#104b87] hover:text-[#104b87] flex items-center justify-center text-[#1c1917] transition-colors cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-2" role="tablist" aria-label="Select route card">
+              {treks.map((trek, idx) => {
+                const active = idx === safeActiveIndex;
+                return (
+                  <button
+                    key={trek.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    aria-label={`Show ${trek.name}`}
+                    onClick={() => setActiveIndex(idx)}
+                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                      active
+                        ? "w-6 bg-[#104b87]"
+                        : "w-1.5 bg-slate-300 hover:bg-slate-400"
+                    }`}
+                  />
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={goNext}
+              aria-label="Next route"
+              className="w-9 h-9 rounded-full bg-white border border-slate-200/90 shadow-xs hover:border-[#104b87] hover:text-[#104b87] flex items-center justify-center text-[#1c1917] transition-colors cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAutoPlay((v) => !v)}
+              aria-pressed={effectiveAutoPlay}
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-white border border-slate-200/90 shadow-xs hover:border-[#104b87]/40 px-3.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#1c1917] transition-colors cursor-pointer"
+            >
+              {effectiveAutoPlay ? (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#104b87]" />
+                  <Pause className="w-3.5 h-3.5 text-[#104b87]" />
+                  <span>Auto-Play</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="text-[#57534d]">Paused</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+        <div className="mt-8 pt-5 border-t border-slate-300/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-xs text-slate-500 tabular-nums">
+            Route {safeActiveIndex + 1} of {treks.length}
           </p>
           <Link
             href="/treks"
-            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#e5b96b] hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#104b87] hover:text-[#f05e25] transition-colors"
           >
-            <span>View all {treks.length} routes</span>
+            <span>Explore all {treks.length} routes</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

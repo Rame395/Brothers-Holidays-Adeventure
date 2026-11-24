@@ -11,6 +11,8 @@ interface AnimatedElevationGraphProps {
   className?: string;
   strokeColor?: string;
   fillColor?: string;
+  peakStrokeColor?: string;
+  labelClassName?: string;
   viewBox?: string;
   height?: string;
 }
@@ -22,8 +24,10 @@ export default function AnimatedElevationGraph({
   midLabel,
   peakLabel,
   className = "",
-  strokeColor = "#0f4c54",
-  fillColor = "rgba(15, 76, 84, 0.16)",
+  strokeColor = "#104b87",
+  fillColor = "rgba(16, 75, 135, 0.16)",
+  peakStrokeColor = "#071526",
+  labelClassName = "text-white/65",
   viewBox = "0 0 300 40",
   height = "h-10",
 }: AnimatedElevationGraphProps) {
@@ -52,7 +56,7 @@ export default function AnimatedElevationGraph({
   return (
     <div ref={containerRef} className={`w-full overflow-hidden ${className}`}>
       {(startLabel || midLabel || peakLabel) && (
-        <div className="flex justify-between text-[10px] font-mono text-white/65 mb-1 tabular-nums">
+        <div className={`flex justify-between text-[10px] font-mono mb-1 tabular-nums ${labelClassName}`}>
           <span>{startLabel}</span>
           {midLabel && <span>{midLabel}</span>}
           <span>{peakLabel}</span>
@@ -94,8 +98,8 @@ export default function AnimatedElevationGraph({
               cx={peakCoords.x}
               cy={peakCoords.y}
               r="3.2"
-              fill="#e5b96b"
-              stroke="#0b181f"
+              fill="#f05e25"
+              stroke={peakStrokeColor}
               strokeWidth="1.4"
               opacity={revealed ? 1 : 0}
               style={{ transition: "opacity 0.5s ease 0.4s" }}

@@ -84,7 +84,7 @@ function sampleRidgeHeight(x: number, lz: number, spec: RidgeSpec) {
 
 /* ---------- procedural micro-detail terrain & wire-mesh textures ---------- */
 function makeTerrainDetailTextures() {
-  const size = 512;
+  const size = 256;
   const colorCanvas = document.createElement("canvas");
   colorCanvas.width = size;
   colorCanvas.height = size;
@@ -103,10 +103,10 @@ function makeTerrainDetailTextures() {
   const rand = mulberry32(417);
 
   // Broad rock/moss mottling
-  for (let i = 0; i < 650; i++) {
+  for (let i = 0; i < 200; i++) {
     const x = rand() * size;
     const y = rand() * size;
-    const r = 6 + rand() * 22;
+    const r = 3 + rand() * 11;
     const shade = Math.round(205 + rand() * 48); // light neutral multiplier (preserves vertex hues)
     cCtx.fillStyle = `rgba(${shade}, ${shade}, ${Math.max(198, shade - 2)}, 0.24)`;
     cCtx.beginPath();
@@ -123,19 +123,19 @@ function makeTerrainDetailTextures() {
   // Sharp rocky scree flecks, granite crevices & coarse alpine gravel specks
   bCtx.strokeStyle = "rgba(18, 20, 24, 0.72)";
   cCtx.strokeStyle = "rgba(38, 40, 46, 0.45)";
-  for (let i = 0; i < 420; i++) {
+  for (let i = 0; i < 120; i++) {
     let cx = rand() * size;
     let cy = rand() * size;
-    bCtx.lineWidth = 1.2 + rand() * 2.2;
-    cCtx.lineWidth = 1 + rand() * 1.6;
+    bCtx.lineWidth = 1.0 + rand() * 1.4;
+    cCtx.lineWidth = 0.8 + rand() * 1.1;
     bCtx.beginPath();
     cCtx.beginPath();
     bCtx.moveTo(cx, cy);
     cCtx.moveTo(cx, cy);
     const steps = 2 + Math.floor(rand() * 3);
     for (let s = 0; s < steps; s++) {
-      cx += (rand() - 0.5) * 26;
-      cy += (rand() - 0.5) * 18;
+      cx += (rand() - 0.5) * 14;
+      cy += (rand() - 0.5) * 10;
       bCtx.lineTo(cx, cy);
       cCtx.lineTo(cx, cy);
     }
@@ -143,11 +143,11 @@ function makeTerrainDetailTextures() {
     cCtx.stroke();
   }
 
-  for (let i = 0; i < 4800; i++) {
+  for (let i = 0; i < 1200; i++) {
     const x = rand() * size;
     const y = rand() * size;
-    const w = 1.5 + rand() * 4.5;
-    const h = 1.5 + rand() * 4.0;
+    const w = 1.0 + rand() * 2.5;
+    const h = 1.0 + rand() * 2.2;
     const tone = rand() > 0.35 ? Math.round(218 + rand() * 37) : Math.round(145 + rand() * 40);
     cCtx.fillStyle = `rgba(${tone}, ${tone}, ${tone}, 0.48)`;
     cCtx.fillRect(x, y, w, h);
@@ -750,6 +750,8 @@ function SuspensionBridge() {
   const deckRef = useRef<THREE.InstancedMesh>(null);
   const hangerRef = useRef<THREE.InstancedMesh>(null);
   const flagElapsedRef = useRef(0);
+  const flagThrottleRef = useRef(0);
+  const frameDummy = useMemo(() => new THREE.Object3D(), []);
 
   const wireMeshTex = useMemo(() => makeWireMeshTexture(), []);
 
@@ -1038,17 +1040,20 @@ function SuspensionBridge() {
   useFrame((_, rawDelta) => {
     const fMesh = flagRef.current;
     if (!fMesh || !heroState.inView || heroState.reducedMotion) return;
-    flagElapsedRef.current += Math.min(rawDelta, 0.05);
-    const t = flagElapsedRef.current;
-    const dummy = new THREE.Object3D();
+    const dt = Math.min(rawDelta, 0.05);
+    flagElapsedRef.current += dt;
+    flagThrottleRef.current += dt;
+    if (flagThrottleRef.current < 0.05) return;
+    flagThrottleRef.current = 0;
 
+    const t = flagElapsedRef.current;
     flagSpecs.forEach((f, i) => {
       const flutter = Math.sin(t * 2.8 + f.phase) * 0.26;
-      dummy.position.set(f.x, f.y, f.z);
-      dummy.rotation.set(0.18 + flutter, flutter * 0.25, 0);
-      dummy.scale.set(1, 1, 1);
-      dummy.updateMatrix();
-      fMesh.setMatrixAt(i, dummy.matrix);
+      frameDummy.position.set(f.x, f.y, f.z);
+      frameDummy.rotation.set(0.18 + flutter, flutter * 0.25, 0);
+      frameDummy.scale.set(1, 1, 1);
+      frameDummy.updateMatrix();
+      fMesh.setMatrixAt(i, frameDummy.matrix);
     });
     fMesh.instanceMatrix.needsUpdate = true;
   });
@@ -1248,7 +1253,7 @@ type CloudSpec = {
 function buildClouds(): CloudSpec[] {
   const rand = mulberry32(42);
   const list: CloudSpec[] = [];
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 10; i++) {
     list.push({
       x: (rand() - 0.5) * 96,
       y: -2.2 + rand() * 3.8,
@@ -1260,7 +1265,7 @@ function buildClouds(): CloudSpec[] {
       tex: Math.floor(rand() * 3),
     });
   }
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 4; i++) {
     list.push({
       x: (rand() - 0.5) * 20,
       y: -0.4 + rand() * 4.0,
@@ -1329,7 +1334,7 @@ function Clouds() {
 }
 
 /* ---------- high-altitude atmospheric crystals ---------- */
-const PARTICLE_COUNT = 260;
+const PARTICLE_COUNT = 120;
 
 function Particles() {
   const ref = useRef<THREE.Points>(null);
@@ -1427,8 +1432,8 @@ function ReadySignal() {
 
 /* ---------- glacial Dudh Koshi river underneath the bridge ---------- */
 function makeRiverTextures() {
-  const w = 256;
-  const h = 512;
+  const w = 128;
+  const h = 256;
 
   const waterCanvas = document.createElement("canvas");
   waterCanvas.width = w;
@@ -1452,12 +1457,12 @@ function makeRiverTextures() {
 
   // Seamless vertical glacial current ribbons (periodic over H)
   const rand = mulberry32(909);
-  for (let i = 0; i < 28; i++) {
+  for (let i = 0; i < 16; i++) {
     const baseX = (0.08 + rand() * 0.84) * w;
-    const amp = 4 + rand() * 14;
+    const amp = 2 + rand() * 7;
     const cycles = 1 + Math.floor(rand() * 3);
     const phase = rand() * Math.PI * 2;
-    const lineW = 3 + rand() * 14;
+    const lineW = 1.5 + rand() * 7;
     const tonePick = rand();
     wCtx.strokeStyle =
       tonePick > 0.66
@@ -1478,15 +1483,15 @@ function makeRiverTextures() {
 
   // Wrapped turbulent whitewater streaks baked into water surface
   wCtx.lineCap = "round";
-  for (let i = 0; i < 240; i++) {
+  for (let i = 0; i < 100; i++) {
     const sx = (0.1 + rand() * 0.8) * w;
     const sy = rand() * h;
-    const len = 14 + rand() * 48;
-    const drift = (rand() - 0.5) * 14;
+    const len = 8 + rand() * 24;
+    const drift = (rand() - 0.5) * 8;
     const alpha = 0.14 + rand() * 0.34;
     wCtx.strokeStyle =
       rand() > 0.45 ? `rgba(224, 244, 247, ${alpha})` : `rgba(122, 177, 186, ${alpha})`;
-    wCtx.lineWidth = 1.2 + rand() * 2.8;
+    wCtx.lineWidth = 0.8 + rand() * 1.8;
     for (const oy of [0, -h, h]) {
       wCtx.beginPath();
       wCtx.moveTo(sx, sy + oy);
@@ -1497,17 +1502,17 @@ function makeRiverTextures() {
 
   // Translucent fast-moving whitewater foam froth overlay
   fCtx.lineCap = "round";
-  for (let i = 0; i < 360; i++) {
+  for (let i = 0; i < 140; i++) {
     // Concentrate whitewater froth along central rapids and rock wakes
     const uSpread = (rand() + rand()) * 0.5;
     const sx = (0.08 + uSpread * 0.84) * w;
     const sy = rand() * h;
-    const len = 10 + rand() * 44;
-    const drift = (rand() - 0.5) * 18;
+    const len = 6 + rand() * 22;
+    const drift = (rand() - 0.5) * 10;
     const alpha = 0.18 + rand() * 0.58;
     fCtx.strokeStyle =
       rand() > 0.28 ? `rgba(244, 251, 255, ${alpha})` : `rgba(204, 235, 241, ${alpha})`;
-    fCtx.lineWidth = 1 + rand() * 3.4;
+    fCtx.lineWidth = 0.8 + rand() * 2;
     for (const oy of [0, -h, h]) {
       fCtx.beginPath();
       fCtx.moveTo(sx, sy + oy);
@@ -1517,11 +1522,11 @@ function makeRiverTextures() {
   }
 
   // Extra bubbly foam crests wrapped across seam
-  for (let i = 0; i < 190; i++) {
+  for (let i = 0; i < 80; i++) {
     const sx = (0.12 + rand() * 0.76) * w;
     const sy = rand() * h;
-    const rx = 2 + rand() * 7;
-    const ry = 3 + rand() * 11;
+    const rx = 1 + rand() * 4;
+    const ry = 1.5 + rand() * 6;
     const alpha = 0.16 + rand() * 0.42;
     fCtx.fillStyle = `rgba(245, 252, 255, ${alpha})`;
     for (const oy of [0, -h, h]) {
@@ -1815,8 +1820,8 @@ function KhumbuLandscape() {
       <Ridge
         {...BACK_RIDGE_SPEC}
         snowLine={0.44}
-        segX={120}
-        segZ={48}
+        segX={72}
+        segZ={28}
         terrainStyle="alpine"
         detailMap={map}
         bumpMap={bumpMap}
@@ -1826,8 +1831,8 @@ function KhumbuLandscape() {
       <Ridge
         {...FRONT_RIDGE_SPEC}
         snowLine={0.68}
-        segX={168}
-        segZ={92}
+        segX={96}
+        segZ={52}
         terrainStyle="foothill"
         detailMap={map}
         bumpMap={bumpMap}
@@ -1844,8 +1849,8 @@ export default function HeroScene({ active = true }: { active?: boolean }) {
   return (
     <Canvas
       frameloop={active ? "always" : "never"}
-      dpr={[1, 1.25]}
-      gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
+      dpr={1}
+      gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
       camera={{ fov: 50, near: 0.1, far: 320, position: CAM_START.toArray() }}
       style={{ background: "transparent" }}
     >

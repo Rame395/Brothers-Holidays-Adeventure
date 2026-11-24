@@ -4,6 +4,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { getOptionalCustomer } from "@/lib/auth/guards";
 import { bookingReference, clampTravellers } from "@/lib/booking";
+import { parsePriceTiers, resolveTierPrice } from "@/lib/weather-locations";
 
 const bookingSchema = z.object({
   tripSlug: z.string().min(1, "Trip slug is required"),
@@ -48,7 +49,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const travellers = clampTravellers(data.travellers, trip.groupMax);
+    const tiers = parsePriceTiers(trip.priceTiers);
+    const maxGroupCap = Math.max(
+      trip.groupMax,
+      ...tiers.map((t) => t.maxGroup)
+    );
+    const travellers = clampTravellers(data.travellers, maxGroupCap);
     const emailNormalized = data.email.toLowerCase();
 
     let departureRecord = null;
@@ -68,7 +74,8 @@ export async function POST(request: Request) {
       }
     }
 
-    const pricePerPerson = departureRecord?.priceOverride ?? trip.price;
+    const tierPricing = resolveTierPrice(trip.price, tiers, travellers);
+    const pricePerPerson = departureRecord?.priceOverride ?? tierPricing.price;
     const totalAmount = pricePerPerson * travellers;
 
     const suffix = crypto.randomBytes(2).toString("hex").toUpperCase();

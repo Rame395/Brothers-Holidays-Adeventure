@@ -57,16 +57,16 @@ async function DestinationDetailContent({
 
   if (!trip) {
     return (
-      <div className="min-h-[70vh] bg-[#f8fafb] flex flex-col items-center justify-center px-5 text-center">
-        <h1 className="font-serif text-4xl sm:text-5xl text-[#111d1f]">
+      <div className="min-h-[70vh] bg-[#f8fafc] flex flex-col items-center justify-center px-5 text-center">
+        <h1 className="font-serif text-4xl sm:text-5xl text-[#1c1917]">
           Route Not Found
         </h1>
-        <p className="mt-3 text-sm text-[#55606a]">
+        <p className="mt-3 text-sm text-[#57534d]">
           That Himalayan journey could not be located in our expedition ledger.
         </p>
         <Link
           href="/destinations"
-          className="mt-6 rounded-full bg-[#00515b] px-6 py-2.5 font-mono text-xs uppercase tracking-widest font-semibold text-white hover:bg-[#003840]"
+          className="mt-6 rounded-full bg-[#104b87] px-6 py-2.5 font-mono text-xs uppercase tracking-widest font-semibold text-white hover:bg-[#0a355f]"
         >
           Browse All Destinations
         </Link>
@@ -92,7 +92,11 @@ async function DestinationDetailContent({
         ])}
       />
       {trip.faqs.length > 0 && <JsonLd data={buildFaqJsonLd(trip.faqs)} />}
-      <TripDetailView trip={trip} related={related} />
+      <TripDetailView
+        trip={trip}
+        related={related}
+        whatsappNumber={settings.whatsappNumber}
+      />
     </>
   );
 }
@@ -105,7 +109,7 @@ export default function DestinationDetailPage({
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8fafb] flex items-center justify-center font-mono text-sm text-[#00515b]">
+        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-mono text-sm text-[#104b87]">
           Loading Expedition Dossier…
         </div>
       }

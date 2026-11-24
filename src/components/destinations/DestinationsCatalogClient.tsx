@@ -2,68 +2,90 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, Compass, ArrowUpRight } from "lucide-react";
+import { Search, Compass, ArrowUpRight, X, RotateCcw } from "lucide-react";
 import { useMemo, useState } from "react";
 import { TripCard } from "@/components/destinations/TripCard";
-import {
-  CATEGORIES,
-  COUNTRIES,
-  REGIONS,
-  images,
-  type Category,
-  type Country,
-  type Region,
-} from "@/data/trips";
-import type { TripDTO } from "@/lib/types";
+import type { DestinationTaxonomyDTO, TripDTO } from "@/lib/types";
 
-function Chip({
+function FilterChip({
   active,
   onClick,
   children,
+  count,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  count?: number;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-mono uppercase tracking-wider transition-all cursor-pointer ${
+      className={`group inline-flex items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-heading font-semibold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
         active
-          ? "bg-[#00515b] text-white font-semibold shadow-sm"
-          : "text-[#3f484a] hover:bg-[#e3f0f3] hover:text-[#003840]"
+          ? "bg-[#1c1917] text-white shadow-xs ring-1 ring-black/10"
+          : "bg-white text-[#57534d] border border-stone-200/90 hover:border-stone-300 hover:bg-stone-50 hover:text-[#1c1917]"
       }`}
     >
-      {children}
+      <span>{children}</span>
+      {typeof count === "number" && (
+        <span
+          className={`text-[10px] font-sans font-medium px-1.5 py-0.5 rounded-full transition-colors ${
+            active
+              ? "bg-white/20 text-white"
+              : "bg-stone-100 text-stone-500 group-hover:bg-stone-200 group-hover:text-stone-700"
+          }`}
+        >
+          {count}
+        </span>
+      )}
     </button>
   );
 }
 
-export function DestinationsCatalogClient({ trips }: { trips: TripDTO[] }) {
+export function DestinationsCatalogClient({
+  trips,
+  taxonomy,
+}: {
+  trips: TripDTO[];
+  taxonomy: DestinationTaxonomyDTO;
+}) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [q, setQ] = useState(() => searchParams.get("q") || "");
   const [showAtlasIndex, setShowAtlasIndex] = useState(false);
 
+  const { countries, categories, regions } = taxonomy;
+
   const rawCountry = searchParams.get("country");
   const rawCategory = searchParams.get("category");
   const rawRegion = searchParams.get("region");
 
-  const country = COUNTRIES.some((c) => c.id === rawCountry)
-    ? (rawCountry as Country)
+  const country =
+    rawCountry && countries.some((c) => c.slug === rawCountry)
+      ? rawCountry
+      : undefined;
+  const category =
+    rawCategory && categories.some((c) => c.slug === rawCategory)
+      ? rawCategory
+      : undefined;
+  const region =
+    rawRegion && regions.some((r) => r.slug === rawRegion)
+      ? rawRegion
+      : undefined;
+
+  const activeCategoryObj = category
+    ? categories.find((c) => c.slug === category)
     : undefined;
-  const category = CATEGORIES.some((c) => c.id === rawCategory)
-    ? (rawCategory as Category)
-    : undefined;
-  const region = REGIONS.some((r) => r.id === rawRegion)
-    ? (rawRegion as Region)
-    : undefined;
+  const visibleRegions = country
+    ? regions.filter((r) => r.countrySlug === country)
+    : regions;
 
   const setFilter = (patch: {
-    country?: Country | undefined;
-    category?: Category | undefined;
-    region?: Region | undefined;
+    country?: string | undefined;
+    category?: string | undefined;
+    region?: string | undefined;
   }) => {
     const next = new URLSearchParams(searchParams.toString());
     const merged = {
@@ -84,6 +106,7 @@ export function DestinationsCatalogClient({ trips }: { trips: TripDTO[] }) {
     });
   };
 
+  // Filtered trips matching current selections & query
   const results = useMemo(() => {
     const query = q.trim().toLowerCase();
     return trips.filter(
@@ -96,22 +119,80 @@ export function DestinationsCatalogClient({ trips }: { trips: TripDTO[] }) {
     );
   }, [trips, country, category, region, q]);
 
+  // Trip counts per country
+  const countryCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of trips) {
+      if (t.country) {
+        map.set(t.country, (map.get(t.country) ?? 0) + 1);
+      }
+    }
+    return map;
+  }, [trips]);
+
+  // Trip counts per category
+  const categoryCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of trips) {
+      if (!country || t.country === country) {
+        for (const cat of t.categories) {
+          map.set(cat, (map.get(cat) ?? 0) + 1);
+        }
+      }
+    }
+    return map;
+  }, [trips, country]);
+
+  // Trip counts per region
+  const regionCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of trips) {
+      if (
+        (!country || t.country === country) &&
+        (!category || t.categories.includes(category))
+      ) {
+        if (t.region) {
+          map.set(t.region, (map.get(t.region) ?? 0) + 1);
+        }
+      }
+    }
+    return map;
+  }, [trips, country, category]);
+
+  const countryFilteredCount = useMemo(() => {
+    return trips.filter((t) => !country || t.country === country).length;
+  }, [trips, country]);
+
+  const categoryFilteredCount = useMemo(() => {
+    return trips.filter(
+      (t) =>
+        (!country || t.country === country) &&
+        (!category || t.categories.includes(category))
+    ).length;
+  }, [trips, country, category]);
+
   const heroImg =
-    (region && REGIONS.find((r) => r.id === region)?.image) ||
-    (category && CATEGORIES.find((c) => c.id === category)?.image) ||
-    (country && COUNTRIES.find((c) => c.id === country)?.image) ||
-    images.everest;
+    (region && regions.find((r) => r.slug === region)?.heroImage) ||
+    (category && categories.find((c) => c.slug === category)?.heroImage) ||
+    (country && countries.find((c) => c.slug === country)?.heroImage) ||
+    "/images/trips/everest.jpg";
 
   const title =
-    (region && REGIONS.find((r) => r.id === region)?.label) ||
-    (category && CATEGORIES.find((c) => c.id === category)?.label) ||
-    (country && COUNTRIES.find((c) => c.id === country)?.label) ||
+    (region && regions.find((r) => r.slug === region)?.name) ||
+    (category && categories.find((c) => c.slug === category)?.name) ||
+    (country && countries.find((c) => c.slug === country)?.name) ||
     "All Destinations & Trips";
 
+  const activeCountryName = country
+    ? countries.find((c) => c.slug === country)?.name ?? country
+    : "All Countries";
+
+  const hasActiveFilters = Boolean(country || category || region || q.trim());
+
   return (
-    <div className="min-h-screen bg-[#f8fafb] text-[#111d1f]">
+    <div className="min-h-screen bg-[#f8fafc] text-[#1c1917]">
       {/* Hero Banner */}
-      <section className="relative flex min-h-[46vh] items-end overflow-hidden bg-[#071318]">
+      <section className="relative flex min-h-[44vh] items-end overflow-hidden bg-[#071526]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           key={heroImg}
@@ -119,95 +200,106 @@ export function DestinationsCatalogClient({ trips }: { trips: TripDTO[] }) {
           alt={title}
           className="absolute inset-0 h-full w-full object-cover opacity-80 transition-all duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050c0e] via-[#050c0e]/55 to-[#050c0e]/25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#071526] via-[#071526]/60 to-[#071526]/30" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-px inset-x-0 h-10 sm:h-14 z-10"
+          style={{
+            background:
+              "linear-gradient(to top, #f8fafc 0%, rgba(248,250,252,0.5) 45%, transparent 100%)",
+          }}
+        />
 
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-10 pt-24 lg:px-8">
-          <nav className="font-mono text-xs uppercase tracking-[0.22em] flex items-center gap-2 text-white/65">
-            <Link href="/" className="hover:text-[#e8b765] transition-colors">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-12 pt-28 lg:px-8">
+          <nav className="font-heading text-xs uppercase tracking-[0.22em] font-semibold flex items-center gap-2 text-white/70">
+            <Link href="/" className="hover:text-[#ff8a50] transition-colors">
               Home
             </Link>
-            <span>/</span>
-            <span className="text-[#e8b765]">Destinations</span>
+            <span className="text-white/40">/</span>
+            <span className="text-[#ff8a50]">Destinations</span>
           </nav>
 
-          <div className="mt-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="mt-4 flex flex-col md:flex-row md:items-end justify-between gap-5">
             <div>
-              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-white font-light tracking-tight">
+              <h1 className="font-heading font-black text-4xl sm:text-5xl md:text-6xl text-white uppercase tracking-tight leading-tight">
                 {title}
               </h1>
-              <p className="mt-2 font-mono text-xs sm:text-sm text-[#89d6e2]">
-                Displaying {results.length} of {trips.length} Himalayan journeys
-                · Pricing in Nepalese Rupees (Rs.)
+              <p className="mt-2 font-sans text-xs sm:text-sm text-white/80">
+                Displaying{" "}
+                <strong className="text-white font-semibold">
+                  {results.length}
+                </strong>{" "}
+                of {trips.length} Himalayan journeys · Pricing in Nepalese
+                Rupees (Rs.)
               </p>
             </div>
 
             <button
               type="button"
               onClick={() => setShowAtlasIndex((v) => !v)}
-              className="self-start md:self-end inline-flex items-center gap-2 rounded-full border border-[#e8b765]/70 bg-[#071318]/80 px-4 py-2 font-mono text-xs uppercase tracking-widest text-[#e8b765] backdrop-blur-md hover:bg-[#e8b765] hover:text-[#050c0e] transition-colors cursor-pointer"
+              className="self-start md:self-end inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 font-heading font-semibold text-xs uppercase tracking-wider text-white backdrop-blur-md hover:bg-[#f05e25] hover:border-[#f05e25] transition-all cursor-pointer shadow-xs"
             >
-              <Compass className="h-4 w-4" />
+              <Compass className="h-4 w-4 text-[#ff8a50]" />
               <span>
                 {showAtlasIndex
                   ? "Hide Regional Directory"
-                  : "Trekking Routes Directory"}
+                  : "Regional Directory"}
               </span>
             </button>
           </div>
         </div>
       </section>
 
-      {/* Collapsible Full Regional Trekking Directory */}
-      {showAtlasIndex && (
-        <section className="border-b border-[#d8e5e7] bg-white py-8 shadow-inner">
+      {/* Collapsible Regional Directory */}
+      {showAtlasIndex && visibleRegions.length > 0 && (
+        <section className="border-b border-stone-200/90 bg-white py-8 shadow-inner">
           <div className="mx-auto max-w-7xl px-5 lg:px-8">
-            <div className="mb-5 flex items-center justify-between border-b border-[#e8f0f3] pb-3">
+            <div className="mb-5 flex items-center justify-between border-b border-stone-200 pb-3">
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#b58133] font-semibold">
+                <p className="font-heading text-[11px] uppercase tracking-[0.22em] text-[#f05e25] font-bold">
                   Complete Regional Index
                 </p>
-                <h2 className="font-serif text-2xl text-[#111d1f]">
-                  Trekking Routes in Nepal
+                <h2 className="font-heading font-bold text-2xl uppercase tracking-tight text-[#1c1917]">
+                  Routes across {activeCountryName}
                 </h2>
               </div>
               <button
                 type="button"
-                onClick={() => {
+                onClick={() =>
                   setFilter({
-                    country: "nepal",
-                    category: "trekking",
                     region: undefined,
-                  });
-                }}
-                className="inline-flex items-center gap-1 font-mono text-xs font-semibold uppercase tracking-wider text-[#00515b] hover:underline cursor-pointer"
+                  })
+                }
+                className="inline-flex items-center gap-1 font-heading text-xs font-semibold uppercase tracking-wider text-[#f05e25] hover:underline cursor-pointer"
               >
-                View all trekking routes <ArrowUpRight className="h-3.5 w-3.5" />
+                <span>View all regions</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
               </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {REGIONS.map((reg) => (
+              {visibleRegions.map((reg) => (
                 <div
-                  key={reg.id}
-                  className="rounded-xl border border-[#e2edf0] bg-[#f8fafb] p-4"
+                  key={reg.slug}
+                  className="rounded-xl border border-stone-200 bg-stone-50/70 p-4"
                 >
-                  <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#00515b] font-bold mb-3 pb-2 border-b border-[#d8e5e7]">
-                    {reg.label}
+                  <p className="font-heading text-xs uppercase tracking-[0.16em] text-[#1c1917] font-bold mb-3 pb-2 border-b border-stone-200">
+                    {reg.name}
                   </p>
                   <ul className="space-y-2">
                     {trips
                       .filter(
                         (t) =>
-                          t.region === reg.id &&
-                          t.categories.includes("trekking")
+                          t.region === reg.slug &&
+                          (!category || t.categories.includes(category))
                       )
                       .map((t) => (
                         <li key={t.slug}>
                           <Link
                             href={`/destinations/${t.slug}`}
-                            className="flex items-center justify-between text-xs text-[#3f484a] hover:text-[#b58133] font-medium transition-colors py-0.5"
+                            className="flex items-center justify-between text-xs text-[#57534d] hover:text-[#f05e25] font-medium transition-colors py-0.5"
                           >
-                            <span>{t.name}</span>
-                            <span className="font-mono text-[10px] text-[#6f797b]">
+                            <span className="truncate pr-2">{t.name}</span>
+                            <span className="font-sans text-[11px] font-semibold text-stone-400 shrink-0 tabular-nums">
                               {t.days}d
                             </span>
                           </Link>
@@ -221,92 +313,249 @@ export function DestinationsCatalogClient({ trips }: { trips: TripDTO[] }) {
         </section>
       )}
 
-      {/* Sticky Filter & Search Bar */}
-      <section className="sticky top-16 z-30 border-b border-[#d8e5e7] bg-white/95 backdrop-blur-xl shadow-sm">
-        <div className="mx-auto max-w-7xl space-y-3 px-5 py-4 lg:px-8">
+      {/* Sticky Filter & Search Bar - Upgraded to Professional Website Typography & Styling */}
+      <section className="sticky top-16 z-30 border-b border-stone-200/90 bg-white/95 backdrop-blur-md shadow-xs">
+        <div className="mx-auto max-w-7xl space-y-3.5 px-5 py-4 lg:px-8">
+          {/* ROW 1: Country Segmented Control & Search Input */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex gap-1 overflow-x-auto rounded-full border border-[#d8e5e7] bg-[#f8fafb] p-1">
-              <Chip
-                active={!country}
-                onClick={() => setFilter({ country: undefined })}
+            {/* Country Pills Container */}
+            <div className="inline-flex items-center gap-1 p-1 bg-stone-100 rounded-full border border-stone-200/90 shadow-2xs overflow-x-auto no-scrollbar">
+              <button
+                type="button"
+                onClick={() =>
+                  setFilter({ country: undefined, region: undefined })
+                }
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-heading font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                  !country
+                    ? "bg-[#1c1917] text-white shadow-xs"
+                    : "text-stone-600 hover:text-[#1c1917] hover:bg-white/60"
+                }`}
               >
-                All countries
-              </Chip>
-              {COUNTRIES.map((c) => (
-                <Chip
-                  key={c.id}
-                  active={country === c.id}
-                  onClick={() =>
-                    setFilter({
-                      country: c.id,
-                      region: c.id === "nepal" ? region : undefined,
-                    })
-                  }
+                <span>All Countries</span>
+                <span
+                  className={`text-[10px] font-sans font-medium px-1.5 py-0.2 rounded-full transition-colors ${
+                    !country
+                      ? "bg-white/20 text-white"
+                      : "bg-stone-200/80 text-stone-600"
+                  }`}
                 >
-                  {c.label}
-                </Chip>
-              ))}
+                  {trips.length}
+                </span>
+              </button>
+
+              {countries.map((c) => {
+                const keepsRegion =
+                  region &&
+                  regions.some(
+                    (r) => r.slug === region && r.countrySlug === c.slug
+                  );
+                const isActive = country === c.slug;
+                const count = countryCounts.get(c.slug) ?? 0;
+
+                return (
+                  <button
+                    key={c.slug}
+                    type="button"
+                    onClick={() =>
+                      setFilter({
+                        country: c.slug,
+                        region: keepsRegion ? region : undefined,
+                      })
+                    }
+                    className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-1.5 text-xs font-heading font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? "bg-[#1c1917] text-white shadow-xs"
+                        : "text-stone-600 hover:text-[#1c1917] hover:bg-white/60"
+                    }`}
+                  >
+                    <span>{c.name}</span>
+                    <span
+                      className={`text-[10px] font-sans font-medium px-1.5 py-0.2 rounded-full transition-colors ${
+                        isActive
+                          ? "bg-white/20 text-white"
+                          : "bg-stone-200/80 text-stone-600"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            <label className="relative ml-auto flex min-w-[220px] flex-1 items-center sm:flex-none">
-              <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-[#6f797b]" />
+            {/* Polished Search Box */}
+            <div className="relative ml-auto flex min-w-[220px] flex-1 items-center sm:flex-none">
+              <Search className="pointer-events-none absolute left-3.5 h-4 w-4 text-stone-400" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search a trek, peak or region…"
-                className="w-full rounded-full border border-[#bec8cb] bg-[#f8fafb] py-2 pl-9 pr-4 text-xs text-[#111d1f] placeholder:text-[#6f797b] focus:border-[#00515b] focus:bg-white focus:outline-none sm:w-72"
+                className="w-full sm:w-80 rounded-full border border-stone-200/90 bg-white py-2 pl-9.5 pr-8 text-xs font-sans text-[#1c1917] placeholder:text-stone-400 focus:border-[#f05e25] focus:ring-2 focus:ring-[#f05e25]/20 focus:outline-none transition-all shadow-xs"
               />
-            </label>
-          </div>
-
-          <div className="flex gap-1.5 overflow-x-auto pb-1">
-            <Chip
-              active={!category}
-              onClick={() =>
-                setFilter({ category: undefined, region: undefined })
-              }
-            >
-              All types
-            </Chip>
-            {CATEGORIES.map((c) => (
-              <Chip
-                key={c.id}
-                active={category === c.id}
-                onClick={() =>
-                  setFilter({
-                    category: c.id,
-                    region: c.id === "trekking" ? region : undefined,
-                  })
-                }
-              >
-                {c.label}
-              </Chip>
-            ))}
-          </div>
-
-          {(!category || category === "trekking") &&
-            country !== "tibet" &&
-            country !== "bhutan" && (
-              <div className="flex gap-1.5 overflow-x-auto border-t border-[#e8f0f3] pt-2.5">
-                <Chip
-                  active={!region}
-                  onClick={() => setFilter({ region: undefined })}
+              {q && (
+                <button
+                  type="button"
+                  onClick={() => setQ("")}
+                  className="absolute right-2.5 p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+                  aria-label="Clear search"
                 >
-                  All regions
-                </Chip>
-                {REGIONS.map((r) => (
-                  <Chip
-                    key={r.id}
-                    active={region === r.id}
-                    onClick={() =>
-                      setFilter({ category: "trekking", region: r.id })
-                    }
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* ROW 2: Trip Types (Categories) */}
+          <div className="flex items-center gap-2.5">
+            <span className="hidden sm:inline-block font-heading font-bold text-[11px] uppercase tracking-wider text-stone-400 shrink-0">
+              Types:
+            </span>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              <FilterChip
+                active={!category}
+                onClick={() =>
+                  setFilter({ category: undefined, region: undefined })
+                }
+                count={countryFilteredCount}
+              >
+                All Types
+              </FilterChip>
+              {categories.map((c) => (
+                <FilterChip
+                  key={c.slug}
+                  active={category === c.slug}
+                  onClick={() =>
+                    setFilter({
+                      category: c.slug,
+                      region: c.groupByRegion ? region : undefined,
+                    })
+                  }
+                  count={categoryCounts.get(c.slug) ?? 0}
+                >
+                  {c.name}
+                </FilterChip>
+              ))}
+            </div>
+          </div>
+
+          {/* ROW 3: Regions (Visible when applicable) */}
+          {visibleRegions.length > 0 &&
+            (!category || activeCategoryObj?.groupByRegion) && (
+              <div className="flex items-center gap-2.5 pt-2.5 border-t border-stone-200/70">
+                <span className="hidden sm:inline-block font-heading font-bold text-[11px] uppercase tracking-wider text-stone-400 shrink-0">
+                  Regions:
+                </span>
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                  <FilterChip
+                    active={!region}
+                    onClick={() => setFilter({ region: undefined })}
+                    count={categoryFilteredCount}
                   >
-                    {r.label}
-                  </Chip>
-                ))}
+                    All Regions
+                  </FilterChip>
+                  {visibleRegions.map((r) => (
+                    <FilterChip
+                      key={r.slug}
+                      active={region === r.slug}
+                      onClick={() => setFilter({ region: r.slug })}
+                      count={regionCounts.get(r.slug) ?? 0}
+                    >
+                      {r.name}
+                    </FilterChip>
+                  ))}
+                </div>
               </div>
             )}
+
+          {/* ROW 4: Active Filters Strip & Reset */}
+          {hasActiveFilters && (
+            <div className="pt-2.5 border-t border-stone-200/70 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-heading font-bold text-stone-400 uppercase tracking-wider text-[11px]">
+                  Active Filters:
+                </span>
+
+                {country && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[#1c1917] font-medium text-xs">
+                    <span>
+                      {countries.find((c) => c.slug === country)?.name ?? country}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFilter({ country: undefined, region: undefined })
+                      }
+                      className="hover:text-[#f05e25] transition-colors cursor-pointer"
+                      aria-label="Remove country filter"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                )}
+
+                {category && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[#1c1917] font-medium text-xs">
+                    <span>
+                      {categories.find((c) => c.slug === category)?.name ??
+                        category}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFilter({ category: undefined, region: undefined })
+                      }
+                      className="hover:text-[#f05e25] transition-colors cursor-pointer"
+                      aria-label="Remove category filter"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                )}
+
+                {region && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[#1c1917] font-medium text-xs">
+                    <span>
+                      {regions.find((r) => r.slug === region)?.name ?? region}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setFilter({ region: undefined })}
+                      className="hover:text-[#f05e25] transition-colors cursor-pointer"
+                      aria-label="Remove region filter"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                )}
+
+                {q && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[#1c1917] font-medium text-xs">
+                    <span>&ldquo;{q}&rdquo;</span>
+                    <button
+                      type="button"
+                      onClick={() => setQ("")}
+                      className="hover:text-[#f05e25] transition-colors cursor-pointer"
+                      aria-label="Remove search query"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setQ("");
+                  router.replace("/destinations", { scroll: false });
+                }}
+                className="inline-flex items-center gap-1.5 text-[#f05e25] hover:text-[#d94e18] font-heading font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer ml-auto"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset all filters</span>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -319,19 +568,24 @@ export function DestinationsCatalogClient({ trips }: { trips: TripDTO[] }) {
         </div>
 
         {results.length === 0 && (
-          <div className="py-24 text-center">
-            <p className="font-serif text-3xl text-[#111d1f]">
-              No routes match those filters.
+          <div className="py-24 text-center max-w-md mx-auto space-y-4">
+            <h3 className="font-heading font-bold text-3xl uppercase tracking-tight text-[#1c1917]">
+              No routes match those filters
+            </h3>
+            <p className="font-sans text-sm text-[#57534d] leading-relaxed">
+              Try adjusting your search criteria, selecting a different region,
+              or resetting your filters to explore all Himalayan expeditions.
             </p>
             <button
               type="button"
               onClick={() => {
                 setQ("");
-                router.replace("/destinations");
+                router.replace("/destinations", { scroll: false });
               }}
-              className="mt-4 rounded-full bg-[#00515b] px-5 py-2 text-xs font-mono uppercase tracking-wider font-semibold text-white hover:bg-[#003840] cursor-pointer"
+              className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[#f05e25] px-6 py-3 text-xs font-heading uppercase tracking-wider font-bold text-white hover:bg-[#ff7a45] transition-colors cursor-pointer shadow-sm"
             >
-              Clear all filters
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Clear all filters</span>
             </button>
           </div>
         )}

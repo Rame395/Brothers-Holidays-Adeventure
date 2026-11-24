@@ -6,23 +6,42 @@ import { absoluteUrl, getSiteUrl } from "@/lib/seo";
 async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
   "use cache";
   cacheLife("hours");
-  cacheTag("trips", "treks", "journal", "seo");
+  cacheTag("trips", "treks", "journal", "taxonomy", "seo");
 
   const base = getSiteUrl();
-  const [trips, trekRoutes, posts] = await Promise.all([
-    prisma.trip.findMany({
-      where: { isPublished: true },
-      select: { slug: true, image: true, updatedAt: true },
-    }),
-    prisma.trekRoute.findMany({
-      where: { isPublished: true },
-      select: { slug: true, image: true, updatedAt: true },
-    }),
-    prisma.journalPost.findMany({
-      where: { isPublished: true },
-      select: { slug: true, image: true, updatedAt: true },
-    }),
-  ]);
+  const [countries, regions, categories, trips, trekRoutes, posts] =
+    await Promise.all([
+      prisma.destinationCountry.findMany({
+        where: { isActive: true },
+        select: { slug: true, heroImage: true, updatedAt: true },
+      }),
+      prisma.destinationRegion.findMany({
+        where: { isActive: true },
+        select: { slug: true, heroImage: true, updatedAt: true },
+      }),
+      prisma.tripCategory.findMany({
+        where: { isActive: true },
+        select: { slug: true, heroImage: true, updatedAt: true },
+      }),
+      prisma.trip.findMany({
+        where: { isPublished: true },
+        select: {
+          slug: true,
+          image: true,
+          gallery: true,
+          mapImage: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.trekRoute.findMany({
+        where: { isPublished: true },
+        select: { slug: true, image: true, updatedAt: true },
+      }),
+      prisma.journalPost.findMany({
+        where: { isPublished: true },
+        select: { slug: true, image: true, updatedAt: true },
+      }),
+    ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${base}/`, changeFrequency: "weekly", priority: 1.0 },
@@ -36,13 +55,49 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/contact`, changeFrequency: "monthly", priority: 0.75 },
   ];
 
-  const tripRoutes: MetadataRoute.Sitemap = trips.map((trip) => ({
-    url: `${base}/destinations/${trip.slug}`,
-    lastModified: trip.updatedAt,
+  const countryRoutes: MetadataRoute.Sitemap = countries.map((c) => ({
+    url: `${base}/destinations/country/${c.slug}`,
+    lastModified: c.updatedAt,
     changeFrequency: "weekly",
     priority: 0.9,
-    images: trip.image ? [absoluteUrl(trip.image)] : undefined,
+    images: c.heroImage ? [absoluteUrl(c.heroImage)] : undefined,
   }));
+
+  const regionRoutes: MetadataRoute.Sitemap = regions.map((r) => ({
+    url: `${base}/destinations/region/${r.slug}`,
+    lastModified: r.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.9,
+    images: r.heroImage ? [absoluteUrl(r.heroImage)] : undefined,
+  }));
+
+  const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
+    url: `${base}/destinations/category/${cat.slug}`,
+    lastModified: cat.updatedAt,
+    changeFrequency: "weekly",
+    priority: 0.85,
+    images: cat.heroImage ? [absoluteUrl(cat.heroImage)] : undefined,
+  }));
+
+  const tripRoutes: MetadataRoute.Sitemap = trips.map((trip) => {
+    const imgs = Array.from(
+      new Set(
+        [
+          trip.image,
+          ...(trip.gallery ?? []),
+          ...(trip.mapImage ? [trip.mapImage] : []),
+        ].filter(Boolean)
+      )
+    ).map((img) => absoluteUrl(img));
+
+    return {
+      url: `${base}/destinations/${trip.slug}`,
+      lastModified: trip.updatedAt,
+      changeFrequency: "weekly",
+      priority: 0.9,
+      images: imgs.length > 0 ? imgs : undefined,
+    };
+  });
 
   const routePages: MetadataRoute.Sitemap = trekRoutes.map((trek) => ({
     url: `${base}/route/${trek.slug}`,
@@ -60,7 +115,15 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     images: post.image ? [absoluteUrl(post.image)] : undefined,
   }));
 
-  return [...staticRoutes, ...tripRoutes, ...routePages, ...journalRoutes];
+  return [
+    ...staticRoutes,
+    ...countryRoutes,
+    ...regionRoutes,
+    ...categoryRoutes,
+    ...tripRoutes,
+    ...routePages,
+    ...journalRoutes,
+  ];
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

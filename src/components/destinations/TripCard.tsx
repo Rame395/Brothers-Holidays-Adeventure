@@ -31,19 +31,19 @@ export function TripCard({ trip }: { trip: TripDTO; index?: number }) {
       </div>
 
       <div className="absolute inset-x-0 bottom-0 p-5 text-white">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#e5b96b]">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7dd3fc]">
           {trip.area}
         </p>
-        <h3 className="mt-1 font-serif text-2xl leading-tight text-white font-normal">
+        <h3 className="mt-1 font-serif text-2xl font-semibold leading-tight text-white tracking-wide">
           {trip.name}
         </h3>
         <div className="mt-2.5 flex items-center gap-4 text-xs text-white/85 tabular-nums">
           <span className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-[#e5b96b]" /> {trip.days}{" "}
+            <Clock className="h-3.5 w-3.5 text-[#f05e25]" /> {trip.days}{" "}
             {trip.days === 1 ? "day" : "days"}
           </span>
           <span className="flex items-center gap-1.5">
-            <Mountain className="h-3.5 w-3.5 text-[#e5b96b]" />{" "}
+            <Mountain className="h-3.5 w-3.5 text-[#f05e25]" />{" "}
             {trip.maxAltitude.toLocaleString("en-US")} m
           </span>
         </div>
@@ -54,7 +54,7 @@ export function TripCard({ trip }: { trip: TripDTO; index?: number }) {
           <span className="text-[11px] uppercase tracking-wider text-white/60">
             From / person
           </span>
-          <span className="font-serif text-base font-medium text-[#e5b96b]">
+          <span className="font-serif text-lg font-bold text-[#f05e25]">
             {formatRs(trip.price)}
           </span>
         </div>

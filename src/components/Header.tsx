@@ -3,9 +3,15 @@
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import Nav from "@/components/site/Nav";
-import type { NavTripDTO } from "@/lib/types";
+import type { DestinationTaxonomyDTO, NavTripDTO } from "@/lib/types";
 
-export default function Header({ navTrips }: { navTrips?: NavTripDTO[] }) {
+export default function Header({
+  navTrips,
+  taxonomy,
+}: {
+  navTrips?: NavTripDTO[];
+  taxonomy?: DestinationTaxonomyDTO;
+}) {
   const pathname = usePathname();
 
   if (pathname?.startsWith("/admin")) {
@@ -21,7 +27,7 @@ export default function Header({ navTrips }: { navTrips?: NavTripDTO[] }) {
   return (
     <>
       <Suspense fallback={null}>
-        <Nav navTrips={navTrips} />
+        <Nav navTrips={navTrips} taxonomy={taxonomy} />
       </Suspense>
       {/* Spacer for non-hero content pages so the floating pill doesn't overlap top headings */}
       {!isHeroPage && (

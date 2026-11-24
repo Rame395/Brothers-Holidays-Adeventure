@@ -2,58 +2,64 @@
 
 @theme {
   --color-on-error: #ffffff;
-  --color-on-background: #141c1f;
-  --color-tertiary-fixed: #f7dfc0;
-  --color-surface-container-low: #f2efe8;
-  --color-tertiary-container: #8f6321;
-  --color-primary-fixed: #c5e3e7;
-  --color-surface-variant: #dcd5c7;
-  --color-secondary-container: #dfe5ea;
-  --color-on-surface: #141c1f;
+  --color-on-background: #1c1917;
+  --color-tertiary-fixed: #ffedd5;
+  --color-surface-container-low: #f8fafc;
+  --color-tertiary-container: #c2410c;
+  --color-primary-fixed: #dbeafe;
+  --color-surface-variant: #e4e8ec;
+  --color-secondary-container: #e4e8ec;
+  --color-on-surface: #1c1917;
   --color-error-container: #ffdad6;
-  --color-outline: #6c767a;
-  --color-surface-container-highest: #dcd5c7;
-  --color-on-primary-fixed-variant: #0c3d44;
+  --color-outline: #64748b;
+  --color-surface-container-highest: #dce3ea;
+  --color-on-primary-fixed-variant: #104b87;
   --color-surface-container-lowest: #ffffff;
-  --color-primary: #0f4c54;
+  --color-primary: #104b87;
+  --color-primary-light: #2c6fb0;
+  --color-primary-dark: #0a355f;
+  --color-primary-muted: #104b8726;
   --color-on-tertiary: #ffffff;
-  --color-on-surface-variant: #4a555a;
-  --color-outline-variant: #d6cfc2;
-  --color-surface-bright: #faf8f4;
-  --color-inverse-on-surface: #f2efe8;
-  --color-surface-container: #ebe6dc;
-  --color-on-tertiary-fixed-variant: #6b4914;
-  --color-surface-tint: #0f4c54;
-  --color-secondary-fixed-dim: #c1ccd4;
-  --color-primary-container: #0c3d44;
-  --color-on-secondary-container: #556168;
-  --color-on-primary-fixed: #071f23;
-  --color-on-secondary-fixed-variant: #3b464d;
-  --color-primary-fixed-dim: #8ec1c9;
-  --color-tertiary: #a6782e;
-  --color-on-tertiary-container: #fce8cb;
-  --color-on-secondary-fixed: #141d24;
-  --color-surface-dim: #dfd9cc;
-  --color-secondary-fixed: #dfe5ea;
-  --color-secondary: #515d65;
-  --color-surface: #f6f4ef;
-  --color-on-tertiary-fixed: #2b1d07;
-  --color-tertiary-fixed-dim: #e5b96b;
-  --color-inverse-surface: #132127;
-  --color-on-primary-container: #c7e6eb;
+  --color-on-surface-variant: #57534d;
+  --color-outline-variant: #e2e8f0;
+  --color-surface-bright: #ffffff;
+  --color-inverse-on-surface: #f8fafc;
+  --color-surface-container: #f1f5f9;
+  --color-on-tertiary-fixed-variant: #9a3412;
+  --color-surface-tint: #104b87;
+  --color-secondary-fixed-dim: #c8d0d8;
+  --color-primary-container: #0a355f;
+  --color-on-secondary-container: #334155;
+  --color-on-primary-fixed: #071e38;
+  --color-on-secondary-fixed-variant: #334155;
+  --color-primary-fixed-dim: #93c5fd;
+  --color-accent: #f05e25;
+  --color-accent-hover: #d94e18;
+  --color-accent-soft: #ff7a45;
+  --color-tertiary: #f05e25;
+  --color-on-tertiary-container: #ffedd5;
+  --color-on-secondary-fixed: #0f172a;
+  --color-surface-dim: #e2e8f0;
+  --color-secondary-fixed: #e4e8ec;
+  --color-secondary: #475569;
+  --color-surface: #ffffff;
+  --color-on-tertiary-fixed: #431407;
+  --color-tertiary-fixed-dim: #fdba74;
+  --color-inverse-surface: #071526;
+  --color-on-primary-container: #dbeafe;
   --color-on-secondary: #ffffff;
   --color-on-error-container: #93000a;
-  --color-surface-container-high: #e3ddd1;
-  --color-inverse-primary: #8ec1c9;
-  --color-background: #f6f4ef;
+  --color-surface-container-high: #e4e8ec;
+  --color-inverse-primary: #60a5fa;
+  --color-background: #ffffff;
   --color-error: #ba1a1a;
   --color-on-primary: #ffffff;
-  --color-gold: #c89b4b;
-  --color-gold-soft: #e5b96b;
-  --color-paper: #f6f4ef;
-  --color-paper-foreground: #141c1f;
-  --color-paper-muted: #526065;
-  --color-ink: #141c1f;
+  --color-gold: #f05e25;
+  --color-gold-soft: #ff7a45;
+  --color-paper: #ffffff;
+  --color-paper-foreground: #1c1917;
+  --color-paper-muted: #57534d;
+  --color-ink: #1c1917;
 
   --spacing-margin: 2.5rem;
   --spacing-margin-mobile: 1.25rem;
@@ -70,9 +76,10 @@
   --radius-xl: 3rem;
   --radius-full: 9999px;
 
-  --font-display: var(--font-display), "Barlow Condensed", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-serif: var(--font-serif), "Fraunces", Georgia, serif;
-  --font-sans: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: var(--font-heading), "Oswald", "Bebas Neue", "DIN Condensed", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--font-heading), "Oswald", "Bebas Neue", "DIN Condensed", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: var(--font-heading), "Oswald", "Bebas Neue", "DIN Condensed", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: var(--font-sans), "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
@@ -83,9 +90,14 @@
   }
   body {
     overscroll-behavior: none;
-    background-color: #f6f4ef;
-    color: #141c1f;
-    font-family: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background-color: #ffffff;
+    color: #1c1917;
+    font-family: var(--font-sans), "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), "Oswald", "Bebas Neue", "DIN Condensed", -apple-system, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.02em;
   }
   main > :first-child {
     margin-top: 0 !important;
@@ -190,8 +202,11 @@
 .font-display-md,
 .font-headline-lg,
 .font-headline-md,
-.font-headline-sm {
-  font-family: var(--font-serif), "Fraunces", Georgia, serif;
+.font-headline-sm,
+.font-heading,
+.font-serif {
+  font-family: var(--font-heading), "Oswald", "Bebas Neue", "DIN Condensed", -apple-system, sans-serif;
+  letter-spacing: 0.02em;
 }
 
 .font-body-lg,
@@ -199,8 +214,9 @@
 .font-body-sm,
 .font-label-lg,
 .font-label-md,
-.font-label-sm {
-  font-family: var(--font-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+.font-label-sm,
+.font-body {
+  font-family: var(--font-sans), "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 /* Animations */
@@ -247,14 +263,14 @@
 
 /* ────────── Himalayan Flight Design Utilities & Animations ────────── */
 .text-gold-gradient {
-  background-image: linear-gradient(120deg, #b8873a, #e8c37c 50%, #c89b4b);
+  background-image: linear-gradient(120deg, #f05e25, #ff8a50 50%, #d94e18);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .bg-gold-gradient {
-  background-image: linear-gradient(120deg, #c89b4b, #e5b96b 55%, #b8873a);
+  background-image: linear-gradient(120deg, #f05e25, #ff7a45 55%, #d94e18);
 }
 
 @keyframes rise {
@@ -273,9 +289,66 @@
 .animate-scroll-line { animation: scroll-line 2.4s cubic-bezier(0.6, 0, 0.2, 1) infinite; }
 
 .font-display {
-  font-family: var(--font-display), "Barlow Condensed", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-heading), "Oswald", "Bebas Neue", "DIN Condensed", -apple-system, sans-serif;
+  letter-spacing: 0.02em;
 }
 
 .scene-layer {
   opacity: 1 !important;
+}
+
+/* ────────── Alpine Atmosphere & Misty Edge Blending ────────── */
+.bg-alpine-mist {
+  background: linear-gradient(to bottom, #e4e8ec 0%, #c8d0d8 50%, #b0bcc6 85%, #ffffff 100%);
+}
+
+.alpine-fade-top {
+  background: linear-gradient(to bottom, #ffffff 0%, #ffffff 15%, rgba(255, 255, 255, 0.9) 30%, rgba(255, 255, 255, 0.45) 60%, transparent 100%);
+}
+
+.alpine-fade-bottom {
+  background: linear-gradient(to top, #ffffff 0%, #ffffff 15%, rgba(255, 255, 255, 0.9) 30%, rgba(255, 255, 255, 0.45) 60%, transparent 100%);
+}
+
+/* ────────── Himalayan Floating Clouds & Atmosphere Animations ────────── */
+@keyframes cloudDriftLeft {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes cloudDriftRight {
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes mountainBreathe {
+  0%, 100% { transform: scale(1.02) translateY(0); }
+  50% { transform: scale(1.06) translateY(-10px); }
+}
+
+.animate-cloud-drift-left {
+  animation: cloudDriftLeft 18s linear infinite;
+  will-change: transform;
+}
+
+.animate-cloud-drift-right {
+  animation: cloudDriftRight 24s linear infinite;
+  will-change: transform;
+}
+
+.animate-mountain-breathe {
+  animation: mountainBreathe 14s ease-in-out infinite;
+  will-change: transform;
+}
+
+[data-paused="true"] .animate-cloud-drift-left,
+[data-paused="true"] .animate-cloud-drift-right,
+[data-paused="true"] .animate-mountain-breathe {
+  animation-play-state: paused;
+}
+
+.glass-card {
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.7);
 }

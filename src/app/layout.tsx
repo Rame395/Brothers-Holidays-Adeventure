@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Barlow_Condensed, Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import { Oswald, Poppins } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -8,7 +8,11 @@ import ExpeditionLoader from "@/components/ExpeditionLoader";
 import BackgroundAudio from "@/components/site/BackgroundAudio";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getNavTrips, getSiteSettings } from "@/lib/data";
+import {
+  getDestinationTaxonomy,
+  getNavTrips,
+  getSiteSettings,
+} from "@/lib/data";
 import {
   absoluteUrl,
   buildOrganizationJsonLd,
@@ -17,25 +21,17 @@ import {
 } from "@/lib/seo";
 import { Suspense } from "react";
 
-const fraunces = Fraunces({
-  variable: "--font-serif",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const plusJakarta = Plus_Jakarta_Sans({
+const poppins = Poppins({
   variable: "--font-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
-const barlowCondensed = Barlow_Condensed({
-  variable: "--font-display",
+const oswald = Oswald({
+  variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -90,18 +86,19 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [settings, navTrips] = await Promise.all([
+  const [settings, navTrips, taxonomy] = await Promise.all([
     getSiteSettings(),
     getNavTrips(),
+    getDestinationTaxonomy(),
   ]);
 
   return (
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${fraunces.variable} ${plusJakarta.variable} ${barlowCondensed.variable} scroll-smooth`}
+      className={`${poppins.variable} ${oswald.variable} scroll-smooth`}
     >
-      <body className="bg-[#f6f4ef] font-sans text-[#141c1f] antialiased selection:bg-[#d8cfc0] selection:text-[#141c1f] min-h-screen flex flex-col">
+      <body className="bg-white font-sans text-[#1c1917] antialiased selection:bg-[#104b87]/15 selection:text-[#104b87] min-h-screen flex flex-col">
         <JsonLd data={buildOrganizationJsonLd(settings)} />
         <JsonLd data={buildWebSiteJsonLd(settings)} />
         <Suspense fallback={null}>
@@ -117,10 +114,16 @@ export default async function RootLayout({
         <Suspense fallback={null}>
           <RouteLoadingIndicator />
         </Suspense>
-        <Header navTrips={navTrips} />
+        <Suspense fallback={null}>
+          <Header navTrips={navTrips} taxonomy={taxonomy} />
+        </Suspense>
         <main className="w-full flex-1">{children}</main>
-        <Footer settings={settings} />
-        <BackgroundAudio />
+        <Suspense fallback={null}>
+          <Footer settings={settings} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <BackgroundAudio />
+        </Suspense>
       </body>
     </html>
   );
