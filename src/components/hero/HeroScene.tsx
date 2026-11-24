@@ -426,12 +426,12 @@ function HillsideDetails({ compact }: { compact: boolean }) {
   }, []);
   const foliageGeo = useMemo(() => buildPineFoliageGeometry(), []);
 
-  const maxBoulders = compact ? 50 : 85;
-  const maxScrubs = compact ? 60 : 100;
-  const maxPines = compact ? 36 : 55;
-  const maxBoulderAttempts = compact ? 450 : 700;
-  const maxScrubAttempts = compact ? 500 : 800;
-  const maxPineAttempts = compact ? 450 : 700;
+  const maxBoulders = compact ? 24 : 85;
+  const maxScrubs = compact ? 28 : 100;
+  const maxPines = compact ? 20 : 55;
+  const maxBoulderAttempts = compact ? 250 : 700;
+  const maxScrubAttempts = compact ? 300 : 800;
+  const maxPineAttempts = compact ? 250 : 700;
 
   const { boulders, scrubs, pines } = useMemo(() => {
     const rand = mulberry32(2028);
@@ -760,16 +760,16 @@ function buildMeshSideGeometry(
 }
 
 /* ---------- Authentic Nepali Galvanized Steel Suspension Bridge (HELVETAS / Hillary style) ---------- */
-function SuspensionBridge() {
+function SuspensionBridge({ compact }: { compact: boolean }) {
   const bridgeZ = -1.5;
   const halfSpan = 10.6;
   const deckHalfW = 0.46;
   const towerHeight = 2.85;
   const cableSag = 1.72;
   const deckSag = 0.34;
-  const plankCount = 36;
-  const hangerPairs = 16;
-  const flagCount = 48;
+  const plankCount = compact ? 24 : 36;
+  const hangerPairs = compact ? 10 : 16;
+  const flagCount = compact ? 26 : 48;
 
   const flagRef = useRef<THREE.InstancedMesh>(null);
   const deckRef = useRef<THREE.InstancedMesh>(null);
@@ -823,8 +823,9 @@ function SuspensionBridge() {
       const railPts: THREE.Vector3[] = [];
       const lowerCurbPts: THREE.Vector3[] = [];
 
-      for (let i = 0; i <= 26; i++) {
-        const t = i / 26;
+      const steps = compact ? 18 : 26;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
         const x = -halfSpan + t * (halfSpan * 2);
         const sag = Math.sin(Math.PI * t);
         mainPts.push(new THREE.Vector3(x, topY - cableSag * sag, zPos));
@@ -833,16 +834,18 @@ function SuspensionBridge() {
       }
 
       mainCables.push(
-        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(mainPts), 24, 0.038, 5, false)
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(mainPts), compact ? 16 : 24, 0.038, compact ? 4 : 5, false)
       );
       handrails.push(
-        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(railPts), 20, 0.02, 4, false),
-        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(lowerCurbPts), 20, 0.022, 4, false)
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(railPts), compact ? 14 : 20, 0.02, 4, false),
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(lowerCurbPts), compact ? 14 : 20, 0.022, 4, false)
       );
 
-      meshSides.push(
-        buildMeshSideGeometry(bridgeZ, zOff, halfSpan, baseDeckY, deckSag, 0.84, 20)
-      );
+      if (!compact) {
+        meshSides.push(
+          buildMeshSideGeometry(bridgeZ, zOff, halfSpan, baseDeckY, deckSag, 0.84, 20)
+        );
+      }
 
       // Anchor back-stays embedded into stone hill shoulders
       const leftAnchorX = -halfSpan - 4.4;
@@ -855,9 +858,9 @@ function SuspensionBridge() {
             new THREE.Vector3(-halfSpan, topY, zPos),
             new THREE.Vector3(leftAnchorX, leftAnchorY, zPos),
           ]),
-          8,
+          6,
           0.032,
-          5,
+          4,
           false
         )
       );
@@ -872,85 +875,89 @@ function SuspensionBridge() {
             new THREE.Vector3(halfSpan, topY, zPos),
             new THREE.Vector3(rightAnchorX, rightAnchorY, zPos),
           ]),
-          8,
+          6,
           0.032,
-          5,
+          4,
           false
         )
       );
     }
 
-    // Wind-guy lateral stabilizing steel cables from mid-span down to gorge rock walls
-    const windGuys: THREE.TubeGeometry[] = [
-      new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3([
-          new THREE.Vector3(-3.2, baseDeckY - deckSag * 0.85, bridgeZ - deckHalfW),
-          new THREE.Vector3(-7.5, baseDeckY - 1.8, bridgeZ - 5.2),
-        ]),
-        6,
-        0.016,
-        4,
-        false
-      ),
-      new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3([
-          new THREE.Vector3(3.2, baseDeckY - deckSag * 0.85, bridgeZ - deckHalfW),
-          new THREE.Vector3(7.5, baseDeckY - 1.8, bridgeZ - 5.2),
-        ]),
-        6,
-        0.016,
-        4,
-        false
-      ),
-      new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3([
-          new THREE.Vector3(-3.2, baseDeckY - deckSag * 0.85, bridgeZ + deckHalfW),
-          new THREE.Vector3(-7.5, baseDeckY - 1.8, bridgeZ + 5.2),
-        ]),
-        6,
-        0.016,
-        4,
-        false
-      ),
-      new THREE.TubeGeometry(
-        new THREE.CatmullRomCurve3([
-          new THREE.Vector3(3.2, baseDeckY - deckSag * 0.85, bridgeZ + deckHalfW),
-          new THREE.Vector3(7.5, baseDeckY - 1.8, bridgeZ + 5.2),
-        ]),
-        6,
-        0.016,
-        4,
-        false
-      ),
-    ];
+    // Wind-guy lateral stabilizing steel cables from mid-span down to gorge rock walls (desktop only)
+    const windGuys: THREE.TubeGeometry[] = compact
+      ? []
+      : [
+          new THREE.TubeGeometry(
+            new THREE.CatmullRomCurve3([
+              new THREE.Vector3(-3.2, baseDeckY - deckSag * 0.85, bridgeZ - deckHalfW),
+              new THREE.Vector3(-7.5, baseDeckY - 1.8, bridgeZ - 5.2),
+            ]),
+            6,
+            0.016,
+            4,
+            false
+          ),
+          new THREE.TubeGeometry(
+            new THREE.CatmullRomCurve3([
+              new THREE.Vector3(3.2, baseDeckY - deckSag * 0.85, bridgeZ - deckHalfW),
+              new THREE.Vector3(7.5, baseDeckY - 1.8, bridgeZ - 5.2),
+            ]),
+            6,
+            0.016,
+            4,
+            false
+          ),
+          new THREE.TubeGeometry(
+            new THREE.CatmullRomCurve3([
+              new THREE.Vector3(-3.2, baseDeckY - deckSag * 0.85, bridgeZ + deckHalfW),
+              new THREE.Vector3(-7.5, baseDeckY - 1.8, bridgeZ + 5.2),
+            ]),
+            6,
+            0.016,
+            4,
+            false
+          ),
+          new THREE.TubeGeometry(
+            new THREE.CatmullRomCurve3([
+              new THREE.Vector3(3.2, baseDeckY - deckSag * 0.85, bridgeZ + deckHalfW),
+              new THREE.Vector3(7.5, baseDeckY - 1.8, bridgeZ + 5.2),
+            ]),
+            6,
+            0.016,
+            4,
+            false
+          ),
+        ];
 
-    // X-cross bracing struts inside left and right steel portal towers
+    // X-cross bracing struts inside left and right steel portal towers (desktop only)
     const crossBraces: THREE.TubeGeometry[] = [];
-    for (const towerX of [-halfSpan, halfSpan]) {
-      const yLow = baseDeckY + 1.05;
-      const yHigh = topY - 0.12;
-      crossBraces.push(
-        new THREE.TubeGeometry(
-          new THREE.CatmullRomCurve3([
-            new THREE.Vector3(towerX, yLow, bridgeZ - deckHalfW),
-            new THREE.Vector3(towerX, yHigh, bridgeZ + deckHalfW),
-          ]),
-          4,
-          0.026,
-          4,
-          false
-        ),
-        new THREE.TubeGeometry(
-          new THREE.CatmullRomCurve3([
-            new THREE.Vector3(towerX, yHigh, bridgeZ - deckHalfW),
-            new THREE.Vector3(towerX, yLow, bridgeZ + deckHalfW),
-          ]),
-          4,
-          0.026,
-          4,
-          false
-        )
-      );
+    if (!compact) {
+      for (const towerX of [-halfSpan, halfSpan]) {
+        const yLow = baseDeckY + 1.05;
+        const yHigh = topY - 0.12;
+        crossBraces.push(
+          new THREE.TubeGeometry(
+            new THREE.CatmullRomCurve3([
+              new THREE.Vector3(towerX, yLow, bridgeZ - deckHalfW),
+              new THREE.Vector3(towerX, yHigh, bridgeZ + deckHalfW),
+            ]),
+            4,
+            0.026,
+            4,
+            false
+          ),
+          new THREE.TubeGeometry(
+            new THREE.CatmullRomCurve3([
+              new THREE.Vector3(towerX, yHigh, bridgeZ - deckHalfW),
+              new THREE.Vector3(towerX, yLow, bridgeZ + deckHalfW),
+            ]),
+            4,
+            0.026,
+            4,
+            false
+          )
+        );
+      }
     }
 
     // Corrugated galvanized steel walkway grating panels
@@ -1018,7 +1025,7 @@ function SuspensionBridge() {
       hangerGeo: new THREE.CylinderGeometry(0.013, 0.013, 1, 4),
       flagGeo: new THREE.PlaneGeometry(0.21, 0.15),
     };
-  }, [bridgeZ]);
+  }, [bridgeZ, compact, plankCount, hangerPairs, flagCount]);
 
   useEffect(() => {
     const dMesh = deckRef.current;
@@ -1068,7 +1075,8 @@ function SuspensionBridge() {
     const dt = Math.min(rawDelta, 0.05);
     flagElapsedRef.current += dt;
     flagThrottleRef.current += dt;
-    if (flagThrottleRef.current < 0.06) return;
+    const minStep = compact ? 0.1 : 0.06;
+    if (flagThrottleRef.current < minStep) return;
     flagThrottleRef.current = 0;
 
     const t = flagElapsedRef.current;
@@ -1084,61 +1092,35 @@ function SuspensionBridge() {
     fMesh.instanceMatrix.needsUpdate = true;
   });
 
-  const bridgeMats = useMemo(
-    () => ({
-      steelMat: new THREE.MeshStandardMaterial({
-        color: "#8f9ca6",
-        roughness: 0.35,
-        metalness: 0.68,
-      }),
-      steelDarkMat: new THREE.MeshStandardMaterial({
-        color: "#828f99",
-        roughness: 0.38,
-        metalness: 0.65,
-      }),
+  const bridgeMats = useMemo(() => {
+    const makeMetal = (color: string, roughness: number, metalness: number) =>
+      compact
+        ? new THREE.MeshLambertMaterial({ color })
+        : new THREE.MeshStandardMaterial({ color, roughness, metalness });
+
+    return {
+      steelMat: makeMetal("#8f9ca6", 0.35, 0.68),
+      steelDarkMat: makeMetal("#828f99", 0.38, 0.65),
       stoneMat: new THREE.MeshLambertMaterial({ color: "#5c6268" }),
-      cableMat: new THREE.MeshStandardMaterial({
-        color: "#6e7c86",
-        roughness: 0.4,
-        metalness: 0.72,
-      }),
-      handrailMat: new THREE.MeshStandardMaterial({
-        color: "#7d8b95",
-        roughness: 0.42,
-        metalness: 0.65,
-      }),
-      backStayMat: new THREE.MeshStandardMaterial({
-        color: "#6a7882",
-        roughness: 0.4,
-        metalness: 0.7,
-      }),
-      windGuyMat: new THREE.MeshStandardMaterial({
-        color: "#5d6a74",
-        roughness: 0.45,
-        metalness: 0.6,
-      }),
-      meshSideMat: new THREE.MeshStandardMaterial({
-        map: wireMeshTex,
-        transparent: true,
-        alphaTest: 0.12,
-        side: THREE.DoubleSide,
-        roughness: 0.45,
-        metalness: 0.55,
-      }),
-      deckMat: new THREE.MeshStandardMaterial({
-        color: "#7b8690",
-        roughness: 0.45,
-        metalness: 0.58,
-      }),
-      hangerMat: new THREE.MeshStandardMaterial({
-        color: "#7d8a94",
-        roughness: 0.4,
-        metalness: 0.65,
-      }),
+      cableMat: makeMetal("#6e7c86", 0.4, 0.72),
+      handrailMat: makeMetal("#7d8b95", 0.42, 0.65),
+      backStayMat: makeMetal("#6a7882", 0.4, 0.7),
+      windGuyMat: makeMetal("#5d6a74", 0.45, 0.6),
+      meshSideMat: compact
+        ? null
+        : new THREE.MeshStandardMaterial({
+            map: wireMeshTex,
+            transparent: true,
+            alphaTest: 0.12,
+            side: THREE.DoubleSide,
+            roughness: 0.45,
+            metalness: 0.55,
+          }),
+      deckMat: makeMetal("#7b8690", 0.45, 0.58),
+      hangerMat: makeMetal("#7d8a94", 0.4, 0.65),
       flagMat: new THREE.MeshLambertMaterial({ side: THREE.DoubleSide }),
-    }),
-    [wireMeshTex]
-  );
+    };
+  }, [wireMeshTex, compact]);
 
   useEffect(() => {
     return () => {
@@ -1152,7 +1134,7 @@ function SuspensionBridge() {
       deckPanelGeo.dispose();
       hangerGeo.dispose();
       flagGeo.dispose();
-      Object.values(bridgeMats).forEach((m) => m.dispose());
+      Object.values(bridgeMats).forEach((m) => m?.dispose());
     };
   }, [
     wireMeshTex,
@@ -1206,9 +1188,10 @@ function SuspensionBridge() {
       <mesh position={[halfSpan, deckY + 1.05, bridgeZ]} material={bridgeMats.steelDarkMat}>
         <boxGeometry args={[0.12, 0.1, deckHalfW * 2 + 0.14]} />
       </mesh>
-      {crossBraceGeos.map((geo, idx) => (
-        <mesh key={`xb-${idx}`} geometry={geo} material={bridgeMats.steelDarkMat} />
-      ))}
+      {!compact &&
+        crossBraceGeos.map((geo, idx) => (
+          <mesh key={`xb-${idx}`} geometry={geo} material={bridgeMats.steelDarkMat} />
+        ))}
 
       {/* Stone-Masonry Pier Abutments */}
       <mesh position={[-halfSpan - 0.4, deckY - 0.6, bridgeZ]} material={bridgeMats.stoneMat}>
@@ -1228,14 +1211,17 @@ function SuspensionBridge() {
       {backStayGeos.map((geo, idx) => (
         <mesh key={`bs-${idx}`} geometry={geo} material={bridgeMats.backStayMat} />
       ))}
-      {windGuyGeos.map((geo, idx) => (
-        <mesh key={`wg-${idx}`} geometry={geo} material={bridgeMats.windGuyMat} />
-      ))}
+      {!compact &&
+        windGuyGeos.map((geo, idx) => (
+          <mesh key={`wg-${idx}`} geometry={geo} material={bridgeMats.windGuyMat} />
+        ))}
 
       {/* Galvanized Wire-Mesh Safety Sides */}
-      {meshSideGeos.map((geo, idx) => (
-        <mesh key={`ms-${idx}`} geometry={geo} material={bridgeMats.meshSideMat} />
-      ))}
+      {!compact &&
+        bridgeMats.meshSideMat &&
+        meshSideGeos.map((geo, idx) => (
+          <mesh key={`ms-${idx}`} geometry={geo} material={bridgeMats.meshSideMat!} />
+        ))}
 
       {/* Corrugated Galvanized Steel Walkway Deck & Vertical Suspender Rods */}
       <instancedMesh
@@ -1351,7 +1337,7 @@ function buildClouds(count: number): CloudSpec[] {
 
 function Clouds({ compact }: { compact: boolean }) {
   const textures = useMemo(() => [makeCloudTexture(1), makeCloudTexture(7)], []);
-  const specs = useMemo(() => buildClouds(compact ? 6 : 10), [compact]);
+  const specs = useMemo(() => buildClouds(compact ? 3 : 10), [compact]);
   const refs = useRef<(THREE.Sprite | null)[]>([]);
   const camera = useThree((s) => s.camera);
 
@@ -1422,7 +1408,7 @@ const SNOW_VERT_SHADER = /* glsl */ `
 
     vec4 mvPosition = modelViewMatrix * vec4(xPos, yPos, position.z, 1.0);
     gl_Position = projectionMatrix * mvPosition;
-    gl_PointSize = uSize * (300.0 / max(1.0, -mvPosition.z));
+    gl_PointSize = min(14.0, uSize * (300.0 / max(1.0, -mvPosition.z)));
   }
 `;
 
@@ -1513,13 +1499,16 @@ function Particles({ compact }: { compact: boolean }) {
   const farMatRef = useRef<THREE.ShaderMaterial>(null);
   const dot = useMemo(() => makeDotTexture(), []);
 
-  const nearCount = compact ? 360 : 520;
-  const farCount = compact ? 220 : 340;
+  const nearCount = compact ? 240 : 520;
+  const farCount = compact ? 0 : 340;
 
   const { nearGeo, farGeo, nearArgs, farArgs } = useMemo(() => {
     const nGeo = buildSnowGeometry(nearCount, 99, 26, -3.5, 14.5, -26, 20, 1.35, 1.15, 0.55);
-    const fGeo = buildSnowGeometry(farCount, 313, 36, -2.5, 16.5, -48, -12, 0.85, 0.75, 0.4);
     const nArgs = makeSnowShaderArgs(dot, "#ffffff", 0.88, 0.22, 26, -3.5, 14.5, 0.28);
+    if (farCount === 0) {
+      return { nearGeo: nGeo, farGeo: null, nearArgs: nArgs, farArgs: null };
+    }
+    const fGeo = buildSnowGeometry(farCount, 313, 36, -2.5, 16.5, -48, -12, 0.85, 0.75, 0.4);
     const fArgs = makeSnowShaderArgs(dot, "#edf5ff", 0.62, 0.15, 36, -2.5, 16.5, 0.2);
     return { nearGeo: nGeo, farGeo: fGeo, nearArgs: nArgs, farArgs: fArgs };
   }, [dot, nearCount, farCount]);
@@ -1527,7 +1516,7 @@ function Particles({ compact }: { compact: boolean }) {
   useEffect(() => {
     return () => {
       nearGeo.dispose();
-      farGeo.dispose();
+      farGeo?.dispose();
     };
   }, [nearGeo, farGeo]);
 
@@ -1541,7 +1530,7 @@ function Particles({ compact }: { compact: boolean }) {
     if (nearMatRef.current) {
       nearMatRef.current.uniforms["uTime"]!.value = t;
     }
-    if (farMatRef.current) {
+    if (!compact && farMatRef.current) {
       farMatRef.current.uniforms["uTime"]!.value = t;
     }
   });
@@ -1551,36 +1540,37 @@ function Particles({ compact }: { compact: boolean }) {
       <points geometry={nearGeo} frustumCulled={false}>
         <shaderMaterial ref={nearMatRef} args={[nearArgs]} />
       </points>
-      <points geometry={farGeo} frustumCulled={false}>
-        <shaderMaterial ref={farMatRef} args={[farArgs]} />
-      </points>
+      {!compact && farGeo && farArgs && (
+        <points geometry={farGeo} frustumCulled={false}>
+          <shaderMaterial ref={farMatRef} args={[farArgs]} />
+        </points>
+      )}
     </group>
   );
 }
 
-/* ---------- Responsive FOV so mobile phones frame the bridge & gorge cleanly ---------- */
-function ResponsiveCamera() {
-  useFrame((state) => {
-    const cam = state.camera as THREE.PerspectiveCamera;
-    if (!("fov" in cam)) return;
-    const aspect = state.size.width / Math.max(1, state.size.height);
-    const nextFov = aspect < 0.85 ? 64 : aspect < 1.15 ? 56 : 50;
-    if (cam.fov !== nextFov) {
-      cam.fov = nextFov;
-      cam.updateProjectionMatrix();
-    }
-  });
-
-  return null;
-}
-
-/* ---------- camera flight ---------- */
+/* ---------- camera flight & responsive FOV ---------- */
 function CameraRig() {
   const smooth = useRef({ mx: 0, my: 0, p: 0 });
   const elapsedRef = useRef(0);
+  const lastAspectBucketRef = useRef(-1);
   const lookTarget = useMemo(() => new THREE.Vector3(), []);
 
   useFrame((state, rawDelta) => {
+    const persp = state.camera as THREE.PerspectiveCamera;
+    if ("fov" in persp) {
+      const aspect = state.size.width / Math.max(1, state.size.height);
+      const bucket = aspect < 0.85 ? 0 : aspect < 1.15 ? 1 : 2;
+      if (bucket !== lastAspectBucketRef.current) {
+        lastAspectBucketRef.current = bucket;
+        const nextFov = bucket === 0 ? 64 : bucket === 1 ? 56 : 50;
+        if (persp.fov !== nextFov) {
+          persp.fov = nextFov;
+          persp.updateProjectionMatrix();
+        }
+      }
+    }
+
     if (!heroState.inView) return;
     const dt = Math.min(rawDelta, 0.05);
     elapsedRef.current += dt;
@@ -1748,8 +1738,8 @@ function makeRiverTextures() {
 function buildRiverRibbonGeometry(compact: boolean) {
   const zMin = -38;
   const zMax = 18;
-  const segZ = compact ? 56 : 84;
-  const segX = compact ? 3 : 4;
+  const segZ = compact ? 40 : 84;
+  const segX = compact ? 2 : 4;
   const cols = segX + 1;
   const rows = segZ + 1;
 
@@ -1820,14 +1810,15 @@ function buildAngularBoulderGeometry() {
 function GlacialRiver({ compact }: { compact: boolean }) {
   const bankBoulderRef = useRef<THREE.InstancedMesh>(null);
   const rapidBoulderRef = useRef<THREE.InstancedMesh>(null);
-  const waterMatRef = useRef<THREE.MeshStandardMaterial>(null);
+  const waterMatRef = useRef<THREE.MeshLambertMaterial | THREE.MeshStandardMaterial>(null);
   const foamMatRef = useRef<THREE.MeshLambertMaterial>(null);
 
   const { waterMap, foamMap } = useMemo(() => makeRiverTextures(), []);
   const riverGeo = useMemo(() => buildRiverRibbonGeometry(compact), [compact]);
   const boulderGeo = useMemo(() => buildAngularBoulderGeometry(), []);
 
-  const maxBankRocks = compact ? 32 : 48;
+  const maxBankRocks = compact ? 18 : 48;
+  const maxRapidRocks = compact ? 6 : 10;
 
   const { bankRocks, rapidRocks } = useMemo(() => {
     const rand = mulberry32(314);
@@ -1878,8 +1869,8 @@ function GlacialRiver({ compact }: { compact: boolean }) {
     }
 
     const rapidRocks: RockInstance[] = [];
-    for (let i = 0; i < 10; i++) {
-      const bz = -24 + i * 3.7 + (rand() - 0.5) * 1.4;
+    for (let i = 0; i < maxRapidRocks; i++) {
+      const bz = -24 + i * (37 / maxRapidRocks) + (rand() - 0.5) * 1.4;
       const bx = riverCenterX(bz) + (rand() - 0.5) * 1.8;
       const surfY = riverSurfaceY(bz);
       const baseScale = 0.52 + rand() * 0.72;
@@ -1898,7 +1889,7 @@ function GlacialRiver({ compact }: { compact: boolean }) {
     }
 
     return { bankRocks, rapidRocks };
-  }, [maxBankRocks]);
+  }, [maxBankRocks, maxRapidRocks]);
 
   useEffect(() => {
     const dummy = new THREE.Object3D();
@@ -1960,26 +1951,32 @@ function GlacialRiver({ compact }: { compact: boolean }) {
     <group>
       {/* Flowing glacial Dudh Koshi water ribbon */}
       <mesh geometry={riverGeo}>
-        <meshStandardMaterial
-          ref={waterMatRef}
-          map={waterMap}
-          color="#d5eef2"
-          roughness={0.22}
-          metalness={0.14}
-        />
+        {compact ? (
+          <meshLambertMaterial ref={waterMatRef} map={waterMap} color="#d5eef2" />
+        ) : (
+          <meshStandardMaterial
+            ref={waterMatRef}
+            map={waterMap}
+            color="#d5eef2"
+            roughness={0.22}
+            metalness={0.14}
+          />
+        )}
       </mesh>
 
-      {/* Faster scrolling whitewater foam & rapids overlay */}
-      <mesh geometry={riverGeo} position={[0, 0.04, 0]}>
-        <meshLambertMaterial
-          ref={foamMatRef}
-          map={foamMap}
-          color="#f4fbff"
-          transparent
-          opacity={0.82}
-          depthWrite={false}
-        />
-      </mesh>
+      {/* Faster scrolling whitewater foam & rapids overlay (desktop only) */}
+      {!compact && (
+        <mesh geometry={riverGeo} position={[0, 0.04, 0]}>
+          <meshLambertMaterial
+            ref={foamMatRef}
+            map={foamMap}
+            color="#f4fbff"
+            transparent
+            opacity={0.82}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
 
       {/* Wet dark riverbank boulders */}
       {bankRocks.length > 0 && (
@@ -2014,8 +2011,8 @@ function KhumbuLandscape({ compact }: { compact: boolean }) {
       <Ridge
         {...BACK_RIDGE_SPEC}
         snowLine={0.26}
-        segX={compact ? 40 : 56}
-        segZ={compact ? 14 : 20}
+        segX={compact ? 28 : 56}
+        segZ={compact ? 10 : 20}
         terrainStyle="alpine"
         detailMap={map}
       />
@@ -2024,8 +2021,8 @@ function KhumbuLandscape({ compact }: { compact: boolean }) {
       <Ridge
         {...FRONT_RIDGE_SPEC}
         snowLine={0.12}
-        segX={compact ? 52 : 76}
-        segZ={compact ? 28 : 40}
+        segX={compact ? 36 : 76}
+        segZ={compact ? 20 : 40}
         terrainStyle="foothill"
         detailMap={map}
         bumpMap={compact ? null : bumpMap}
@@ -2033,7 +2030,7 @@ function KhumbuLandscape({ compact }: { compact: boolean }) {
       <GlacialRiver compact={compact} />
       <HillsideDetails compact={compact} />
       <KhumbuChorten />
-      <SuspensionBridge />
+      <SuspensionBridge compact={compact} />
     </>
   );
 }
@@ -2050,17 +2047,16 @@ export default function HeroScene({
   return (
     <Canvas
       frameloop={active ? "always" : "never"}
-      dpr={compact ? 1 : [1, 1.25]}
+      dpr={compact ? 0.78 : [1, 1.25]}
       gl={{ alpha: true, antialias: false, stencil: false, powerPreference: "high-performance" }}
       camera={{ fov: compact ? 64 : 50, near: 0.1, far: 320, position: CAM_START.toArray() }}
       style={{ background: "transparent" }}
     >
       <fog attach="fog" args={[FOG_COLOR, 18, 108]} />
-      <hemisphereLight args={["#e4f0ff", "#5d7690", 1.18]} />
+      <hemisphereLight args={["#e4f0ff", "#5d7690", compact ? 1.35 : 1.18]} />
       <directionalLight position={[-28, 26, -6]} intensity={2.15} color="#fff7ec" />
-      <directionalLight position={[18, 12, -70]} intensity={1.15} color="#dcebfa" />
+      {!compact && <directionalLight position={[18, 12, -70]} intensity={1.15} color="#dcebfa" />}
 
-      <ResponsiveCamera />
       <KhumbuLandscape compact={compact} />
       <Clouds compact={compact} />
       <Particles compact={compact} />

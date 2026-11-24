@@ -49,12 +49,12 @@ export default function CustomerResetClient() {
   if (!token) {
     return (
       <div className="space-y-4 text-center py-4">
-        <p className="text-sm text-rose-300">
+        <p className="text-sm font-medium text-rose-700">
           Missing or invalid password reset token.
         </p>
         <Link
           href="/forgot-password"
-          className="inline-block text-xs font-mono uppercase tracking-wider text-[#e8b765] hover:underline"
+          className="inline-block text-xs font-semibold uppercase tracking-wider text-[#f05e25] hover:underline"
         >
           Request a New Reset Link
         </Link>
@@ -65,17 +65,19 @@ export default function CustomerResetClient() {
   if (done) {
     return (
       <div className="space-y-4 text-center py-4">
-        <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto" />
-        <h2 className="font-serif text-2xl text-white">Passphrase Updated</h2>
-        <p className="text-xs text-white/70">
-          All previous sessions have been signed out. You can now sign in with your new passphrase.
+        <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
+        <h2 className="font-heading text-2xl font-bold text-[#1c1917]">Password Updated</h2>
+        <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+          All previous sessions have been signed out. You can now sign in with your new password.
         </p>
-        <Link
-          href="/login"
-          className="inline-block rounded-lg bg-[#d99f38] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-[#061015] hover:bg-[#e8b765]"
-        >
-          Sign In
-        </Link>
+        <div className="pt-2">
+          <Link
+            href="/login"
+            className="inline-block rounded-xl bg-[#1c1917] hover:bg-[#f05e25] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition shadow-sm"
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     );
   }
@@ -83,7 +85,10 @@ export default function CustomerResetClient() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="rounded-lg border border-rose-500/40 bg-rose-950/50 px-4 py-3 text-xs text-rose-200">
+        <div
+          role="alert"
+          className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-800"
+        >
           {error}
         </div>
       )}
@@ -91,9 +96,9 @@ export default function CustomerResetClient() {
       <div className="space-y-1.5">
         <label
           htmlFor="cust-reset-pass"
-          className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[#e8b765]"
+          className="block text-xs font-semibold uppercase tracking-[0.14em] text-stone-700"
         >
-          New Passphrase (12+ characters)
+          New Password (12+ characters)
         </label>
         <input
           id="cust-reset-pass"
@@ -103,17 +108,32 @@ export default function CustomerResetClient() {
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-white/15 bg-[#061015] px-4 py-3 text-sm text-white focus:border-[#d99f38] focus:outline-none"
+          placeholder="At least 12 characters"
+          className="w-full h-11 rounded-xl bg-[#faf9f7] border border-stone-200 px-4 text-sm text-[#1c1917] placeholder:text-stone-400 focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 focus:outline-none transition-all duration-200"
         />
-        <p className="text-[11px] text-white/55">{strength.label}</p>
+        <div className="pt-1 space-y-1">
+          <div className="h-1.5 w-full rounded-full bg-stone-200 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-300 ${
+                strength.score >= 3
+                  ? "bg-emerald-500"
+                  : strength.score === 2
+                  ? "bg-amber-500"
+                  : "bg-rose-500"
+              }`}
+              style={{ width: `${strength.score * 25}%` }}
+            />
+          </div>
+          <p className="text-[11px] text-stone-500 font-medium">{strength.label}</p>
+        </div>
       </div>
 
       <div className="space-y-1.5">
         <label
           htmlFor="cust-reset-confirm"
-          className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[#e8b765]"
+          className="block text-xs font-semibold uppercase tracking-[0.14em] text-stone-700"
         >
-          Confirm New Passphrase
+          Confirm New Password
         </label>
         <input
           id="cust-reset-confirm"
@@ -123,16 +143,17 @@ export default function CustomerResetClient() {
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full rounded-lg border border-white/15 bg-[#061015] px-4 py-3 text-sm text-white focus:border-[#d99f38] focus:outline-none"
+          placeholder="Repeat your password"
+          className="w-full h-11 rounded-xl bg-[#faf9f7] border border-stone-200 px-4 text-sm text-[#1c1917] placeholder:text-stone-400 focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 focus:outline-none transition-all duration-200"
         />
       </div>
 
       <button
         type="submit"
         disabled={submitting || !strength.meetsMinLength}
-        className="w-full rounded-lg bg-[#d99f38] px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] text-[#061015] hover:bg-[#e8b765] disabled:opacity-60 cursor-pointer"
+        className="w-full h-12 flex items-center justify-center gap-2 rounded-xl bg-[#1c1917] hover:bg-[#f05e25] text-white text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-200 shadow-md shadow-stone-900/10 hover:shadow-[#f05e25]/20 disabled:opacity-60 cursor-pointer active:scale-[0.99]"
       >
-        {submitting ? "Updating..." : "Save New Passphrase"}
+        <span>{submitting ? "Updating..." : "Save New Password"}</span>
       </button>
     </form>
   );

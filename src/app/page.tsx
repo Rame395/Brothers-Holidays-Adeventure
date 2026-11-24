@@ -5,7 +5,6 @@ import WhyChooseUs from "@/components/home/WhyChooseUs";
 import TrekkingRegions from "@/components/home/TrekkingRegions";
 import BookingProcessSection from "@/components/home/BookingProcessSection";
 import { Hero } from "@/components/hero/Hero";
-import { HomeEnquiryForm } from "@/components/home/HomeEnquiryForm";
 import { QuickDispatchForm } from "@/components/home/QuickDispatchForm";
 import { AlpineBackdrop } from "@/components/site/AlpineBackdrop";
 import { getPublishedTrekRoutes } from "@/lib/data";
@@ -16,10 +15,7 @@ import {
   Calendar,
   Compass,
   HeartHandshake,
-  Mail,
   MapPin,
-  Mountain,
-  ShieldCheck,
 } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -184,53 +180,7 @@ export default async function HomePage() {
       {/* SECTION 7: HOW BOOKING WORKS (SIMPLE 4-STEP EXPEDITION PROCESS) */}
       <BookingProcessSection />
 
-      {/* SECTION 8: DIRECT TRIP ENQUIRY & CONTACT FORM */}
-      <section
-        id="enquiry"
-        className="w-full relative py-16 sm:py-20 lg:py-28 bg-[#f8fafc] text-[#1c1917] border-t border-stone-200/80 content-auto"
-      >
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
-          <div className="rounded-3xl shadow-xl overflow-hidden border border-slate-200 grid grid-cols-1 lg:grid-cols-12 bg-white">
-            <div className="lg:col-span-5 bg-[#104b87] p-6 sm:p-10 lg:p-12 text-white flex flex-col justify-between space-y-8">
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.2em] text-[#7dd3fc] uppercase">
-                  <Compass className="w-4 h-4" />
-                  <span>Direct Trip Planning</span>
-                </div>
-
-                <h3 className="font-serif text-3xl sm:text-4xl text-white font-semibold leading-tight">
-                  Start planning your dates
-                </h3>
-
-                <p className="text-sm text-white/80 leading-relaxed">
-                  Tell us your window and route preference. One of our trek planners
-                  in Kathmandu will reply within 24 hours with a day-by-day plan and
-                  exact permit breakdown.
-                </p>
-              </div>
-
-              <div className="pt-6 border-t border-white/15 space-y-3.5 text-sm text-white/90">
-                <div className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-[#7dd3fc] shrink-0" />
-                  <span>Direct PDF itinerary &amp; transparent USD quote</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Mountain className="w-4 h-4 text-[#7dd3fc] shrink-0" />
-                  <span>Private departures tailored to your fitness pace</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <ShieldCheck className="w-4 h-4 text-[#7dd3fc] shrink-0" />
-                  <span>Registered under Nepal NMA &amp; TAAN regulations</span>
-                </div>
-              </div>
-            </div>
-
-            <HomeEnquiryForm />
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 9: CLOSING CALL TO ACTION */}
+      {/* SECTION 8: CLOSING CALL TO ACTION */}
       <section
         className="w-full relative overflow-hidden py-24 sm:py-32 bg-[#071526] bg-cover bg-center border-t border-white/10 content-auto"
         style={{

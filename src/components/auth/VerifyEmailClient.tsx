@@ -93,7 +93,7 @@ export default function VerifyEmailClient() {
 
   if (state === "verifying") {
     return (
-      <div className="py-10 text-center font-mono text-xs text-white/65">
+      <div className="py-10 text-center text-xs text-stone-500 font-medium">
         Confirming verification token...
       </div>
     );
@@ -102,15 +102,17 @@ export default function VerifyEmailClient() {
   if (state === "verified") {
     return (
       <div className="space-y-4 text-center py-4">
-        <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto" />
-        <h2 className="font-serif text-2xl text-white">Account Activated</h2>
-        <p className="text-xs text-white/75">{message}</p>
-        <Link
-          href="/login"
-          className="inline-block rounded-lg bg-[#d99f38] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-[#061015] hover:bg-[#e8b765]"
-        >
-          Sign In to Your Account
-        </Link>
+        <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
+        <h2 className="font-heading text-2xl font-bold text-[#1c1917]">Account Activated</h2>
+        <p className="text-xs sm:text-sm text-stone-600">{message}</p>
+        <div className="pt-2">
+          <Link
+            href="/login"
+            className="inline-block rounded-xl bg-[#1c1917] hover:bg-[#f05e25] px-6 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white transition shadow-sm"
+          >
+            Sign In to Your Account
+          </Link>
+        </div>
       </div>
     );
   }
@@ -118,32 +120,32 @@ export default function VerifyEmailClient() {
   return (
     <div className="space-y-5">
       <div className="text-center space-y-2">
-        <MailWarning className="h-9 w-9 text-amber-400 mx-auto" />
-        <p className="text-xs text-white/75">
+        <MailWarning className="h-9 w-9 text-amber-500 mx-auto" />
+        <p className="text-xs sm:text-sm text-stone-600">
           {state === "error"
             ? message
             : "Paste the verification link from your email, or request a fresh verification email below."}
         </p>
       </div>
 
-      <form onSubmit={handleResend} className="space-y-3 pt-2 border-t border-white/10">
+      <form onSubmit={handleResend} className="space-y-3 pt-2 border-t border-stone-200">
         <input
           type="email"
           required
           placeholder="Your registration email"
           value={resendEmail}
           onChange={(e) => setResendEmail(e.target.value)}
-          className="w-full rounded-lg border border-white/15 bg-[#061015] px-4 py-2.5 text-sm text-white focus:border-[#d99f38] focus:outline-none"
+          className="w-full h-11 rounded-xl bg-[#faf9f7] border border-stone-200 px-4 text-sm text-[#1c1917] placeholder:text-stone-400 focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 focus:outline-none transition-all duration-200"
         />
         <button
           type="submit"
           disabled={resending}
-          className="w-full rounded-lg bg-[#d99f38] px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[#061015] hover:bg-[#e8b765] disabled:opacity-60 cursor-pointer"
+          className="w-full h-12 flex items-center justify-center gap-2 rounded-xl bg-[#1c1917] hover:bg-[#f05e25] text-white text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-200 shadow-md shadow-stone-900/10 hover:shadow-[#f05e25]/20 disabled:opacity-60 cursor-pointer active:scale-[0.99]"
         >
           {resending ? "Sending..." : "Send Fresh Verification Email"}
         </button>
         {resendMsg && (
-          <p className="text-xs text-[#89d6e2] text-center">{resendMsg}</p>
+          <p className="text-xs text-stone-600 text-center font-medium">{resendMsg}</p>
         )}
       </form>
     </div>

@@ -515,7 +515,7 @@ export function Nav({
           {/* Right Desktop Actions */}
           <div className="hidden lg:flex items-center gap-3 shrink-0">
             <Link
-              href="/#enquiry"
+              href="/contact"
               onMouseEnter={scheduleCloseMega}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[8px] border text-xs font-semibold uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
                 isSolid
@@ -524,7 +524,7 @@ export function Nav({
               }`}
             >
               <Send className="w-3 h-3" />
-              <span>Enquire</span>
+              <span>Contact</span>
             </Link>
 
             <Link
@@ -548,14 +548,14 @@ export function Nav({
           {/* Mobile Actions */}
           <div className="flex lg:hidden items-center gap-2.5">
             <Link
-              href="/#enquiry"
+              href="/contact"
               className={`flex items-center gap-1.5 px-3 py-1 rounded-[6px] border text-[11px] font-semibold uppercase tracking-wider transition-colors ${
                 isSolid
                   ? "border-[#f05e25]/70 bg-[#f05e25]/10 text-[#f05e25]"
                   : "border-white/40 bg-white/10 text-white backdrop-blur-xs"
               }`}
             >
-              <span>Enquire</span>
+              <span>Contact</span>
             </Link>
 
             <button
@@ -801,12 +801,12 @@ export function Nav({
               </Link>
               <div className="pt-2 space-y-2.5">
                 <Link
-                  href="/#enquiry"
+                  href="/contact"
                   onClick={() => setOpen(false)}
                   className="flex items-center justify-center gap-2 w-full border border-[#f05e25] bg-[#f05e25] hover:bg-[#ff7a45] text-white py-2.5 rounded-[8px] text-xs font-bold uppercase tracking-wider"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>Enquire Now</span>
+                  <span>Contact Us</span>
                 </Link>
                 <Link
                   href={customerName ? "/account" : "/login"}

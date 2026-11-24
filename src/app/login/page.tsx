@@ -20,7 +20,7 @@ export default function CustomerLoginPage() {
           New traveler?{" "}
           <Link
             href="/signup"
-            className="text-[#e8b765] font-semibold hover:underline"
+            className="text-[#f05e25] font-semibold hover:underline"
           >
             Create your account →
           </Link>
@@ -29,7 +29,7 @@ export default function CustomerLoginPage() {
     >
       <Suspense
         fallback={
-          <div className="py-10 text-center font-mono text-xs text-white/50">
+          <div className="py-10 text-center text-xs text-stone-500">
             Loading sign-in form...
           </div>
         }

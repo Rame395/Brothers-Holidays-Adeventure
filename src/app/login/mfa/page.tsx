@@ -27,7 +27,7 @@ export default function CustomerMfaPage() {
     >
       <Suspense
         fallback={
-          <div className="py-10 text-center font-mono text-xs text-white/50">
+          <div className="py-10 text-center text-xs text-stone-500">
             Checking session...
           </div>
         }

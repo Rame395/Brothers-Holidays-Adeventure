@@ -58,18 +58,21 @@ export default function CustomerForgotClient() {
   if (sentMessage) {
     return (
       <div className="space-y-4 text-center py-4">
-        <MailCheck className="h-10 w-10 text-emerald-400 mx-auto" />
-        <p className="text-sm text-white/90">{sentMessage}</p>
-        <p className="text-[11px] text-white/50">
+        <MailCheck className="h-10 w-10 text-emerald-600 mx-auto" />
+        <h2 className="font-heading text-2xl font-bold text-[#1c1917]">Check Your Email</h2>
+        <p className="text-sm text-stone-700 leading-relaxed">{sentMessage}</p>
+        <p className="text-[11px] text-stone-400">
           (In local development without SMTP, check the server console for the reset link.)
         </p>
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#e8b765] hover:underline"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Sign In
-        </Link>
+        <div className="pt-2">
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#f05e25] hover:underline"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Back to Sign In
+          </Link>
+        </div>
       </div>
     );
   }
@@ -77,7 +80,10 @@ export default function CustomerForgotClient() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="rounded-lg border border-rose-500/40 bg-rose-950/50 px-4 py-3 text-xs text-rose-200">
+        <div
+          role="alert"
+          className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-800"
+        >
           {error}
         </div>
       )}
@@ -85,7 +91,7 @@ export default function CustomerForgotClient() {
       <div className="space-y-1.5">
         <label
           htmlFor="forgot-cust-email"
-          className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[#e8b765]"
+          className="block text-xs font-semibold uppercase tracking-[0.14em] text-stone-700"
         >
           Registered Email Address
         </label>
@@ -96,22 +102,22 @@ export default function CustomerForgotClient() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@example.com"
-          className="w-full rounded-lg border border-white/15 bg-[#061015] px-4 py-3 text-sm text-white placeholder-white/35 focus:border-[#d99f38] focus:outline-none"
+          className="w-full h-12 rounded-xl bg-[#faf9f7] border border-stone-200 px-4 text-sm text-[#1c1917] placeholder:text-stone-400 focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 focus:outline-none transition-all duration-200"
         />
       </div>
 
       <TurnstileWidget
         siteKey={turnstileSiteKey}
-        theme="dark"
+        theme="light"
         onToken={setTurnstileToken}
       />
 
       <button
         type="submit"
         disabled={submitting}
-        className="w-full rounded-lg bg-[#d99f38] px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] text-[#061015] hover:bg-[#e8b765] disabled:opacity-60 cursor-pointer"
+        className="w-full h-12 flex items-center justify-center gap-2 rounded-xl bg-[#1c1917] hover:bg-[#f05e25] text-white text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-200 shadow-md shadow-stone-900/10 hover:shadow-[#f05e25]/20 disabled:opacity-60 cursor-pointer active:scale-[0.99]"
       >
-        {submitting ? "Sending..." : "Send Reset Instructions"}
+        <span>{submitting ? "Sending..." : "Send Reset Instructions"}</span>
       </button>
     </form>
   );

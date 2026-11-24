@@ -24,7 +24,7 @@ declare global {
 
 export default function TurnstileWidget({
   siteKey,
-  theme = "dark",
+  theme = "light",
   onToken,
 }: {
   siteKey?: string | null;

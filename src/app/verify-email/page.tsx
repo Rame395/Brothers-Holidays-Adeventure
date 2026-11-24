@@ -15,14 +15,14 @@ export default function VerifyEmailPage() {
       eyebrow="Account Activation"
       title="Email Verification"
       footer={
-        <Link href="/login" className="text-[#e8b765] hover:underline">
+        <Link href="/login" className="text-[#f05e25] font-semibold hover:underline">
           ← Return to Sign In
         </Link>
       }
     >
       <Suspense
         fallback={
-          <div className="py-10 text-center font-mono text-xs text-white/50">
+          <div className="py-10 text-center text-xs text-stone-500">
             Verifying...
           </div>
         }

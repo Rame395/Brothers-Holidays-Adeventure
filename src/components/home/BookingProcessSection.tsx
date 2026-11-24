@@ -496,14 +496,14 @@ export default function BookingProcessSection() {
 
           {/* Action buttons */}
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto shrink-0">
-            <a
-              href="#enquiry"
+            <Link
+              href="/contact"
               className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#f05e25] hover:bg-[#ff7a45] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
             >
               <Sparkles className="w-4 h-4" />
               <span>Start Planning Your Trek</span>
               <ArrowRight className="w-4 h-4" />
-            </a>
+            </Link>
 
             <Link
               href="/destinations"

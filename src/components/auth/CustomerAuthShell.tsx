@@ -16,37 +16,54 @@ export default function CustomerAuthShell({
   footer?: ReactNode;
 }) {
   return (
-    <section className="min-h-[calc(100vh-5rem)] bg-[#061116] text-white px-4 py-12 sm:py-16 flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_rgba(217,159,56,0.12),_transparent_58%)]">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-[#c59a4a]/45 bg-[#0a1a21] text-[#e8b765] shadow-md">
-            <Mountain className="h-5 w-5" />
+    <section className="relative min-h-[calc(100vh-5rem)] bg-[#faf9f7] text-[#1c1917] px-4 py-12 sm:py-16 flex items-center justify-center">
+      {/* Background glow and subtle mountain topography decoration */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+      >
+        <div className="absolute -top-32 left-1/2 -translate-x-1/2 h-96 w-[36rem] rounded-full bg-gradient-to-b from-[#f05e25]/10 via-[#f05e25]/5 to-transparent blur-3xl" />
+        <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-stone-100/60 to-transparent" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md space-y-6">
+        <div className="text-center space-y-2.5">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-stone-200 bg-white text-[#f05e25] shadow-xs">
+            <Mountain className="h-6 w-6 stroke-[2]" />
           </div>
-          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#89d6e2]">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f05e25]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#f05e25]" />
             {eyebrow}
           </p>
-          <h1 className="font-serif text-3xl text-white tracking-tight">
+          <h1 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight text-[#1c1917]">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-xs text-white/65 leading-relaxed max-w-sm mx-auto">
+            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed max-w-sm mx-auto font-sans">
               {subtitle}
             </p>
           )}
         </div>
 
-        <div className="rounded-2xl border border-[#c59a4a]/35 bg-[#09171e]/95 p-6 sm:p-8 shadow-2xl">
+        <div className="rounded-3xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-xl shadow-stone-900/5">
           {children}
         </div>
 
-        {footer && <div className="text-center text-xs text-white/65">{footer}</div>}
+        {footer && (
+          <div className="text-center text-xs text-stone-600 font-medium">
+            {footer}
+          </div>
+        )}
 
-        <div className="flex items-center justify-between px-2 text-[11px] text-white/45">
+        <div className="flex items-center justify-between px-2 text-xs text-stone-500 font-medium">
           <span className="inline-flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#89d6e2]" />
-            Protected by Argon2id & Session Isolation
+            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+            Secure Traveler Authentication
           </span>
-          <Link href="/" className="hover:text-[#e8b765] transition-colors">
+          <Link
+            href="/"
+            className="text-stone-600 hover:text-[#f05e25] transition-colors"
+          >
             ← Explore Treks
           </Link>
         </div>

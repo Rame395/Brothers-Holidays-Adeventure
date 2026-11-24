@@ -15,7 +15,7 @@ export default function CustomerForgotPasswordPage() {
       title="Forgot Passphrase"
       subtitle="Single-use recovery links expire in 30 minutes and sign out all active sessions."
       footer={
-        <Link href="/login" className="text-[#e8b765] hover:underline">
+        <Link href="/login" className="text-[#f05e25] font-semibold hover:underline">
           ← Return to Sign In
         </Link>
       }

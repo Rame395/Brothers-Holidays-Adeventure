@@ -20,7 +20,7 @@ export default function CustomerSignupPage() {
           Already registered?{" "}
           <Link
             href="/login"
-            className="text-[#e8b765] font-semibold hover:underline"
+            className="text-[#f05e25] font-semibold hover:underline"
           >
             Sign in →
           </Link>
@@ -29,7 +29,7 @@ export default function CustomerSignupPage() {
     >
       <Suspense
         fallback={
-          <div className="py-10 text-center font-mono text-xs text-white/50">
+          <div className="py-10 text-center text-xs text-stone-500">
             Loading signup form...
           </div>
         }

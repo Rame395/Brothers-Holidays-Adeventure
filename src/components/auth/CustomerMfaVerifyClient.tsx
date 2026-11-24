@@ -56,12 +56,15 @@ export default function CustomerMfaVerifyClient({ email }: { email: string }) {
 
   return (
     <div className="space-y-5">
-      <p className="text-xs text-white/65 text-center">
-        Signing in as <span className="text-white font-medium">{email}</span>
+      <p className="text-xs text-stone-600 text-center">
+        Signing in as <span className="text-[#1c1917] font-semibold">{email}</span>
       </p>
 
       {error && (
-        <div className="rounded-lg border border-rose-500/40 bg-rose-950/50 px-4 py-3 text-xs text-rose-200">
+        <div
+          role="alert"
+          className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-800"
+        >
           {error}
         </div>
       )}
@@ -70,7 +73,7 @@ export default function CustomerMfaVerifyClient({ email }: { email: string }) {
         <div className="space-y-1.5">
           <label
             htmlFor="cust-mfa-code"
-            className="block font-mono text-[11px] uppercase tracking-[0.2em] text-[#e8b765]"
+            className="block text-xs font-semibold uppercase tracking-[0.14em] text-stone-700"
           >
             {useBackupCode
               ? "One-Time Recovery Code"
@@ -85,20 +88,20 @@ export default function CustomerMfaVerifyClient({ email }: { email: string }) {
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder={useBackupCode ? "XXXX-XXXX-XXXX" : "000000"}
-            className="w-full rounded-lg border border-white/15 bg-[#061015] px-4 py-3 text-center font-mono text-lg tracking-[0.35em] text-white placeholder-white/25 focus:border-[#d99f38] focus:outline-none"
+            className="w-full h-14 rounded-xl bg-[#faf9f7] border border-stone-200 px-4 text-center font-mono text-2xl tracking-[0.35em] text-[#1c1917] placeholder:text-stone-300 focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 focus:outline-none transition-all duration-200"
           />
         </div>
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-lg bg-[#d99f38] px-5 py-3 text-xs font-bold uppercase tracking-[0.2em] text-[#061015] hover:bg-[#e8b765] disabled:opacity-60 cursor-pointer"
+          className="w-full h-12 flex items-center justify-center gap-2 rounded-xl bg-[#1c1917] hover:bg-[#f05e25] text-white text-xs font-semibold uppercase tracking-[0.16em] transition-all duration-200 shadow-md shadow-stone-900/10 hover:shadow-[#f05e25]/20 disabled:opacity-60 cursor-pointer active:scale-[0.99]"
         >
-          {submitting ? "Verifying..." : "Verify & Continue"}
+          <span>{submitting ? "Verifying..." : "Verify & Continue"}</span>
         </button>
       </form>
 
-      <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs">
+      <div className="flex items-center justify-between pt-3 border-t border-stone-200 text-xs">
         <button
           type="button"
           onClick={() => {
@@ -106,7 +109,7 @@ export default function CustomerMfaVerifyClient({ email }: { email: string }) {
             setCode("");
             setError("");
           }}
-          className="inline-flex items-center gap-1.5 text-[#89d6e2] hover:underline cursor-pointer"
+          className="inline-flex items-center gap-1.5 font-medium text-[#f05e25] hover:underline cursor-pointer"
         >
           <KeyRound className="h-3.5 w-3.5" />
           {useBackupCode ? "Use 6-digit app code" : "Use backup code"}
@@ -114,7 +117,7 @@ export default function CustomerMfaVerifyClient({ email }: { email: string }) {
         <button
           type="button"
           onClick={handleLogout}
-          className="inline-flex items-center gap-1 text-white/50 hover:text-white cursor-pointer"
+          className="inline-flex items-center gap-1 text-stone-500 hover:text-[#1c1917] transition-colors cursor-pointer"
         >
           <LogOut className="h-3.5 w-3.5" />
           Sign Out

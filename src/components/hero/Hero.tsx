@@ -68,13 +68,15 @@ export function Hero() {
     let running = false;
     let lastWidth = window.innerWidth;
     let cachedTotal = 0;
+    let cachedOffsetTop = 0;
+    let isCompactViewport = window.innerWidth < 768;
     const sm = { x: 0, y: 0, p: 0 };
     let lastDrawnP = -1;
 
     const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
     const applyVisuals = (mx: number, my: number, p: number) => {
-      if (bgWrapRef.current) {
+      if (bgWrapRef.current && !isCompactViewport) {
         bgWrapRef.current.style.transform = `translate3d(${(mx * -14).toFixed(2)}px, ${(my * 10).toFixed(2)}px, 0) scale(${(1.06 + p * 0.35).toFixed(4)})`;
       }
       if (topScrimRef.current) {
@@ -145,8 +147,10 @@ export function Hero() {
     };
 
     const syncMetrics = () => {
+      isCompactViewport = window.innerWidth < 768;
       cachedTotal = Math.max(0, el.offsetHeight - window.innerHeight);
-      const top = -el.getBoundingClientRect().top;
+      cachedOffsetTop = el.offsetTop;
+      const top = window.scrollY - cachedOffsetTop;
       heroState.progress = Math.min(
         1,
         Math.max(0, cachedTotal > 0 ? top / cachedTotal : 0)
@@ -156,7 +160,7 @@ export function Hero() {
     };
 
     const onScroll = () => {
-      const top = -el.getBoundingClientRect().top;
+      const top = window.scrollY - cachedOffsetTop;
       heroState.progress = Math.min(
         1,
         Math.max(0, cachedTotal > 0 ? top / cachedTotal : 0)
@@ -230,7 +234,7 @@ export function Hero() {
         {/* 1 — Crisp High-Priority Himalayan Mountains Behind Transparent 3D Scene */}
         <div
           ref={bgWrapRef}
-          className="absolute inset-0 will-change-transform"
+          className="absolute inset-0 lg:will-change-transform"
           style={{
             transform: "translate3d(0px, 0px, 0) scale(1.06)",
           }}
@@ -261,20 +265,17 @@ export function Hero() {
           )}
         </div>
 
-        {/* Clean gradient darkening + subtle bottom-left scrim so headline stays razor-crisp over bright valley mist */}
+        {/* Consolidated background gradient + bottom-left scrim behind 3D scene */}
         <div
           ref={topScrimRef}
-          className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#081318]/70 via-[#081318]/15 to-[#081318]/85"
-          style={{ opacity: 0.85 }}
-        />
-        <div
+          aria-hidden="true"
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
-              "radial-gradient(ellipse 60% 55% at 22% 72%, rgba(8, 19, 24, 0.72), transparent 72%)",
+            opacity: 0.85,
+            backgroundImage:
+              "radial-gradient(ellipse 60% 55% at 22% 72%, rgba(8, 19, 24, 0.72), transparent 72%), linear-gradient(to bottom, rgba(8, 19, 24, 0.7), rgba(8, 19, 24, 0.15) 50%, rgba(8, 19, 24, 0.85))",
           }}
         />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-[#081318]/95 via-[#081318]/55 to-transparent lg:hidden" />
 
         {/* 3 — Live 3D Himalayan Range & Cloud Sea (pauses when scrolled out of view) */}
         {scene && (
@@ -292,22 +293,13 @@ export function Hero() {
           </div>
         )}
 
-        {/* Legibility Vignette */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, transparent 48%, rgba(8, 19, 24, 0.58) 100%)",
-          }}
-        />
-
-        {/* Localized Dark Scrim Above 3D Scene for Left Editorial Text Contrast */}
+        {/* Consolidated Legibility Vignette + Localized Editorial Scrim Above 3D Scene */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-[5]"
           style={{
-            background:
-              "radial-gradient(ellipse 62% 56% at 20% 74%, rgba(8, 15, 24, 0.72) 0%, rgba(8, 15, 24, 0.34) 52%, transparent 78%)",
+            backgroundImage:
+              "radial-gradient(ellipse 62% 56% at 20% 74%, rgba(8, 15, 24, 0.72) 0%, rgba(8, 15, 24, 0.34) 52%, transparent 78%), radial-gradient(ellipse at center, transparent 48%, rgba(8, 19, 24, 0.58) 100%)",
           }}
         />
         <div
@@ -350,16 +342,16 @@ export function Hero() {
                 className="animate-rise mt-6 sm:mt-8 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center sm:gap-5 max-w-md sm:max-w-none"
                 style={{ animationDelay: "0.2s" }}
               >
-                <a
-                  href="#enquiry"
+                <Link
+                  href="/contact"
                   className="group inline-flex h-11 sm:h-12 w-full sm:w-auto items-center justify-center gap-1.5 sm:gap-2.5 bg-[#c89b4b] hover:bg-[#e5b96b] px-3 sm:px-7 text-[10.5px] sm:text-xs font-semibold uppercase tracking-[0.12em] sm:tracking-[0.18em] text-[#081318] transition-colors cursor-pointer rounded-[6px] shadow-lg whitespace-nowrap"
                 >
                   <span>Plan a Trek</span>
                   <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5" />
-                </a>
+                </Link>
                 <Link
                   href="/destinations"
-                  className="group inline-flex h-11 sm:h-12 w-full sm:w-auto items-center justify-center gap-1.5 sm:gap-2 rounded-[6px] border border-white/35 bg-[#081318]/45 backdrop-blur-md px-3 sm:px-6 text-[10.5px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white shadow-md transition-colors hover:border-[#e5b96b] hover:bg-[#081318]/65 hover:text-[#e5b96b] cursor-pointer whitespace-nowrap"
+                  className="group inline-flex h-11 sm:h-12 w-full sm:w-auto items-center justify-center gap-1.5 sm:gap-2 rounded-[6px] border border-white/35 bg-[#081318]/72 lg:bg-[#081318]/45 lg:backdrop-blur-md px-3 sm:px-6 text-[10.5px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white shadow-md transition-colors hover:border-[#e5b96b] hover:bg-[#081318]/65 hover:text-[#e5b96b] cursor-pointer whitespace-nowrap"
                 >
                   <span>Browse Routes</span>
                   <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
