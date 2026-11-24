@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import {
-  ArrowDown,
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
   Clock,
-  Compass,
   Lock,
+  Mail,
   MapPin,
   MessageCircle,
   Phone,
@@ -21,14 +21,53 @@ import {
   trackWhatsAppClick,
 } from "@/lib/analytics";
 
+const DIAL_CODES = [
+  { code: "+977", label: "+977 (NP)" },
+  { code: "+1", label: "+1 (US)" },
+  { code: "+44", label: "+44 (UK)" },
+  { code: "+61", label: "+61 (AU)" },
+  { code: "+91", label: "+91 (IN)" },
+  { code: "+49", label: "+49 (DE)" },
+  { code: "+33", label: "+33 (FR)" },
+  { code: "+81", label: "+81 (JP)" },
+  { code: "+65", label: "+65 (SG)" },
+  { code: "+86", label: "+86 (CN)" },
+] as const;
+
+const TREK_INTERESTS = [
+  "Everest & Khumbu",
+  "Annapurna Circuit",
+  "Langtang Valley",
+  "Manaslu Sanctuary",
+  "Upper Mustang",
+  "Peak Climbing & Expeditions",
+  "Custom Private Trip",
+] as const;
+
+function formatNepalTime(): string {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  const nepalDate = new Date(utc + 3600000 * 5.75);
+  let hours = nepalDate.getHours();
+  const minutes = String(nepalDate.getMinutes()).padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  return `${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
+}
+
 export function ContactClient({ settings }: { settings: SiteSettingDTO }) {
   const [currentTime, setCurrentTime] = useState("");
-  const [selectedInterest, setSelectedInterest] = useState("Langtang Circuit");
+  const [dialCode, setDialCode] = useState("+977");
+  const [selectedInterest, setSelectedInterest] = useState<string>(
+    TREK_INTERESTS[0]
+  );
 
   const [formState, setFormState] = useState({
     fullName: "",
     email: "",
     phone: "",
+    city: "",
+    country: "",
     message: "",
   });
 
@@ -37,28 +76,16 @@ export function ContactClient({ settings }: { settings: SiteSettingDTO }) {
   const [reference, setReference] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const cleanWhatsapp = settings.whatsappNumber.replace(/[^\d]/g, "") || "9779800000000";
+  const cleanWhatsapp =
+    settings.whatsappNumber.replace(/[^\d]/g, "") || "9779800000000";
   const whatsappUrl = `https://wa.me/${cleanWhatsapp}`;
+  const cleanPhoneHref = settings.contactPhone.replace(/[^+\d]/g, "");
 
-  // Live Nepal Time (UTC+5:45)
+  // Live Nepal Time (UTC+5:45), refreshed every 30s
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-      const nepalDate = new Date(utc + 3600000 * 5.75);
-
-      let hours = nepalDate.getHours();
-      const minutes = String(nepalDate.getMinutes()).padStart(2, "0");
-      const ampm = hours >= 12 ? "PM" : "AM";
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const hoursStr = String(hours).padStart(2, "0");
-
-      setCurrentTime(`${hoursStr}:${minutes} ${ampm}`);
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
+    const update = () => setCurrentTime(formatNepalTime());
+    update();
+    const interval = setInterval(update, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -66,6 +93,16 @@ export function ContactClient({ settings }: { settings: SiteSettingDTO }) {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg("");
+
+    const rawPhone = formState.phone.trim();
+    const combinedPhone = rawPhone.startsWith("+")
+      ? rawPhone
+      : `${dialCode} ${rawPhone}`.trim();
+    const trimmedCity = formState.city.trim();
+    const trimmedMessage = formState.message.trim();
+    const formattedMessage = trimmedCity
+      ? `[City: ${trimmedCity}]\n${trimmedMessage}`
+      : trimmedMessage;
 
     try {
       const utm = getStoredUtmParams();
@@ -76,10 +113,11 @@ export function ContactClient({ settings }: { settings: SiteSettingDTO }) {
           type: "GENERAL",
           fullName: formState.fullName.trim(),
           email: formState.email.trim(),
-          phone: formState.phone.trim(),
-          whatsapp: formState.phone.trim(),
+          phone: combinedPhone,
+          whatsapp: combinedPhone,
+          country: formState.country.trim() || undefined,
           interest: selectedInterest,
-          message: formState.message.trim(),
+          message: formattedMessage,
           sourcePage: "/contact",
           ...utm,
         }),
@@ -108,543 +146,410 @@ export function ContactClient({ settings }: { settings: SiteSettingDTO }) {
     }
   };
 
-  const interests = [
-    "Langtang Circuit",
-    "Manaslu Sanctuary",
-    "Rolwaling & Tashi Lapcha",
-    "Upper Mustang Custom",
-  ];
+  const resetForm = () => {
+    setSuccessSubmitted(false);
+    setReference("");
+    setErrorMsg("");
+    setDialCode("+977");
+    setSelectedInterest(TREK_INTERESTS[0]);
+    setFormState({
+      fullName: "",
+      email: "",
+      phone: "",
+      city: "",
+      country: "",
+      message: "",
+    });
+  };
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="relative w-full max-w-7xl mx-auto px-6 lg:px-margin pt-8 pb-20">
-        <div className="absolute -top-12 right-12 w-96 h-96 bg-primary-fixed/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
-        <div className="absolute top-1/2 left-0 w-80 h-80 bg-secondary-container/40 rounded-full blur-3xl pointer-events-none -z-10"></div>
-
-        {/* Editorial Breadcrumb */}
-        <div className="flex items-center gap-3 pb-8">
-          <span className="font-label-sm text-label-sm uppercase tracking-widest text-primary flex items-center gap-1.5 font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-            Field Headquarters · Nepal
-          </span>
-          <span className="text-outline-variant font-label-sm">/</span>
-          <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
-            Liaison Bureau
-          </span>
-        </div>
-
-        {/* 1. Hero Header Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start pb-16">
-          <div className="lg:col-span-8 space-y-6">
-            <h1 className="font-display-lg text-display-lg text-on-surface font-normal leading-[1.1] tracking-tight">
-              Start a conversation with our Kathmandu office
+    <div className="w-full bg-white text-[#1c1917]">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-28 sm:pt-32 pb-20">
+        {/* Top Header Row */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-stone-200/80 pb-8 mb-10">
+          <div className="space-y-2.5">
+            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f05e25]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#f05e25]" />
+              Kathmandu Liaison Desk · Nepal
+            </span>
+            <h1 className="font-serif text-4xl sm:text-5xl font-bold tracking-tight text-[#1c1917]">
+              Contact Us
             </h1>
-            <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl leading-relaxed">
-              Reach our guides and planners directly via secure form, phone, or
-              WhatsApp. Whether you seek custom logistical permits, private
-              alpine guiding, or weather window consultations, we speak directly
-              from the valley basin.
-            </p>
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <a
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary transition-all duration-200 shadow-sm active:scale-98"
-                href="#inquiry-form"
-              >
-                <span>Send Enquiry</span>
-                <ArrowDown
-                  className="h-[18px] w-[18px] shrink-0"
-                  aria-hidden="true"
-                />
-              </a>
-              <a
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full bg-surface-container text-primary font-label-lg text-label-lg hover:bg-surface-container-high transition-colors"
-                href={whatsappUrl}
-                onClick={() => trackWhatsAppClick("contact_hero")}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                <MessageCircle
-                  className="h-[18px] w-[18px] shrink-0"
-                  aria-hidden="true"
-                />
-                <span>Instant WhatsApp Chat</span>
-              </a>
-            </div>
           </div>
+          <p className="max-w-md text-sm sm:text-base text-stone-600 leading-relaxed md:text-right">
+            Tell us when and where you&apos;d like to trek—our Kathmandu planners
+            confirm availability and route notes within 24 hours.
+          </p>
+        </header>
 
-          {/* Quick Status Metric / Micro HUD */}
-          <div className="lg:col-span-4 bg-surface-container-low rounded-lg p-6 space-y-4 shadow-sm border border-outline-variant/30">
-            <div className="flex items-center justify-between">
-              <span className="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant font-semibold">
-                Base Time
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface text-primary font-label-sm text-label-sm shadow-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                NPT (UTC+5:45)
-              </span>
-            </div>
-            <div className="space-y-1">
-              <div
-                className="font-headline-lg text-headline-lg text-on-surface tracking-tight"
-                id="live-time"
-              >
-                {currentTime || "09:42 AM"}
-              </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant">
-                Desk operations active · Radio clearance open
-              </p>
-            </div>
-            <div className="pt-2 flex items-center justify-between text-on-surface-variant border-t border-outline-variant/15">
-              <span className="font-label-md text-label-md uppercase tracking-wider">
-                Kathmandu Alt
-              </span>
-              <span className="font-headline-sm text-headline-sm text-on-surface">
-                1,400 m
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Split Visual & Form Canvas */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-          {/* LEFT COLUMN */}
-          <div className="lg:col-span-5 space-y-8">
-            <div className="bg-surface-container-lowest rounded-lg p-8 shadow-sm space-y-8 border border-outline-variant/30">
-              <div className="flex items-center justify-between pb-4 border-b border-outline-variant/20">
-                <div className="space-y-1">
-                  <span className="font-label-sm text-label-sm uppercase tracking-widest text-primary font-semibold">
-                    Coordinates
-                  </span>
-                  <h2 className="font-headline-md text-headline-md text-on-surface">
-                    Direct Office Access
-                  </h2>
-                </div>
-                <Compass
-                  className="h-7 w-7 shrink-0 text-primary"
-                  aria-hidden="true"
-                />
-              </div>
-
-              <div className="space-y-7">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary shrink-0 mt-0.5">
-                    <MapPin className="h-5 w-5 shrink-0" aria-hidden="true" />
-                  </div>
-                  <div className="space-y-1">
-                    <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant block">
-                      Physical Address
-                    </span>
-                    <p className="font-headline-sm text-headline-sm text-on-surface font-normal leading-snug">
-                      {settings.officeAddress}
-                    </p>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant">
-                      {settings.contactEmail}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary shrink-0 mt-0.5">
-                    <Phone className="h-5 w-5 shrink-0" aria-hidden="true" />
-                  </div>
-                  <div className="space-y-2.5 w-full">
-                    <div>
-                      <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant block">
-                        Telephone Line
-                      </span>
-                      <a
-                        className="font-headline-sm text-headline-sm text-on-surface hover:text-primary transition-colors block"
-                        href={`tel:${settings.contactPhone.replace(/[^+\d]/g, "")}`}
-                      >
-                        {settings.contactPhone}
-                      </a>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <a
-                        className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-surface-container-high text-on-surface text-label-md font-label-md hover:bg-primary hover:text-on-primary transition-colors"
-                        href={whatsappUrl}
-                        onClick={() => trackWhatsAppClick("contact_sidebar")}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <span className="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span>
-                        WhatsApp Direct Connect
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary shrink-0 mt-0.5">
-                    <Clock className="h-5 w-5 shrink-0" aria-hidden="true" />
-                  </div>
-                  <div className="space-y-1">
-                    <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant block">
-                      Office Hours
-                    </span>
-                    <p className="font-headline-sm text-headline-sm text-on-surface font-normal leading-snug">
-                      Sunday to Friday
-                      <br />
-                      <span className="text-body-md text-on-surface-variant font-label-md">
-                        9:00 AM – 6:00 PM NPT
-                      </span>
-                    </p>
-                    <div className="inline-flex items-center gap-1.5 pt-1 text-tertiary font-label-md text-label-md">
-                      <span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
-                      Closed Saturday (Official Nepal Weekend)
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div
-                className="w-full h-56 rounded-lg bg-cover bg-center shadow-sm relative overflow-hidden flex items-end p-4 border border-outline-variant/30"
-                style={{
-                  backgroundImage: "url('/images/trips/kathmandu.jpg')",
-                }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-inverse-surface/20 to-transparent"></div>
-                <div className="relative z-10 flex items-center justify-between w-full">
-                  <div className="space-y-0.5 text-on-primary">
-                    <span className="font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed block">
-                      Field Outpost Location
-                    </span>
-                    <span className="font-headline-sm text-headline-sm text-on-primary">
-                      Thamel Sanctuary Office
-                    </span>
-                  </div>
-                  <a
-                    className="w-8 h-8 rounded-full bg-surface/90 text-on-surface flex items-center justify-center hover:scale-105 transition-transform shadow-md"
-                    href="https://maps.google.com/?q=Thamel,Kathmandu,Nepal"
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    <ArrowUpRight
-                      className="h-4 w-4 shrink-0"
-                      aria-hidden="true"
-                    />
-                  </a>
-                </div>
-              </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant px-1">
-                20 minutes drive from Tribhuvan International Airport (KTM).
-                Vehicle collection available upon expedition reservation.
-              </p>
-            </div>
-
-            <div className="bg-surface-container rounded-lg p-6 space-y-3 border border-outline-variant/30">
-              <div className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  className="w-12 h-12 rounded-full object-cover shadow-sm"
-                  alt="Ang Dawa Sherpa"
-                  src="/images/trips/everest.jpg"
-                />
-                <div>
-                  <div className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-                    Ang Dawa Sherpa
-                  </div>
-                  <div className="font-label-sm text-label-sm text-primary uppercase tracking-wider">
-                    Chief Field Coordinator
-                  </div>
-                </div>
-              </div>
-              <p className="font-headline-sm text-headline-sm italic text-on-surface font-normal leading-snug pt-1">
-                “Every crossing requires accurate patience. When you write to us,
-                our operational leads review the snowlines before offering an
-                answer.”
-              </p>
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN: Secure Enquiry Form */}
-          <div
-            className="lg:col-span-7 bg-surface-container-lowest rounded-lg p-8 sm:p-10 shadow-sm space-y-8 border border-outline-variant/30"
-            id="inquiry-form"
-          >
-            <div className="space-y-2 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary"></span>
-                <span className="font-label-sm text-label-sm uppercase tracking-widest text-primary font-semibold">
-                  Direct Communication
-                </span>
-              </div>
-              <h2 className="font-display-md text-display-md text-on-surface font-normal">
-                Send a Message
-              </h2>
-              <p className="font-body-md text-body-md text-on-surface-variant">
-                Submit your alpine inquiry, private party request, or permit
-                requirements below.
-              </p>
-            </div>
-
+        {/* Main Split Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-stretch">
+          {/* LEFT COLUMN: 2-Column Editorial Form */}
+          <div className="lg:col-span-7 flex flex-col justify-between" id="inquiry-form">
             {!successSubmitted ? (
-              <form className="space-y-6" onSubmit={handleSubmit}>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label
-                      className="font-label-lg text-label-lg text-on-surface font-medium"
-                      htmlFor="full-name"
-                    >
-                      Full Name <span className="text-tertiary">*</span>
-                    </label>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant/80">
-                      Required
-                    </span>
-                  </div>
+              <form
+                onSubmit={handleSubmit}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-5"
+              >
+                {/* Full Name */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="contact-full-name"
+                    className="block text-xs font-semibold uppercase tracking-[0.12em] text-stone-700"
+                  >
+                    Full Name <span className="text-[#f05e25]">*</span>
+                  </label>
                   <input
-                    className="w-full h-13 px-5 rounded-full bg-surface-container-low text-on-surface placeholder:text-on-secondary-container font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary transition-all border border-outline-variant/30"
-                    id="full-name"
-                    placeholder="Tenzing Sherpa"
-                    required
+                    id="contact-full-name"
                     type="text"
+                    required
+                    placeholder="Your full name"
                     value={formState.fullName}
                     onChange={(e) =>
                       setFormState({ ...formState, fullName: e.target.value })
                     }
+                    className="w-full h-12 px-4 rounded-xl bg-[#faf9f7] border border-stone-200 text-sm text-[#1c1917] placeholder:text-stone-400 focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 outline-none transition"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label
-                      className="font-label-lg text-label-lg text-on-surface font-medium"
-                      htmlFor="email-address"
-                    >
-                      Email Address <span className="text-tertiary">*</span>
-                    </label>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant/80">
-                      Encrypted
-                    </span>
-                  </div>
+                {/* Email Address */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="contact-email"
+                    className="block text-xs font-semibold uppercase tracking-[0.12em] text-stone-700"
+                  >
+                    Email Address <span className="text-[#f05e25]">*</span>
+                  </label>
                   <input
-                    className="w-full h-13 px-5 rounded-full bg-surface-container-low text-on-surface placeholder:text-on-secondary-container font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary transition-all border border-outline-variant/30"
-                    id="email-address"
-                    placeholder="tenzing@example.com"
-                    required
+                    id="contact-email"
                     type="email"
+                    required
+                    placeholder="you@example.com"
                     value={formState.email}
                     onChange={(e) =>
                       setFormState({ ...formState, email: e.target.value })
                     }
+                    className="w-full h-12 px-4 rounded-xl bg-[#faf9f7] border border-stone-200 text-sm text-[#1c1917] placeholder:text-stone-400 focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 outline-none transition"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label
-                      className="font-label-lg text-label-lg text-on-surface font-medium"
-                      htmlFor="phone-number"
-                    >
-                      Phone or WhatsApp Number{" "}
-                      <span className="text-tertiary">*</span>
-                    </label>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant/80">
-                      Satellite or Mobile
-                    </span>
-                  </div>
-                  <input
-                    className="w-full h-13 px-5 rounded-full bg-surface-container-low text-on-surface placeholder:text-on-secondary-container font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary transition-all border border-outline-variant/30"
-                    id="phone-number"
-                    placeholder="+977 9800000000"
-                    required
-                    type="tel"
-                    value={formState.phone}
-                    onChange={(e) =>
-                      setFormState({ ...formState, phone: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2 pt-1">
-                  <label className="font-label-lg text-label-lg text-on-surface font-medium block">
-                    Expedition Interest
+                {/* Phone / WhatsApp with Dial Code */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="contact-phone"
+                    className="block text-xs font-semibold uppercase tracking-[0.12em] text-stone-700"
+                  >
+                    Phone / WhatsApp <span className="text-[#f05e25]">*</span>
                   </label>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {interests.map((interest) => (
-                      <button
-                        key={interest}
-                        onClick={() => setSelectedInterest(interest)}
-                        className={`px-4 py-2 rounded-full font-label-md text-label-md transition-colors cursor-pointer ${
-                          selectedInterest === interest
-                            ? "bg-primary-container text-on-primary font-medium"
-                            : "bg-surface-container text-primary hover:bg-primary-container hover:text-on-primary"
-                        }`}
-                        type="button"
-                      >
-                        {interest}
-                      </button>
-                    ))}
+                  <div className="flex items-center h-12 rounded-xl bg-[#faf9f7] border border-stone-200 focus-within:bg-white focus-within:border-[#1c1917] focus-within:ring-2 focus-within:ring-[#f05e25]/20 transition overflow-hidden">
+                    <select
+                      aria-label="Country dial code"
+                      value={dialCode}
+                      onChange={(e) => setDialCode(e.target.value)}
+                      className="h-full bg-transparent pl-3 pr-2 text-xs font-semibold text-[#1c1917] outline-none cursor-pointer shrink-0"
+                    >
+                      {DIAL_CODES.map((d) => (
+                        <option key={d.code} value={d.code}>
+                          {d.label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="h-5 w-px bg-stone-200 shrink-0" aria-hidden="true" />
+                    <input
+                      id="contact-phone"
+                      type="tel"
+                      required
+                      placeholder="980XXXXXXX"
+                      value={formState.phone}
+                      onChange={(e) =>
+                        setFormState({ ...formState, phone: e.target.value })
+                      }
+                      className="w-full h-full px-3.5 bg-transparent text-sm text-[#1c1917] placeholder:text-stone-400 outline-none"
+                    />
                   </div>
                 </div>
 
-                <div className="space-y-2 pt-1">
-                  <div className="flex items-center justify-between">
-                    <label
-                      className="font-label-lg text-label-lg text-on-surface font-medium"
-                      htmlFor="inquiry-message"
-                    >
-                      Message or Route Inquiry{" "}
-                      <span className="text-tertiary">*</span>
-                    </label>
-                    <span className="font-label-sm text-label-sm text-on-surface-variant/80">
-                      Logbook
-                    </span>
-                  </div>
+                {/* Trekking Interest */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="contact-interest"
+                    className="block text-xs font-semibold uppercase tracking-[0.12em] text-stone-700"
+                  >
+                    Trekking Interest
+                  </label>
+                  <select
+                    id="contact-interest"
+                    value={selectedInterest}
+                    onChange={(e) => setSelectedInterest(e.target.value)}
+                    className="w-full h-12 px-4 rounded-xl bg-[#faf9f7] border border-stone-200 text-sm text-[#1c1917] focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 outline-none transition cursor-pointer"
+                  >
+                    {TREK_INTERESTS.map((interest) => (
+                      <option key={interest} value={interest}>
+                        {interest}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* City */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="contact-city"
+                    className="block text-xs font-semibold uppercase tracking-[0.12em] text-stone-700"
+                  >
+                    City
+                  </label>
+                  <input
+                    id="contact-city"
+                    type="text"
+                    placeholder="Kathmandu"
+                    value={formState.city}
+                    onChange={(e) =>
+                      setFormState({ ...formState, city: e.target.value })
+                    }
+                    className="w-full h-12 px-4 rounded-xl bg-[#faf9f7] border border-stone-200 text-sm text-[#1c1917] placeholder:text-stone-400 focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 outline-none transition"
+                  />
+                </div>
+
+                {/* Country */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="contact-country"
+                    className="block text-xs font-semibold uppercase tracking-[0.12em] text-stone-700"
+                  >
+                    Country
+                  </label>
+                  <input
+                    id="contact-country"
+                    type="text"
+                    placeholder="Nepal"
+                    value={formState.country}
+                    onChange={(e) =>
+                      setFormState({ ...formState, country: e.target.value })
+                    }
+                    className="w-full h-12 px-4 rounded-xl bg-[#faf9f7] border border-stone-200 text-sm text-[#1c1917] placeholder:text-stone-400 focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 outline-none transition"
+                  />
+                </div>
+
+                {/* Message / Special Requests */}
+                <div className="sm:col-span-2 space-y-1.5">
+                  <label
+                    htmlFor="contact-message"
+                    className="block text-xs font-semibold uppercase tracking-[0.12em] text-stone-700"
+                  >
+                    Message / Special Requests{" "}
+                    <span className="text-[#f05e25]">*</span>
+                  </label>
                   <textarea
-                    className="w-full p-5 rounded-2xl bg-surface-container-low text-on-surface placeholder:text-on-secondary-container font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary transition-all resize-y border border-outline-variant/30"
-                    id="inquiry-message"
-                    placeholder="Inquiring about autumn departures for the Langtang circuit..."
-                    required
+                    id="contact-message"
                     rows={5}
+                    required
+                    placeholder="Share your preferred dates, group size, or any questions about permits and routes..."
                     value={formState.message}
                     onChange={(e) =>
                       setFormState({ ...formState, message: e.target.value })
                     }
-                  ></textarea>
+                    className="w-full p-4 rounded-xl bg-[#faf9f7] border border-stone-200 text-sm text-[#1c1917] placeholder:text-stone-400 focus:bg-white focus:border-[#1c1917] focus:ring-2 focus:ring-[#f05e25]/20 outline-none transition resize-y"
+                  />
                 </div>
 
                 {errorMsg && (
-                  <p className="text-xs text-error font-medium">{errorMsg}</p>
+                  <p className="sm:col-span-2 text-xs font-medium text-red-600">
+                    {errorMsg}
+                  </p>
                 )}
 
-                <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                {/* Submit Row */}
+                <div className="sm:col-span-2 pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <button
-                    className="inline-flex items-center justify-center gap-3 px-10 py-4 rounded-full bg-primary-container text-on-primary font-label-lg text-label-lg hover:bg-primary transition-all duration-200 shadow-md group cursor-pointer disabled:opacity-50"
                     type="submit"
                     disabled={isSubmitting}
+                    className="bg-[#1c1917] hover:bg-[#f05e25] text-white rounded-full px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.18em] inline-flex items-center justify-center gap-2.5 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
                   >
                     <span>
-                      {isSubmitting ? "Transmitting..." : "Transmit Inquiry"}
+                      {isSubmitting ? "Sending Enquiry..." : "Send Enquiry"}
                     </span>
-                    <ArrowRight
-                      className="h-[18px] w-[18px] shrink-0 transition-transform group-hover:translate-x-1"
-                      aria-hidden="true"
-                    />
+                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
                   </button>
-                  <div className="flex items-center gap-2 text-on-surface-variant font-label-sm text-label-sm">
-                    <Lock
-                      className="h-4 w-4 shrink-0 text-primary"
-                      aria-hidden="true"
-                    />
-                    <span>Logged directly in Kathmandu CRM</span>
+
+                  <div className="inline-flex items-center gap-2 text-xs text-stone-500">
+                    <Lock className="h-3.5 w-3.5 shrink-0 text-[#f05e25]" aria-hidden="true" />
+                    <span>Direct to our Thamel desk · No booking brokers</span>
                   </div>
                 </div>
               </form>
             ) : (
               <div
-                className="p-8 rounded-2xl bg-surface-container text-on-surface space-y-4 animate-fade-in shadow-sm border border-outline-variant/20"
                 id="success-state"
+                className="rounded-3xl bg-[#faf9f7] border border-stone-200 p-8 sm:p-10 space-y-5"
               >
-                <div className="flex items-center gap-3 text-primary font-headline-md text-headline-md">
+                <div className="flex items-center gap-3 text-[#1c1917]">
                   <BadgeCheck
-                    className="h-8 w-8 shrink-0"
+                    className="h-8 w-8 shrink-0 text-[#f05e25]"
                     aria-hidden="true"
                   />
-                  <span>Inquiry Transmitted to Kathmandu Dispatch</span>
+                  <h2 className="font-serif text-2xl font-bold">
+                    Enquiry Logged with Our Kathmandu Desk
+                  </h2>
                 </div>
+
                 {reference && (
-                  <span className="inline-block rounded-full bg-surface-container-lowest px-3 py-1 font-mono text-xs font-semibold text-primary border border-outline-variant/30">
+                  <span className="inline-block rounded-full bg-white px-3.5 py-1 font-mono text-xs font-semibold text-[#f05e25] border border-stone-200">
                     Ref · {reference}
                   </span>
                 )}
-                <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
-                  Tashi Delek, <strong>{formState.fullName}</strong>. Your dispatch
-                  regarding <em>{selectedInterest}</em> has been logged directly
-                  with our field operations team in Thamel. You will receive an
-                  acknowledgment receipt and preliminary route notes at{" "}
-                  <strong>{formState.email}</strong> shortly.
+
+                <p className="text-sm sm:text-base text-stone-600 leading-relaxed">
+                  Tashi Delek, <strong>{formState.fullName}</strong>. Your
+                  message regarding <em>{selectedInterest}</em> is now with our
+                  route planners in Thamel. We&apos;ll reply to{" "}
+                  <strong>{formState.email}</strong> within 24 hours.
                 </p>
+
                 <button
                   type="button"
-                  className="px-6 py-2.5 rounded-full bg-primary-container text-on-primary font-label-md uppercase tracking-wider hover:bg-primary transition-colors cursor-pointer"
-                  onClick={() => {
-                    setSuccessSubmitted(false);
-                    setReference("");
-                    setFormState({
-                      fullName: "",
-                      email: "",
-                      phone: "",
-                      message: "",
-                    });
-                  }}
+                  onClick={resetForm}
+                  className="bg-[#1c1917] hover:bg-[#f05e25] text-white rounded-full px-6 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] transition-colors cursor-pointer"
                 >
-                  Send Another Inquiry
+                  Send Another Enquiry
                 </button>
               </div>
             )}
+          </div>
 
-            <div className="pt-6">
-              <div className="p-5 rounded-2xl bg-surface-container-low flex items-start gap-4 shadow-sm border border-outline-variant/20">
-                <div className="w-9 h-9 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed shrink-0 mt-0.5">
-                  <ShieldCheck
-                    className="h-5 w-5 shrink-0"
-                    aria-hidden="true"
-                  />
+          {/* RIGHT COLUMN: Rounded Scenic Himalayan Card */}
+          <aside className="lg:col-span-5">
+            <div className="relative min-h-[420px] lg:min-h-full h-full rounded-3xl overflow-hidden shadow-lg border border-stone-200/70 flex flex-col justify-between p-6 sm:p-8 text-white">
+              <Image
+                src="/images/himalaya-suspension-bridge-trekkers.jpg"
+                alt="Trekkers crossing a Himalayan suspension bridge in Nepal"
+                fill
+                priority
+                sizes="(max-width: 1024px) 100vw, 42vw"
+                className="object-cover"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-t from-[#0d161b]/90 via-[#0d161b]/25 to-[#0d161b]/15"
+              />
+
+              {/* Top-right Live Nepal Time Badge */}
+              <div className="relative z-10 flex justify-end">
+                <div className="bg-[#0d161b]/65 backdrop-blur-md border border-white/15 rounded-full px-3.5 py-1.5 text-xs text-white flex items-center gap-2 shadow-sm">
+                  <span className="h-2 w-2 rounded-full bg-[#f05e25] animate-pulse" />
+                  <span className="font-medium tracking-wide">
+                    Kathmandu · {currentTime || "09:42 AM"} NPT
+                  </span>
                 </div>
-                <div className="space-y-1">
-                  <h3 className="font-label-md text-label-md uppercase tracking-widest text-primary font-semibold">
-                    Institutional Assurance
-                  </h3>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
-                    Direct liaison with licensed IFMGA / NNMGA certified guides.
-                    No booking brokers. Your conversation connects directly with
-                    individuals who walk the passes.
-                  </p>
+              </div>
+
+              {/* Bottom Editorial Caption & Quick Contact Actions */}
+              <div className="relative z-10 space-y-4 pt-20">
+                <div className="space-y-1.5">
+                  <span className="block text-[11px] font-semibold uppercase tracking-[0.22em] text-[#f3ca7e]">
+                    Your Himalayan Journey
+                  </span>
+                  <h2 className="font-serif text-2xl sm:text-3xl font-bold leading-tight text-white">
+                    Direct from Kathmandu to the High Passes
+                  </h2>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackWhatsAppClick("contact_card")}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#f05e25] hover:bg-[#d94d16] px-4 py-2 text-xs font-semibold text-white transition-colors shadow-sm"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>WhatsApp Chat</span>
+                  </a>
+                  <a
+                    href={`tel:${cleanPhoneHref}`}
+                    className="inline-flex items-center gap-2 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 px-4 py-2 text-xs font-medium text-white transition-colors"
+                  >
+                    <Phone className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>{settings.contactPhone}</span>
+                  </a>
+                  <a
+                    href={`mailto:${settings.contactEmail}`}
+                    className="inline-flex items-center gap-2 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/20 px-4 py-2 text-xs font-medium text-white transition-colors"
+                  >
+                    <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>Email Desk</span>
+                  </a>
                 </div>
               </div>
             </div>
-          </div>
+          </aside>
         </div>
 
-        <div className="mt-16 pt-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-on-surface border-t border-outline-variant/30">
-          <div className="space-y-1">
-            <span className="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant block">
-              Satellite Comm
-            </span>
-            <span className="font-headline-sm text-headline-sm text-on-surface font-normal">
-              Garmin inReach
-            </span>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Active on all High-Pass expeditions
+        {/* Bottom Office Info Strip */}
+        <section
+          aria-label="Kathmandu office details"
+          className="mt-14 pt-8 border-t border-stone-200 grid grid-cols-1 md:grid-cols-3 gap-6"
+        >
+          {/* 1. Kathmandu Office */}
+          <div className="rounded-2xl bg-[#faf9f7] border border-stone-200/80 p-6 space-y-2.5">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#f05e25]">
+              <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Kathmandu Office</span>
+            </div>
+            <p className="text-sm font-medium text-[#1c1917] leading-relaxed">
+              {settings.officeAddress}
+            </p>
+            <a
+              href="https://maps.google.com/?q=Thamel,Kathmandu,Nepal"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#1c1917] hover:text-[#f05e25] transition-colors"
+            >
+              <span>Open in Google Maps</span>
+              <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            </a>
+          </div>
+
+          {/* 2. Direct Line & Hours */}
+          <div className="rounded-2xl bg-[#faf9f7] border border-stone-200/80 p-6 space-y-2.5">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#f05e25]">
+              <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Direct Line &amp; Hours</span>
+            </div>
+            <div className="space-y-1 text-sm text-[#1c1917]">
+              <a
+                href={`tel:${cleanPhoneHref}`}
+                className="block font-medium hover:text-[#f05e25] transition-colors"
+              >
+                {settings.contactPhone}
+              </a>
+              <a
+                href={`mailto:${settings.contactEmail}`}
+                className="block text-stone-600 hover:text-[#f05e25] transition-colors"
+              >
+                {settings.contactEmail}
+              </a>
+            </div>
+            <p className="text-xs text-stone-500">
+              Sun – Fri · 9:00 AM – 6:00 PM NPT
             </p>
           </div>
-          <div className="space-y-1">
-            <span className="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant block">
-              Permit Desk
-            </span>
-            <span className="font-headline-sm text-headline-sm text-on-surface font-normal">
-              TIMS &amp; NTB Sync
-            </span>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Direct liaison with Ministry of Tourism
+
+          {/* 3. Certified Mountain Team */}
+          <div className="rounded-2xl bg-[#faf9f7] border border-stone-200/80 p-6 space-y-2.5">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#f05e25]">
+              <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>Certified Mountain Team</span>
+            </div>
+            <p className="text-sm font-medium text-[#1c1917] leading-relaxed">
+              IFMGA / NNMGA licensed guides · Direct TIMS &amp; NTB permit
+              handling
+            </p>
+            <p className="text-xs text-stone-500">
+              &lt; 24 hr reply directly from Kathmandu operations
             </p>
           </div>
-          <div className="space-y-1">
-            <span className="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant block">
-              Heli Evacuation
-            </span>
-            <span className="font-headline-sm text-headline-sm text-on-surface font-normal">
-              B3e Longranger
-            </span>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Direct charter protocols on file
-            </p>
-          </div>
-          <div className="space-y-1">
-            <span className="font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant block">
-              Response Time
-            </span>
-            <span className="font-headline-sm text-headline-sm text-on-surface font-normal">
-              &lt; 14 Hours
-            </span>
-            <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Standard desk review turnaround
-            </p>
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   );

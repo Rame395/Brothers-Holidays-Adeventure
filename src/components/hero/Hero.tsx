@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { altitudeFor, heroState } from "./heroStore";
 
@@ -26,11 +26,21 @@ export function Hero() {
   const altRef = useRef<HTMLSpanElement>(null);
   const meterRef = useRef<HTMLSpanElement>(null);
 
+  const bgWrapRef = useRef<HTMLDivElement>(null);
+  const topScrimRef = useRef<HTMLDivElement>(null);
+  const bottomScrimRef = useRef<HTMLDivElement>(null);
+  const heroTextRef = useRef<HTMLDivElement>(null);
+  const brandRef = useRef<HTMLDivElement>(null);
+  const telemetryRef = useRef<HTMLDivElement>(null);
+
   const [inView, setInView] = useState(true);
   const [scene, setScene] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const [videoAllowed, setVideoAllowed] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
+
+  const handleSceneReady = useCallback(() => setSceneReady(true), []);
 
   useEffect(() => {
     heroState.reducedMotion = window.matchMedia(
@@ -42,7 +52,8 @@ export function Hero() {
         "(prefers-reduced-motion: reduce)"
       ).matches;
       const isDesktop = window.innerWidth >= 1024;
-      const webglAvailable = isDesktop && !reduced && hasWebGL();
+      setIsCompact(window.innerWidth < 768);
+      const webglAvailable = !reduced && hasWebGL();
       setScene(webglAvailable);
       // Avoid running a 13.7 MB HD video underneath the active 3D WebGL scene; fall back to video only if WebGL is unavailable
       setVideoAllowed(isDesktop && !reduced && !webglAvailable);
@@ -55,11 +66,35 @@ export function Hero() {
 
     let raf = 0;
     let running = false;
-    let isDesktop = window.innerWidth >= 1024;
     let lastWidth = window.innerWidth;
     let cachedTotal = 0;
     const sm = { x: 0, y: 0, p: 0 };
     let lastDrawnP = -1;
+
+    const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+
+    const applyVisuals = (mx: number, my: number, p: number) => {
+      if (bgWrapRef.current) {
+        bgWrapRef.current.style.transform = `translate3d(${(mx * -14).toFixed(2)}px, ${(my * 10).toFixed(2)}px, 0) scale(${(1.06 + p * 0.35).toFixed(4)})`;
+      }
+      if (topScrimRef.current) {
+        topScrimRef.current.style.opacity = clamp01(0.85 + p * 0.15).toFixed(4);
+      }
+      if (bottomScrimRef.current) {
+        bottomScrimRef.current.style.opacity = clamp01(1 - p * 1.45).toFixed(4);
+      }
+      if (heroTextRef.current) {
+        heroTextRef.current.style.transform = `translate3d(${(mx * 5).toFixed(2)}px, ${(p * -20).toFixed(3)}vh, 0)`;
+        heroTextRef.current.style.opacity = clamp01(1 - p * 3).toFixed(4);
+      }
+      if (brandRef.current) {
+        brandRef.current.style.opacity = clamp01((p - 0.22) * 3.5).toFixed(4);
+        brandRef.current.style.transform = `scale(${(0.92 + p * 0.16).toFixed(4)})`;
+      }
+      if (telemetryRef.current) {
+        telemetryRef.current.style.opacity = clamp01(1 - p * 1.45).toFixed(4);
+      }
+    };
 
     const tick = () => {
       if (!heroState.inView) {
@@ -76,9 +111,7 @@ export function Hero() {
       sm.y += dmy * 0.08;
       sm.p += dp * 0.16;
 
-      el.style.setProperty("--p", sm.p.toFixed(4));
-      el.style.setProperty("--mx", sm.x.toFixed(4));
-      el.style.setProperty("--my", sm.y.toFixed(4));
+      applyVisuals(sm.x, sm.y, sm.p);
 
       if (Math.abs(sm.p - lastDrawnP) > 0.0005) {
         lastDrawnP = sm.p;
@@ -112,36 +145,17 @@ export function Hero() {
     };
 
     const syncMetrics = () => {
-      isDesktop = window.innerWidth >= 1024;
-      if (isDesktop) {
-        cachedTotal = Math.max(0, el.offsetHeight - window.innerHeight);
-        const top = -el.getBoundingClientRect().top;
-        heroState.progress = Math.min(
-          1,
-          Math.max(0, cachedTotal > 0 ? top / cachedTotal : 0)
-        );
-        wake();
-      } else {
-        if (raf) {
-          cancelAnimationFrame(raf);
-          raf = 0;
-        }
-        running = false;
-        sm.x = 0;
-        sm.y = 0;
-        sm.p = 0;
-        lastDrawnP = -1;
-        heroState.mouseX = 0;
-        heroState.mouseY = 0;
-        heroState.progress = 0;
-        el.style.setProperty("--p", "0");
-        el.style.setProperty("--mx", "0");
-        el.style.setProperty("--my", "0");
-      }
+      cachedTotal = Math.max(0, el.offsetHeight - window.innerHeight);
+      const top = -el.getBoundingClientRect().top;
+      heroState.progress = Math.min(
+        1,
+        Math.max(0, cachedTotal > 0 ? top / cachedTotal : 0)
+      );
+      applyVisuals(sm.x, sm.y, sm.p);
+      wake();
     };
 
     const onScroll = () => {
-      if (!isDesktop) return;
       const top = -el.getBoundingClientRect().top;
       heroState.progress = Math.min(
         1,
@@ -151,7 +165,7 @@ export function Hero() {
     };
 
     const onMove = (e: PointerEvent) => {
-      if (!isDesktop || e.pointerType === "touch") return;
+      if (e.pointerType === "touch") return;
       heroState.mouseX = (e.clientX / window.innerWidth) * 2 - 1;
       heroState.mouseY = -((e.clientY / window.innerHeight) * 2 - 1);
       wake();
@@ -161,7 +175,7 @@ export function Hero() {
       const widthChanged = window.innerWidth !== lastWidth;
       lastWidth = window.innerWidth;
       // Ignore mobile browser URL-bar show/hide height-only resizes mid-scroll
-      if (!widthChanged && !isDesktop) return;
+      if (!widthChanged && window.innerWidth < 1024) return;
       syncMetrics();
       if (widthChanged) {
         checkViewport();
@@ -173,7 +187,7 @@ export function Hero() {
         const visible = entry.isIntersecting;
         heroState.inView = visible;
         setInView(visible);
-        if (visible && isDesktop) wake();
+        if (visible) wake();
       },
       { rootMargin: "0px" }
     );
@@ -207,23 +221,18 @@ export function Hero() {
     <section
       id="hero"
       ref={sectionRef}
-      className="relative h-svh lg:h-[135vh] bg-[#081318] text-white"
-      style={{
-        "--p": 0,
-        "--mx": 0,
-        "--my": 0,
-      } as CSSProperties}
+      className="relative h-[135svh] lg:h-[135vh] bg-[#081318] text-white"
     >
       <div
         id="top"
-        className="relative lg:sticky lg:top-0 h-svh w-full overflow-hidden"
+        className="sticky top-0 h-svh w-full overflow-hidden"
       >
         {/* 1 — Crisp High-Priority Himalayan Mountains Behind Transparent 3D Scene */}
         <div
-          className="absolute inset-0 lg:will-change-transform"
+          ref={bgWrapRef}
+          className="absolute inset-0 will-change-transform"
           style={{
-            transform:
-              "translate3d(calc(var(--mx) * -14px), calc(var(--my) * 10px), 0) scale(calc(1.06 + var(--p) * 0.35))",
+            transform: "translate3d(0px, 0px, 0) scale(1.06)",
           }}
         >
           <Image
@@ -254,8 +263,9 @@ export function Hero() {
 
         {/* Clean gradient darkening + subtle bottom-left scrim so headline stays razor-crisp over bright valley mist */}
         <div
+          ref={topScrimRef}
           className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#081318]/70 via-[#081318]/15 to-[#081318]/85"
-          style={{ opacity: "calc(0.85 + var(--p) * 0.15)" }}
+          style={{ opacity: 0.85 }}
         />
         <div
           className="pointer-events-none absolute inset-0"
@@ -274,7 +284,11 @@ export function Hero() {
               sceneReady ? "opacity-100" : "opacity-0"
             }`}
           >
-            <HeroScene active={inView} onReady={() => setSceneReady(true)} />
+            <HeroScene
+              active={inView}
+              compact={isCompact}
+              onReady={handleSceneReady}
+            />
           </div>
         )}
 
@@ -297,19 +311,20 @@ export function Hero() {
           }}
         />
         <div
+          ref={bottomScrimRef}
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 h-24 z-[5] bg-gradient-to-t from-[#081318]/65 via-[#081318]/25 to-transparent"
-          style={{ opacity: "calc(1 - var(--p) * 1.45)" }}
+          style={{ opacity: 1 }}
         />
 
         {/* 4 — Foreground Editorial Interface */}
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-end px-6 sm:px-8 md:px-12 pb-[108px] sm:pb-28 lg:pb-[14vh]">
           <div
-            className="pointer-events-auto mx-auto w-full max-w-[1440px]"
+            ref={heroTextRef}
+            className="pointer-events-auto mx-auto w-full max-w-[1440px] will-change-transform"
             style={{
-              transform:
-                "translate3d(calc(var(--mx) * 5px), calc(var(--p) * -20vh), 0)",
-              opacity: "calc(1 - var(--p) * 3)",
+              transform: "translate3d(0px, 0vh, 0)",
+              opacity: 1,
             }}
           >
             <div className="max-w-3xl">
@@ -356,10 +371,11 @@ export function Hero() {
 
         {/* Mid-flight scroll brand showcase (replaces "Above the treeline...") */}
         <div
-          className="pointer-events-none absolute inset-0 z-10 hidden lg:flex flex-col items-center justify-center px-6 text-center select-none"
+          ref={brandRef}
+          className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center select-none will-change-transform"
           style={{
-            opacity: "min(1, max(0, calc((var(--p) - 0.22) * 3.5)))",
-            transform: "scale(calc(0.92 + var(--p) * 0.16))",
+            opacity: 0,
+            transform: "scale(0.92)",
           }}
         >
           <div className="relative mb-3 h-20 w-20 sm:h-28 sm:w-28 md:h-32 md:w-32 drop-shadow-[0_12px_40px_rgba(0,0,0,0.85)]">
@@ -390,8 +406,9 @@ export function Hero() {
 
         {/* Bottom altitude & coordinates telemetry bar */}
         <div
+          ref={telemetryRef}
           className="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-6 pb-7 sm:pb-6 md:px-12"
-          style={{ opacity: "calc(1 - var(--p) * 1.45)" }}
+          style={{ opacity: 1 }}
         >
           <div className="mx-auto grid max-w-[1440px] grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 border-t border-white/15 pt-3.5 text-[10px] uppercase tracking-[0.2em] text-white/70">
             <div className="hidden md:block" aria-hidden="true" />

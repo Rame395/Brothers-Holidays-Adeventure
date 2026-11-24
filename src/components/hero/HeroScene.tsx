@@ -83,78 +83,92 @@ function sampleRidgeHeight(x: number, lz: number, spec: RidgeSpec) {
 }
 
 /* ---------- procedural micro-detail terrain & wire-mesh textures ---------- */
-function makeTerrainDetailTextures() {
-  const size = 256;
+function makeTerrainDetailTextures(withBump: boolean) {
+  const size = 128;
   const colorCanvas = document.createElement("canvas");
   colorCanvas.width = size;
   colorCanvas.height = size;
   const cCtx = colorCanvas.getContext("2d")!;
 
-  const bumpCanvas = document.createElement("canvas");
-  bumpCanvas.width = size;
-  bumpCanvas.height = size;
-  const bCtx = bumpCanvas.getContext("2d")!;
-
   cCtx.fillStyle = "#e8e8e8";
   cCtx.fillRect(0, 0, size, size);
-  bCtx.fillStyle = "#808080";
-  bCtx.fillRect(0, 0, size, size);
+
+  let bCtx: CanvasRenderingContext2D | null = null;
+  let bumpCanvas: HTMLCanvasElement | null = null;
+  if (withBump) {
+    bumpCanvas = document.createElement("canvas");
+    bumpCanvas.width = size;
+    bumpCanvas.height = size;
+    bCtx = bumpCanvas.getContext("2d");
+    if (bCtx) {
+      bCtx.fillStyle = "#808080";
+      bCtx.fillRect(0, 0, size, size);
+    }
+  }
 
   const rand = mulberry32(417);
 
   // Broad rock/moss mottling
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 80; i++) {
     const x = rand() * size;
     const y = rand() * size;
-    const r = 3 + rand() * 11;
-    const shade = Math.round(205 + rand() * 48); // light neutral multiplier (preserves vertex hues)
+    const r = 2 + rand() * 7;
+    const shade = Math.round(205 + rand() * 48);
     cCtx.fillStyle = `rgba(${shade}, ${shade}, ${Math.max(198, shade - 2)}, 0.24)`;
     cCtx.beginPath();
     cCtx.arc(x, y, r, 0, Math.PI * 2);
     cCtx.fill();
 
-    const bVal = Math.round(90 + rand() * 90);
-    bCtx.fillStyle = `rgba(${bVal}, ${bVal}, ${bVal}, 0.22)`;
-    bCtx.beginPath();
-    bCtx.arc(x, y, r, 0, Math.PI * 2);
-    bCtx.fill();
+    if (bCtx) {
+      const bVal = Math.round(90 + rand() * 90);
+      bCtx.fillStyle = `rgba(${bVal}, ${bVal}, ${bVal}, 0.22)`;
+      bCtx.beginPath();
+      bCtx.arc(x, y, r, 0, Math.PI * 2);
+      bCtx.fill();
+    }
   }
 
   // Sharp rocky scree flecks, granite crevices & coarse alpine gravel specks
-  bCtx.strokeStyle = "rgba(18, 20, 24, 0.72)";
   cCtx.strokeStyle = "rgba(38, 40, 46, 0.45)";
-  for (let i = 0; i < 120; i++) {
+  if (bCtx) {
+    bCtx.strokeStyle = "rgba(18, 20, 24, 0.72)";
+  }
+  for (let i = 0; i < 50; i++) {
     let cx = rand() * size;
     let cy = rand() * size;
-    bCtx.lineWidth = 1.0 + rand() * 1.4;
-    cCtx.lineWidth = 0.8 + rand() * 1.1;
-    bCtx.beginPath();
+    cCtx.lineWidth = 0.7 + rand() * 0.9;
     cCtx.beginPath();
-    bCtx.moveTo(cx, cy);
     cCtx.moveTo(cx, cy);
+    if (bCtx) {
+      bCtx.lineWidth = 0.9 + rand() * 1.1;
+      bCtx.beginPath();
+      bCtx.moveTo(cx, cy);
+    }
     const steps = 2 + Math.floor(rand() * 3);
     for (let s = 0; s < steps; s++) {
-      cx += (rand() - 0.5) * 14;
-      cy += (rand() - 0.5) * 10;
-      bCtx.lineTo(cx, cy);
+      cx += (rand() - 0.5) * 9;
+      cy += (rand() - 0.5) * 7;
       cCtx.lineTo(cx, cy);
+      if (bCtx) bCtx.lineTo(cx, cy);
     }
-    bCtx.stroke();
     cCtx.stroke();
+    if (bCtx) bCtx.stroke();
   }
 
-  for (let i = 0; i < 1200; i++) {
+  for (let i = 0; i < 420; i++) {
     const x = rand() * size;
     const y = rand() * size;
-    const w = 1.0 + rand() * 2.5;
-    const h = 1.0 + rand() * 2.2;
+    const w = 1.0 + rand() * 1.8;
+    const h = 1.0 + rand() * 1.6;
     const tone = rand() > 0.35 ? Math.round(218 + rand() * 37) : Math.round(145 + rand() * 40);
     cCtx.fillStyle = `rgba(${tone}, ${tone}, ${tone}, 0.48)`;
     cCtx.fillRect(x, y, w, h);
 
-    const bump = rand() > 0.42 ? Math.round(205 + rand() * 50) : Math.round(18 + rand() * 52);
-    bCtx.fillStyle = `rgba(${bump}, ${bump}, ${bump}, 0.68)`;
-    bCtx.fillRect(x, y, w, h);
+    if (bCtx) {
+      const bump = rand() > 0.42 ? Math.round(205 + rand() * 50) : Math.round(18 + rand() * 52);
+      bCtx.fillStyle = `rgba(${bump}, ${bump}, ${bump}, 0.68)`;
+      bCtx.fillRect(x, y, w, h);
+    }
   }
 
   const map = new THREE.CanvasTexture(colorCanvas);
@@ -163,10 +177,13 @@ function makeTerrainDetailTextures() {
   map.wrapT = THREE.RepeatWrapping;
   map.repeat.set(24, 18);
 
-  const bumpMap = new THREE.CanvasTexture(bumpCanvas);
-  bumpMap.wrapS = THREE.RepeatWrapping;
-  bumpMap.wrapT = THREE.RepeatWrapping;
-  bumpMap.repeat.set(24, 18);
+  let bumpMap: THREE.CanvasTexture | null = null;
+  if (bumpCanvas) {
+    bumpMap = new THREE.CanvasTexture(bumpCanvas);
+    bumpMap.wrapS = THREE.RepeatWrapping;
+    bumpMap.wrapT = THREE.RepeatWrapping;
+    bumpMap.repeat.set(24, 18);
+  }
 
   return { map, bumpMap };
 }
@@ -220,7 +237,7 @@ type RidgeProps = RidgeSpec & {
   segZ?: number;
   terrainStyle: "foothill" | "alpine";
   detailMap: THREE.CanvasTexture;
-  bumpMap: THREE.CanvasTexture;
+  bumpMap?: THREE.CanvasTexture | null;
 };
 
 function Ridge({
@@ -232,11 +249,11 @@ function Ridge({
   baseY,
   seed,
   snowLine,
-  segX = 120,
-  segZ = 48,
+  segX = 76,
+  segZ = 40,
   terrainStyle,
   detailMap,
-  bumpMap,
+  bumpMap = null,
 }: RidgeProps) {
   const geometry = useMemo(() => {
     const geo = new THREE.PlaneGeometry(width, depth, segX, segZ);
@@ -339,14 +356,16 @@ function Ridge({
 
   return (
     <mesh geometry={geometry} position={[0, 0, z]}>
-      <meshStandardMaterial
-        vertexColors
-        map={detailMap}
-        bumpMap={bumpMap}
-        bumpScale={terrainStyle === "foothill" ? 0.65 : 0.42}
-        roughness={terrainStyle === "foothill" ? 0.86 : 0.9}
-        metalness={0.02}
-      />
+      {bumpMap ? (
+        <meshLambertMaterial
+          vertexColors
+          map={detailMap}
+          bumpMap={bumpMap}
+          bumpScale={terrainStyle === "foothill" ? 0.65 : 0.42}
+        />
+      ) : (
+        <meshLambertMaterial vertexColors map={detailMap} />
+      )}
     </mesh>
   );
 }
@@ -391,8 +410,8 @@ function buildPineFoliageGeometry(): THREE.BufferGeometry {
   return merged;
 }
 
-/* ---------- Authentic Khumbu Hillside Details: Granite Boulders, Autumn Scrub & Sparse Pines ---------- */
-function HillsideDetails() {
+/* ---------- Authentic Khumbu Hillside Details: Granite Boulders, Snow Mounds & Frosted Pines ---------- */
+function HillsideDetails({ compact }: { compact: boolean }) {
   const boulderRef = useRef<THREE.InstancedMesh>(null);
   const scrubRef = useRef<THREE.InstancedMesh>(null);
   const trunkRef = useRef<THREE.InstancedMesh>(null);
@@ -406,6 +425,13 @@ function HillsideDetails() {
     return g;
   }, []);
   const foliageGeo = useMemo(() => buildPineFoliageGeometry(), []);
+
+  const maxBoulders = compact ? 50 : 85;
+  const maxScrubs = compact ? 60 : 100;
+  const maxPines = compact ? 36 : 55;
+  const maxBoulderAttempts = compact ? 450 : 700;
+  const maxScrubAttempts = compact ? 500 : 800;
+  const maxPineAttempts = compact ? 450 : 700;
 
   const { boulders, scrubs, pines } = useMemo(() => {
     const rand = mulberry32(2028);
@@ -458,9 +484,9 @@ function HillsideDetails() {
       return false;
     };
 
-    // 1. ~110 Himalayan Granite Boulders along gorge walls, trailside & hills
+    // 1. Himalayan Granite Boulders along gorge walls, trailside & hills
     let attempts = 0;
-    while (boulderList.length < 110 && attempts < 1400) {
+    while (boulderList.length < maxBoulders && attempts < maxBoulderAttempts) {
       attempts += 1;
       const side = rand() > 0.5 ? 1 : -1;
       const x = side * (3.5 + rand() * 28);
@@ -481,9 +507,9 @@ function HillsideDetails() {
       });
     }
 
-    // 2. ~140 Low Alpine Juniper & Autumn Rust Bushes
+    // 2. Frosted snow mounds & juniper drifts
     attempts = 0;
-    while (scrubList.length < 140 && attempts < 1600) {
+    while (scrubList.length < maxScrubs && attempts < maxScrubAttempts) {
       attempts += 1;
       const side = rand() > 0.5 ? 1 : -1;
       const x = side * (5.2 + rand() * 30);
@@ -508,9 +534,9 @@ function HillsideDetails() {
       });
     }
 
-    // 3. ~75 Sparse Hillside Pines in loose lower-slope pockets
+    // 3. Sparse Hillside Pines in loose lower-slope pockets
     attempts = 0;
-    while (pineList.length < 75 && attempts < 1400) {
+    while (pineList.length < maxPines && attempts < maxPineAttempts) {
       attempts += 1;
       const side = rand() > 0.5 ? 1 : -1;
       const x = side * (7.2 + rand() * 32);
@@ -540,7 +566,7 @@ function HillsideDetails() {
     }
 
     return { boulders: boulderList, scrubs: scrubList, pines: pineList };
-  }, []);
+  }, [maxBoulders, maxScrubs, maxPines, maxBoulderAttempts, maxScrubAttempts, maxPineAttempts]);
 
   useEffect(() => {
     const dummy = new THREE.Object3D();
@@ -600,21 +626,21 @@ function HillsideDetails() {
     <group>
       {boulders.length > 0 && (
         <instancedMesh ref={boulderRef} args={[boulderGeo, undefined, boulders.length]}>
-          <meshStandardMaterial roughness={0.94} metalness={0.04} />
+          <meshLambertMaterial />
         </instancedMesh>
       )}
       {scrubs.length > 0 && (
         <instancedMesh ref={scrubRef} args={[scrubGeo, undefined, scrubs.length]}>
-          <meshStandardMaterial roughness={0.92} />
+          <meshLambertMaterial />
         </instancedMesh>
       )}
       {pines.length > 0 && (
         <>
           <instancedMesh ref={trunkRef} args={[trunkGeo, undefined, pines.length]}>
-            <meshStandardMaterial color="#4a433d" roughness={0.95} />
+            <meshLambertMaterial color="#4a433d" />
           </instancedMesh>
           <instancedMesh ref={foliageRef} args={[foliageGeo, undefined, pines.length]}>
-            <meshStandardMaterial roughness={0.88} metalness={0.02} />
+            <meshLambertMaterial />
           </instancedMesh>
         </>
       )}
@@ -642,21 +668,21 @@ function KhumbuChorten() {
       {/* Dry-stone masonry retaining terrace embedded deeply into the hillside */}
       <mesh position={[0, -0.45, 0]}>
         <boxGeometry args={[2.3, 1.35, 2.3]} />
-        <meshStandardMaterial color="#585f66" roughness={0.95} />
+        <meshLambertMaterial color="#585f66" />
       </mesh>
       <mesh position={[0, 0.34, 0]}>
         <boxGeometry args={[1.65, 0.28, 1.65]} />
-        <meshStandardMaterial color="#676e75" roughness={0.93} />
+        <meshLambertMaterial color="#676e75" />
       </mesh>
 
       {/* Whitewashed plinth & rounded stupa dome */}
       <mesh position={[0, 0.66, 0]}>
         <boxGeometry args={[1.05, 0.38, 1.05]} />
-        <meshStandardMaterial color="#ebe6dc" roughness={0.88} />
+        <meshLambertMaterial color="#ebe6dc" />
       </mesh>
       <mesh position={[0, 1.05, 0]}>
-        <cylinderGeometry args={[0.38, 0.46, 0.45, 12]} />
-        <meshStandardMaterial color="#f2ede4" roughness={0.85} />
+        <cylinderGeometry args={[0.38, 0.46, 0.45, 10]} />
+        <meshLambertMaterial color="#f2ede4" />
       </mesh>
 
       {/* Square bronze/gold harmika */}
@@ -667,14 +693,14 @@ function KhumbuChorten() {
 
       {/* Golden conical spire */}
       <mesh position={[0, 1.72, 0]}>
-        <coneGeometry args={[0.2, 0.56, 10]} />
+        <coneGeometry args={[0.2, 0.56, 8]} />
         <meshStandardMaterial color="#d4a644" roughness={0.38} metalness={0.5} />
       </mesh>
 
       {/* Tall wooden prayer-flag pole with vertical Lungta color cloth */}
       <mesh position={[0.92, 1.35, 0.3]}>
         <cylinderGeometry args={[0.018, 0.028, 2.7, 5]} />
-        <meshStandardMaterial color="#4e3d2e" roughness={0.92} />
+        <meshLambertMaterial color="#4e3d2e" />
       </mesh>
       {[
         { dy: 2.35, c: "#34679a" },
@@ -685,7 +711,7 @@ function KhumbuChorten() {
       ].map((flag, i) => (
         <mesh key={i} position={[1.02, flag.dy, 0.3]} rotation={[0, 0.2, -0.06]}>
           <planeGeometry args={[0.18, 0.24]} />
-          <meshStandardMaterial color={flag.c} side={THREE.DoubleSide} roughness={0.88} />
+          <meshLambertMaterial color={flag.c} side={THREE.DoubleSide} />
         </mesh>
       ))}
     </group>
@@ -807,15 +833,15 @@ function SuspensionBridge() {
       }
 
       mainCables.push(
-        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(mainPts), 34, 0.038, 6, false)
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(mainPts), 24, 0.038, 5, false)
       );
       handrails.push(
-        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(railPts), 28, 0.02, 5, false),
-        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(lowerCurbPts), 28, 0.022, 5, false)
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(railPts), 20, 0.02, 4, false),
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(lowerCurbPts), 20, 0.022, 4, false)
       );
 
       meshSides.push(
-        buildMeshSideGeometry(bridgeZ, zOff, halfSpan, baseDeckY, deckSag, 0.84, 28)
+        buildMeshSideGeometry(bridgeZ, zOff, halfSpan, baseDeckY, deckSag, 0.84, 20)
       );
 
       // Anchor back-stays embedded into stone hill shoulders
@@ -1042,20 +1068,77 @@ function SuspensionBridge() {
     const dt = Math.min(rawDelta, 0.05);
     flagElapsedRef.current += dt;
     flagThrottleRef.current += dt;
-    if (flagThrottleRef.current < 0.05) return;
+    if (flagThrottleRef.current < 0.06) return;
     flagThrottleRef.current = 0;
 
     const t = flagElapsedRef.current;
-    flagSpecs.forEach((f, i) => {
+    for (let i = 0; i < flagSpecs.length; i++) {
+      const f = flagSpecs[i]!;
       const flutter = Math.sin(t * 2.8 + f.phase) * 0.26;
       frameDummy.position.set(f.x, f.y, f.z);
       frameDummy.rotation.set(0.18 + flutter, flutter * 0.25, 0);
       frameDummy.scale.set(1, 1, 1);
       frameDummy.updateMatrix();
       fMesh.setMatrixAt(i, frameDummy.matrix);
-    });
+    }
     fMesh.instanceMatrix.needsUpdate = true;
   });
+
+  const bridgeMats = useMemo(
+    () => ({
+      steelMat: new THREE.MeshStandardMaterial({
+        color: "#8f9ca6",
+        roughness: 0.35,
+        metalness: 0.68,
+      }),
+      steelDarkMat: new THREE.MeshStandardMaterial({
+        color: "#828f99",
+        roughness: 0.38,
+        metalness: 0.65,
+      }),
+      stoneMat: new THREE.MeshLambertMaterial({ color: "#5c6268" }),
+      cableMat: new THREE.MeshStandardMaterial({
+        color: "#6e7c86",
+        roughness: 0.4,
+        metalness: 0.72,
+      }),
+      handrailMat: new THREE.MeshStandardMaterial({
+        color: "#7d8b95",
+        roughness: 0.42,
+        metalness: 0.65,
+      }),
+      backStayMat: new THREE.MeshStandardMaterial({
+        color: "#6a7882",
+        roughness: 0.4,
+        metalness: 0.7,
+      }),
+      windGuyMat: new THREE.MeshStandardMaterial({
+        color: "#5d6a74",
+        roughness: 0.45,
+        metalness: 0.6,
+      }),
+      meshSideMat: new THREE.MeshStandardMaterial({
+        map: wireMeshTex,
+        transparent: true,
+        alphaTest: 0.12,
+        side: THREE.DoubleSide,
+        roughness: 0.45,
+        metalness: 0.55,
+      }),
+      deckMat: new THREE.MeshStandardMaterial({
+        color: "#7b8690",
+        roughness: 0.45,
+        metalness: 0.58,
+      }),
+      hangerMat: new THREE.MeshStandardMaterial({
+        color: "#7d8a94",
+        roughness: 0.4,
+        metalness: 0.65,
+      }),
+      flagMat: new THREE.MeshLambertMaterial({ side: THREE.DoubleSide }),
+    }),
+    [wireMeshTex]
+  );
 
   useEffect(() => {
     return () => {
@@ -1069,6 +1152,7 @@ function SuspensionBridge() {
       deckPanelGeo.dispose();
       hangerGeo.dispose();
       flagGeo.dispose();
+      Object.values(bridgeMats).forEach((m) => m.dispose());
     };
   }, [
     wireMeshTex,
@@ -1081,6 +1165,7 @@ function SuspensionBridge() {
     deckPanelGeo,
     hangerGeo,
     flagGeo,
+    bridgeMats,
   ]);
 
   const leftTowerPierH = deckY + towerHeight - leftFootY;
@@ -1093,111 +1178,93 @@ function SuspensionBridge() {
       {/* Galvanized Steel Portal Tower Columns */}
       {[-deckHalfW, deckHalfW].map((zOff) => (
         <group key={`col-${zOff}`}>
-          <mesh position={[-halfSpan, leftTowerCenterY, bridgeZ + zOff]}>
+          <mesh
+            position={[-halfSpan, leftTowerCenterY, bridgeZ + zOff]}
+            material={bridgeMats.steelMat}
+          >
             <boxGeometry args={[0.16, leftTowerPierH, 0.16]} />
-            <meshStandardMaterial color="#8f9ca6" roughness={0.35} metalness={0.68} />
           </mesh>
-          <mesh position={[halfSpan, rightTowerCenterY, bridgeZ + zOff]}>
+          <mesh
+            position={[halfSpan, rightTowerCenterY, bridgeZ + zOff]}
+            material={bridgeMats.steelMat}
+          >
             <boxGeometry args={[0.16, rightTowerPierH, 0.16]} />
-            <meshStandardMaterial color="#8f9ca6" roughness={0.35} metalness={0.68} />
           </mesh>
         </group>
       ))}
 
       {/* Portal Header Beams + Mid Crossbar + X-Bracing */}
-      <mesh position={[-halfSpan, deckY + towerHeight - 0.1, bridgeZ]}>
+      <mesh position={[-halfSpan, deckY + towerHeight - 0.1, bridgeZ]} material={bridgeMats.steelMat}>
         <boxGeometry args={[0.18, 0.14, deckHalfW * 2 + 0.24]} />
-        <meshStandardMaterial color="#8f9ca6" roughness={0.35} metalness={0.68} />
       </mesh>
-      <mesh position={[halfSpan, deckY + towerHeight - 0.1, bridgeZ]}>
+      <mesh position={[halfSpan, deckY + towerHeight - 0.1, bridgeZ]} material={bridgeMats.steelMat}>
         <boxGeometry args={[0.18, 0.14, deckHalfW * 2 + 0.24]} />
-        <meshStandardMaterial color="#8f9ca6" roughness={0.35} metalness={0.68} />
       </mesh>
-      <mesh position={[-halfSpan, deckY + 1.05, bridgeZ]}>
+      <mesh position={[-halfSpan, deckY + 1.05, bridgeZ]} material={bridgeMats.steelDarkMat}>
         <boxGeometry args={[0.12, 0.1, deckHalfW * 2 + 0.14]} />
-        <meshStandardMaterial color="#828f99" roughness={0.38} metalness={0.65} />
       </mesh>
-      <mesh position={[halfSpan, deckY + 1.05, bridgeZ]}>
+      <mesh position={[halfSpan, deckY + 1.05, bridgeZ]} material={bridgeMats.steelDarkMat}>
         <boxGeometry args={[0.12, 0.1, deckHalfW * 2 + 0.14]} />
-        <meshStandardMaterial color="#828f99" roughness={0.38} metalness={0.65} />
       </mesh>
       {crossBraceGeos.map((geo, idx) => (
-        <mesh key={`xb-${idx}`} geometry={geo}>
-          <meshStandardMaterial color="#828f99" roughness={0.38} metalness={0.65} />
-        </mesh>
+        <mesh key={`xb-${idx}`} geometry={geo} material={bridgeMats.steelDarkMat} />
       ))}
 
       {/* Stone-Masonry Pier Abutments */}
-      <mesh position={[-halfSpan - 0.4, deckY - 0.6, bridgeZ]}>
+      <mesh position={[-halfSpan - 0.4, deckY - 0.6, bridgeZ]} material={bridgeMats.stoneMat}>
         <boxGeometry args={[1.45, 1.5, 1.55]} />
-        <meshStandardMaterial color="#5c6268" roughness={0.93} />
       </mesh>
-      <mesh position={[halfSpan + 0.4, deckY - 0.6, bridgeZ]}>
+      <mesh position={[halfSpan + 0.4, deckY - 0.6, bridgeZ]} material={bridgeMats.stoneMat}>
         <boxGeometry args={[1.45, 1.5, 1.55]} />
-        <meshStandardMaterial color="#5c6268" roughness={0.93} />
       </mesh>
 
       {/* Main Steel Cables, Handrails, Back-stays & Wind Guys */}
       {mainCableGeos.map((geo, idx) => (
-        <mesh key={`mc-${idx}`} geometry={geo}>
-          <meshStandardMaterial color="#6e7c86" roughness={0.4} metalness={0.72} />
-        </mesh>
+        <mesh key={`mc-${idx}`} geometry={geo} material={bridgeMats.cableMat} />
       ))}
       {handrailGeos.map((geo, idx) => (
-        <mesh key={`hr-${idx}`} geometry={geo}>
-          <meshStandardMaterial color="#7d8b95" roughness={0.42} metalness={0.65} />
-        </mesh>
+        <mesh key={`hr-${idx}`} geometry={geo} material={bridgeMats.handrailMat} />
       ))}
       {backStayGeos.map((geo, idx) => (
-        <mesh key={`bs-${idx}`} geometry={geo}>
-          <meshStandardMaterial color="#6a7882" roughness={0.4} metalness={0.7} />
-        </mesh>
+        <mesh key={`bs-${idx}`} geometry={geo} material={bridgeMats.backStayMat} />
       ))}
       {windGuyGeos.map((geo, idx) => (
-        <mesh key={`wg-${idx}`} geometry={geo}>
-          <meshStandardMaterial color="#5d6a74" roughness={0.45} metalness={0.6} />
-        </mesh>
+        <mesh key={`wg-${idx}`} geometry={geo} material={bridgeMats.windGuyMat} />
       ))}
 
       {/* Galvanized Wire-Mesh Safety Sides */}
       {meshSideGeos.map((geo, idx) => (
-        <mesh key={`ms-${idx}`} geometry={geo}>
-          <meshStandardMaterial
-            map={wireMeshTex}
-            transparent
-            alphaTest={0.12}
-            side={THREE.DoubleSide}
-            roughness={0.45}
-            metalness={0.55}
-          />
-        </mesh>
+        <mesh key={`ms-${idx}`} geometry={geo} material={bridgeMats.meshSideMat} />
       ))}
 
       {/* Corrugated Galvanized Steel Walkway Deck & Vertical Suspender Rods */}
-      <instancedMesh ref={deckRef} args={[deckPanelGeo, undefined, deckData.length]}>
-        <meshStandardMaterial color="#7b8690" roughness={0.45} metalness={0.58} />
-      </instancedMesh>
-      <instancedMesh ref={hangerRef} args={[hangerGeo, undefined, hangerData.length]}>
-        <meshStandardMaterial color="#7d8a94" roughness={0.4} metalness={0.65} />
-      </instancedMesh>
+      <instancedMesh
+        ref={deckRef}
+        args={[deckPanelGeo, bridgeMats.deckMat, deckData.length]}
+      />
+      <instancedMesh
+        ref={hangerRef}
+        args={[hangerGeo, bridgeMats.hangerMat, hangerData.length]}
+      />
 
       {/* Prayer Flags (Lungta) */}
-      <instancedMesh ref={flagRef} args={[flagGeo, undefined, flagSpecs.length]}>
-        <meshStandardMaterial side={THREE.DoubleSide} roughness={0.86} />
-      </instancedMesh>
+      <instancedMesh
+        ref={flagRef}
+        args={[flagGeo, bridgeMats.flagMat, flagSpecs.length]}
+      />
     </group>
   );
 }
 
 /* ---------- procedural cloud & crystal textures ---------- */
 function makeCloudTexture(seed: number) {
-  const size = 256;
+  const size = 128;
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext("2d")!;
   const rand = mulberry32(seed);
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 12; i++) {
     const x = size * (0.2 + rand() * 0.6);
     const y = size * (0.38 + rand() * 0.28);
     const r = size * (0.1 + rand() * 0.2);
@@ -1249,10 +1316,13 @@ type CloudSpec = {
   tex: number;
 };
 
-function buildClouds(): CloudSpec[] {
+function buildClouds(count: number): CloudSpec[] {
   const rand = mulberry32(42);
   const list: CloudSpec[] = [];
-  for (let i = 0; i < 10; i++) {
+  const farCount = Math.max(2, Math.round(count * 0.7));
+  const nearCount = Math.max(1, count - farCount);
+
+  for (let i = 0; i < farCount; i++) {
     list.push({
       x: (rand() - 0.5) * 96,
       y: -2.2 + rand() * 3.8,
@@ -1261,10 +1331,10 @@ function buildClouds(): CloudSpec[] {
       o: 0.34 + rand() * 0.36,
       speed: 0.14 + rand() * 0.28,
       rot: (rand() - 0.5) * 0.3,
-      tex: Math.floor(rand() * 3),
+      tex: i % 2,
     });
   }
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < nearCount; i++) {
     list.push({
       x: (rand() - 0.5) * 20,
       y: -0.4 + rand() * 4.0,
@@ -1273,18 +1343,15 @@ function buildClouds(): CloudSpec[] {
       o: 0.48 + rand() * 0.3,
       speed: 0.1 + rand() * 0.18,
       rot: rand() * Math.PI * 2,
-      tex: Math.floor(rand() * 3),
+      tex: i % 2,
     });
   }
   return list;
 }
 
-function Clouds() {
-  const textures = useMemo(
-    () => [makeCloudTexture(1), makeCloudTexture(7), makeCloudTexture(13)],
-    []
-  );
-  const specs = useMemo(() => buildClouds(), []);
+function Clouds({ compact }: { compact: boolean }) {
+  const textures = useMemo(() => [makeCloudTexture(1), makeCloudTexture(7)], []);
+  const specs = useMemo(() => buildClouds(compact ? 6 : 10), [compact]);
   const refs = useRef<(THREE.Sprite | null)[]>([]);
   const camera = useThree((s) => s.camera);
 
@@ -1293,17 +1360,18 @@ function Clouds() {
   useFrame((_, rawDelta) => {
     if (!heroState.inView) return;
     const dt = Math.min(rawDelta, 0.05);
-    specs.forEach((c, i) => {
+    for (let i = 0; i < specs.length; i++) {
+      const c = specs[i]!;
       const sprite = refs.current[i];
-      if (!sprite) return;
+      if (!sprite) continue;
       if (!heroState.reducedMotion) {
         sprite.position.x += c.speed * dt;
         if (sprite.position.x > 55) sprite.position.x -= 110;
       }
-      const d = sprite.position.distanceTo(camera.position);
+      const dSq = sprite.position.distanceToSquared(camera.position);
       const mat = sprite.material as THREE.SpriteMaterial;
-      mat.opacity = c.o * smoothstep(0.6, 5, d);
-    });
+      mat.opacity = c.o * smoothstep(0.36, 25, dSq);
+    }
   });
 
   return (
@@ -1332,19 +1400,46 @@ function Clouds() {
   );
 }
 
-/* ---------- high-altitude 2-layer 3D falling snowfall ---------- */
-const NEAR_SNOW_COUNT = 650;
-const FAR_SNOW_COUNT = 450;
+/* ---------- high-altitude GPU-driven 2-layer 3D falling snowfall ---------- */
+const SNOW_VERT_SHADER = /* glsl */ `
+  uniform float uTime;
+  uniform float uXSpan;
+  uniform float uYMin;
+  uniform float uYMax;
+  uniform float uBreeze;
+  uniform float uSize;
+  attribute float aSpeed;
+  attribute float aPhase;
+  attribute float aFreq;
+  attribute float aDrift;
 
-interface SnowLayerData {
-  positions: Float32Array;
-  speeds: Float32Array;
-  phases: Float32Array;
-  freqs: Float32Array;
-  drifts: Float32Array;
-}
+  void main() {
+    float yRange = uYMax - uYMin;
+    float yPos = uYMin + mod(position.y - uTime * aSpeed - uYMin, yRange);
+    float xRange = uXSpan * 2.0;
+    float rawX = position.x + uBreeze * uTime + sin(uTime * aFreq + aPhase) * aDrift;
+    float xPos = -uXSpan + mod(rawX + uXSpan, xRange);
 
-function buildSnowLayer(
+    vec4 mvPosition = modelViewMatrix * vec4(xPos, yPos, position.z, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+    gl_PointSize = uSize * (300.0 / max(1.0, -mvPosition.z));
+  }
+`;
+
+const SNOW_FRAG_SHADER = /* glsl */ `
+  uniform sampler2D uMap;
+  uniform vec3 uColor;
+  uniform float uOpacity;
+
+  void main() {
+    vec4 tex = texture2D(uMap, gl_PointCoord);
+    float alpha = tex.a * uOpacity;
+    if (alpha < 0.02) discard;
+    gl_FragColor = vec4(uColor * tex.rgb, alpha);
+  }
+`;
+
+function buildSnowGeometry(
   count: number,
   seed: number,
   xSpan: number,
@@ -1355,7 +1450,7 @@ function buildSnowLayer(
   vyBase: number,
   vySpread: number,
   driftBase: number
-): SnowLayerData {
+): THREE.BufferGeometry {
   const rand = mulberry32(seed);
   const positions = new Float32Array(count * 3);
   const speeds = new Float32Array(count);
@@ -1373,55 +1468,68 @@ function buildSnowLayer(
     drifts[i] = driftBase * (0.6 + rand() * 0.8);
   }
 
-  return { positions, speeds, phases, freqs, drifts };
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute("aSpeed", new THREE.BufferAttribute(speeds, 1));
+  geo.setAttribute("aPhase", new THREE.BufferAttribute(phases, 1));
+  geo.setAttribute("aFreq", new THREE.BufferAttribute(freqs, 1));
+  geo.setAttribute("aDrift", new THREE.BufferAttribute(drifts, 1));
+  return geo;
 }
 
-function advanceSnowLayer(
-  geo: THREE.BufferGeometry | null | undefined,
-  data: SnowLayerData,
-  count: number,
-  dt: number,
-  time: number,
+function makeSnowShaderArgs(
+  dot: THREE.CanvasTexture,
+  colorHex: string,
+  opacity: number,
+  size: number,
   xSpan: number,
   yMin: number,
   yMax: number,
-  breezeX: number
+  breeze: number
 ) {
-  if (!geo) return;
-  const attr = geo.getAttribute("position") as THREE.BufferAttribute | undefined;
-  if (!attr) return;
-  const arr = attr.array as Float32Array;
-
-  for (let i = 0; i < count; i++) {
-    const ix = i * 3;
-    let x = arr[ix]! + (breezeX + Math.sin(time * data.freqs[i]! + data.phases[i]!) * data.drifts[i]!) * dt;
-    let y = arr[ix + 1]! - data.speeds[i]! * dt;
-
-    if (y < yMin) y = yMax - ((yMin - y) % (yMax - yMin));
-    if (x > xSpan) x -= xSpan * 2;
-    else if (x < -xSpan) x += xSpan * 2;
-
-    arr[ix] = x;
-    arr[ix + 1] = y;
-  }
-
-  attr.needsUpdate = true;
+  return {
+    uniforms: {
+      uTime: { value: 0 },
+      uXSpan: { value: xSpan },
+      uYMin: { value: yMin },
+      uYMax: { value: yMax },
+      uBreeze: { value: breeze },
+      uSize: { value: size },
+      uMap: { value: dot },
+      uColor: { value: new THREE.Color(colorHex) },
+      uOpacity: { value: opacity },
+    },
+    vertexShader: SNOW_VERT_SHADER,
+    fragmentShader: SNOW_FRAG_SHADER,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.NormalBlending,
+  };
 }
 
-function Particles() {
-  const nearGeoRef = useRef<THREE.BufferGeometry>(null);
-  const farGeoRef = useRef<THREE.BufferGeometry>(null);
+function Particles({ compact }: { compact: boolean }) {
   const timeRef = useRef(0);
+  const nearMatRef = useRef<THREE.ShaderMaterial>(null);
+  const farMatRef = useRef<THREE.ShaderMaterial>(null);
   const dot = useMemo(() => makeDotTexture(), []);
 
-  const nearSnow = useMemo(
-    () => buildSnowLayer(NEAR_SNOW_COUNT, 99, 26, -3.5, 14.5, -26, 20, 1.35, 1.15, 0.55),
-    []
-  );
-  const farSnow = useMemo(
-    () => buildSnowLayer(FAR_SNOW_COUNT, 313, 36, -2.5, 16.5, -48, -12, 0.85, 0.75, 0.4),
-    []
-  );
+  const nearCount = compact ? 360 : 520;
+  const farCount = compact ? 220 : 340;
+
+  const { nearGeo, farGeo, nearArgs, farArgs } = useMemo(() => {
+    const nGeo = buildSnowGeometry(nearCount, 99, 26, -3.5, 14.5, -26, 20, 1.35, 1.15, 0.55);
+    const fGeo = buildSnowGeometry(farCount, 313, 36, -2.5, 16.5, -48, -12, 0.85, 0.75, 0.4);
+    const nArgs = makeSnowShaderArgs(dot, "#ffffff", 0.88, 0.22, 26, -3.5, 14.5, 0.28);
+    const fArgs = makeSnowShaderArgs(dot, "#edf5ff", 0.62, 0.15, 36, -2.5, 16.5, 0.2);
+    return { nearGeo: nGeo, farGeo: fGeo, nearArgs: nArgs, farArgs: fArgs };
+  }, [dot, nearCount, farCount]);
+
+  useEffect(() => {
+    return () => {
+      nearGeo.dispose();
+      farGeo.dispose();
+    };
+  }, [nearGeo, farGeo]);
 
   useEffect(() => () => dot.dispose(), [dot]);
 
@@ -1430,52 +1538,40 @@ function Particles() {
     const dt = Math.min(rawDelta, 0.05);
     timeRef.current += dt;
     const t = timeRef.current;
-
-    advanceSnowLayer(nearGeoRef.current, nearSnow, NEAR_SNOW_COUNT, dt, t, 26, -3.5, 14.5, 0.28);
-    advanceSnowLayer(farGeoRef.current, farSnow, FAR_SNOW_COUNT, dt, t, 36, -2.5, 16.5, 0.2);
+    if (nearMatRef.current) {
+      nearMatRef.current.uniforms["uTime"]!.value = t;
+    }
+    if (farMatRef.current) {
+      farMatRef.current.uniforms["uTime"]!.value = t;
+    }
   });
 
   return (
     <group>
-      <points>
-        <bufferGeometry ref={nearGeoRef}>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[nearSnow.positions, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          map={dot}
-          size={0.22}
-          sizeAttenuation
-          transparent
-          depthWrite={false}
-          opacity={0.88}
-          color="#ffffff"
-          blending={THREE.NormalBlending}
-        />
+      <points geometry={nearGeo} frustumCulled={false}>
+        <shaderMaterial ref={nearMatRef} args={[nearArgs]} />
       </points>
-
-      <points>
-        <bufferGeometry ref={farGeoRef}>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[farSnow.positions, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          map={dot}
-          size={0.15}
-          sizeAttenuation
-          transparent
-          depthWrite={false}
-          opacity={0.62}
-          color="#edf5ff"
-          blending={THREE.NormalBlending}
-        />
+      <points geometry={farGeo} frustumCulled={false}>
+        <shaderMaterial ref={farMatRef} args={[farArgs]} />
       </points>
     </group>
   );
+}
+
+/* ---------- Responsive FOV so mobile phones frame the bridge & gorge cleanly ---------- */
+function ResponsiveCamera() {
+  useFrame((state) => {
+    const cam = state.camera as THREE.PerspectiveCamera;
+    if (!("fov" in cam)) return;
+    const aspect = state.size.width / Math.max(1, state.size.height);
+    const nextFov = aspect < 0.85 ? 64 : aspect < 1.15 ? 56 : 50;
+    if (cam.fov !== nextFov) {
+      cam.fov = nextFov;
+      cam.updateProjectionMatrix();
+    }
+  });
+
+  return null;
 }
 
 /* ---------- camera flight ---------- */
@@ -1649,11 +1745,11 @@ function makeRiverTextures() {
   return { waterMap, foamMap };
 }
 
-function buildRiverRibbonGeometry() {
+function buildRiverRibbonGeometry(compact: boolean) {
   const zMin = -38;
   const zMax = 18;
-  const segZ = 140;
-  const segX = 6;
+  const segZ = compact ? 56 : 84;
+  const segX = compact ? 3 : 4;
   const cols = segX + 1;
   const rows = segZ + 1;
 
@@ -1707,7 +1803,7 @@ function buildRiverRibbonGeometry() {
 }
 
 function buildAngularBoulderGeometry() {
-  const geo = new THREE.IcosahedronGeometry(0.38, 2);
+  const geo = new THREE.IcosahedronGeometry(0.38, 1);
   const pos = geo.attributes["position"] as THREE.BufferAttribute;
   const rand = mulberry32(707);
   for (let i = 0; i < pos.count; i++) {
@@ -1721,15 +1817,17 @@ function buildAngularBoulderGeometry() {
   return geo;
 }
 
-function GlacialRiver() {
+function GlacialRiver({ compact }: { compact: boolean }) {
   const bankBoulderRef = useRef<THREE.InstancedMesh>(null);
   const rapidBoulderRef = useRef<THREE.InstancedMesh>(null);
   const waterMatRef = useRef<THREE.MeshStandardMaterial>(null);
-  const foamMatRef = useRef<THREE.MeshStandardMaterial>(null);
+  const foamMatRef = useRef<THREE.MeshLambertMaterial>(null);
 
   const { waterMap, foamMap } = useMemo(() => makeRiverTextures(), []);
-  const riverGeo = useMemo(() => buildRiverRibbonGeometry(), []);
+  const riverGeo = useMemo(() => buildRiverRibbonGeometry(compact), [compact]);
   const boulderGeo = useMemo(() => buildAngularBoulderGeometry(), []);
+
+  const maxBankRocks = compact ? 32 : 48;
 
   const { bankRocks, rapidRocks } = useMemo(() => {
     const rand = mulberry32(314);
@@ -1754,7 +1852,7 @@ function GlacialRiver() {
     ];
 
     const bankRocks: RockInstance[] = [];
-    for (let i = 0; i < 110 && bankRocks.length < 55; i++) {
+    for (let i = 0; i < 110 && bankRocks.length < maxBankRocks; i++) {
       const bz = -31 + rand() * 44;
       const side = i % 2 === 0 ? -1 : 1;
       const dist = 1.7 + rand() * 1.7;
@@ -1800,7 +1898,7 @@ function GlacialRiver() {
     }
 
     return { bankRocks, rapidRocks };
-  }, []);
+  }, [maxBankRocks]);
 
   useEffect(() => {
     const dummy = new THREE.Object3D();
@@ -1873,42 +1971,40 @@ function GlacialRiver() {
 
       {/* Faster scrolling whitewater foam & rapids overlay */}
       <mesh geometry={riverGeo} position={[0, 0.04, 0]}>
-        <meshStandardMaterial
+        <meshLambertMaterial
           ref={foamMatRef}
           map={foamMap}
           color="#f4fbff"
           transparent
           opacity={0.82}
           depthWrite={false}
-          roughness={0.62}
-          metalness={0.02}
         />
       </mesh>
 
       {/* Wet dark riverbank boulders */}
       {bankRocks.length > 0 && (
         <instancedMesh ref={bankBoulderRef} args={[boulderGeo, undefined, bankRocks.length]}>
-          <meshStandardMaterial roughness={0.62} metalness={0.08} />
+          <meshLambertMaterial />
         </instancedMesh>
       )}
 
       {/* Mid-stream whitewater rapids boulders */}
       {rapidRocks.length > 0 && (
         <instancedMesh ref={rapidBoulderRef} args={[boulderGeo, undefined, rapidRocks.length]}>
-          <meshStandardMaterial roughness={0.55} metalness={0.1} />
+          <meshLambertMaterial />
         </instancedMesh>
       )}
     </group>
   );
 }
 
-function KhumbuLandscape() {
-  const { map, bumpMap } = useMemo(() => makeTerrainDetailTextures(), []);
+function KhumbuLandscape({ compact }: { compact: boolean }) {
+  const { map, bumpMap } = useMemo(() => makeTerrainDetailTextures(!compact), [compact]);
 
   useEffect(() => {
     return () => {
       map.dispose();
-      bumpMap.dispose();
+      bumpMap?.dispose();
     };
   }, [map, bumpMap]);
 
@@ -1918,25 +2014,24 @@ function KhumbuLandscape() {
       <Ridge
         {...BACK_RIDGE_SPEC}
         snowLine={0.26}
-        segX={72}
-        segZ={28}
+        segX={compact ? 40 : 56}
+        segZ={compact ? 14 : 20}
         terrainStyle="alpine"
         detailMap={map}
-        bumpMap={bumpMap}
       />
 
       {/* Front Khumbu Terrain: Snow-Covered Winter Ridge, Exposed Granite, Glacial River, Frosted Pines, Chorten & Steel Bridge */}
       <Ridge
         {...FRONT_RIDGE_SPEC}
         snowLine={0.12}
-        segX={96}
-        segZ={52}
+        segX={compact ? 52 : 76}
+        segZ={compact ? 28 : 40}
         terrainStyle="foothill"
         detailMap={map}
-        bumpMap={bumpMap}
+        bumpMap={compact ? null : bumpMap}
       />
-      <GlacialRiver />
-      <HillsideDetails />
+      <GlacialRiver compact={compact} />
+      <HillsideDetails compact={compact} />
       <KhumbuChorten />
       <SuspensionBridge />
     </>
@@ -1945,17 +2040,19 @@ function KhumbuLandscape() {
 
 export default function HeroScene({
   active = true,
+  compact = false,
   onReady,
 }: {
   active?: boolean;
+  compact?: boolean;
   onReady?: () => void;
 }) {
   return (
     <Canvas
       frameloop={active ? "always" : "never"}
-      dpr={1}
-      gl={{ alpha: true, antialias: false, powerPreference: "high-performance" }}
-      camera={{ fov: 50, near: 0.1, far: 320, position: CAM_START.toArray() }}
+      dpr={compact ? 1 : [1, 1.25]}
+      gl={{ alpha: true, antialias: false, stencil: false, powerPreference: "high-performance" }}
+      camera={{ fov: compact ? 64 : 50, near: 0.1, far: 320, position: CAM_START.toArray() }}
       style={{ background: "transparent" }}
     >
       <fog attach="fog" args={[FOG_COLOR, 18, 108]} />
@@ -1963,9 +2060,10 @@ export default function HeroScene({
       <directionalLight position={[-28, 26, -6]} intensity={2.15} color="#fff7ec" />
       <directionalLight position={[18, 12, -70]} intensity={1.15} color="#dcebfa" />
 
-      <KhumbuLandscape />
-      <Clouds />
-      <Particles />
+      <ResponsiveCamera />
+      <KhumbuLandscape compact={compact} />
+      <Clouds compact={compact} />
+      <Particles compact={compact} />
       <CameraRig />
       <ReadySignal onReady={onReady} />
     </Canvas>
