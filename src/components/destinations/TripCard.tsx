@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Clock, Mountain } from "lucide-react";
 import type { TripDTO } from "@/lib/types";
-import { formatRs } from "@/lib/booking";
+import { formatPriceUsd } from "@/lib/booking";
 
 export function TripCard({ trip }: { trip: TripDTO; index?: number }) {
   return (
@@ -55,7 +55,7 @@ export function TripCard({ trip }: { trip: TripDTO; index?: number }) {
             From / person
           </span>
           <span className="font-serif text-lg font-bold text-[#f05e25]">
-            {formatRs(trip.price)}
+            {formatPriceUsd(trip.price, trip.priceUsd)}
           </span>
         </div>
       </div>

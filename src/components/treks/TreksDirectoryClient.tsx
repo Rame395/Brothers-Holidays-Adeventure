@@ -312,7 +312,7 @@ export function TreksDirectoryClient({ treks }: { treks: TrekRouteDTO[] }) {
                     className="py-4 px-4 font-label-md text-label-md uppercase tracking-wider"
                     scope="col"
                   >
-                    Tariff (Rs.)
+                    Tariff (USD)
                   </th>
                   <th
                     className="py-4 px-4 font-label-md text-label-md uppercase tracking-wider hidden lg:table-cell"
@@ -404,7 +404,7 @@ export function TreksDirectoryClient({ treks }: { treks: TrekRouteDTO[] }) {
 
                         <td className="py-5 px-4 align-middle">
                           <span className="font-headline-sm text-base text-primary font-serif font-medium">
-                            Rs. {(trek.priceFrom * 100).toLocaleString()}
+                            ${trek.priceFrom.toLocaleString("en-US")}
                           </span>
                         </td>
 
@@ -656,7 +656,7 @@ export function TreksDirectoryClient({ treks }: { treks: TrekRouteDTO[] }) {
                         <div className="flex justify-between">
                           <span>Estimated Tariff:</span>
                           <strong className="text-primary font-serif">
-                            From Rs. {(trek.priceFrom * 100).toLocaleString()}
+                            From ${trek.priceFrom.toLocaleString("en-US")}
                           </strong>
                         </div>
                       </div>

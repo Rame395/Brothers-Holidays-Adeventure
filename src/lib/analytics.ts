@@ -63,7 +63,7 @@ export function trackViewTrip(trip: {
   region?: string | null;
 }) {
   trackEvent("view_item", {
-    currency: "NPR",
+    currency: "USD",
     value: trip.price,
     items: [
       {
@@ -84,7 +84,7 @@ export function trackBeginBooking(trip: {
   travellers: number;
 }) {
   trackEvent("begin_checkout", {
-    currency: "NPR",
+    currency: "USD",
     value: trip.totalAmount,
     items: [
       {
@@ -106,7 +106,7 @@ export function trackCompleteBooking(booking: {
 }) {
   trackEvent("purchase", {
     transaction_id: booking.reference,
-    currency: "NPR",
+    currency: "USD",
     value: booking.totalAmount,
     items: [
       {
@@ -120,7 +120,7 @@ export function trackCompleteBooking(booking: {
     lead_type: "booking",
     trip_slug: booking.tripSlug,
     value: booking.totalAmount,
-    currency: "NPR",
+    currency: "USD",
   });
 }
 

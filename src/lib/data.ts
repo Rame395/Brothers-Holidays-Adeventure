@@ -26,7 +26,7 @@ const DEFAULT_SITE_SETTINGS: SiteSettingDTO = {
   whatsappNumber: "+9779800000000",
   officeAddress: "Thamel, Kathmandu 44600, Nepal",
   registrationNo: "Govt. Regd. 58177/068/069 · TAAN · NMA · NTB",
-  defaultCurrency: "NPR",
+  defaultCurrency: "USD",
   usdExchangeRate: 135.0,
   announcementBanner: null,
   announcementActive: false,

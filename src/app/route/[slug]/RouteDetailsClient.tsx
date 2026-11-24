@@ -814,7 +814,7 @@ export default function RouteDetailsClient({ trek }: { trek: TrekRouteDTO }) {
                     Base Price
                   </span>
                   <span className="font-headline-sm text-headline-sm text-primary font-normal">
-                    Rs. {(trek.priceFrom * 100).toLocaleString()} Inclusive
+                    ${trek.priceFrom.toLocaleString("en-US")} Inclusive
                   </span>
                 </div>
 
@@ -965,7 +965,7 @@ export default function RouteDetailsClient({ trek }: { trek: TrekRouteDTO }) {
               <div className="grid grid-cols-12 text-on-surface-variant font-label-md text-label-md uppercase tracking-wider pb-3 border-b border-outline-variant/20">
                 <span className="col-span-6">Operational Line Item</span>
                 <span className="col-span-3 text-center">Coverage</span>
-                <span className="col-span-3 text-right">Cost (Rs.)</span>
+                <span className="col-span-3 text-right">Cost (USD)</span>
               </div>
 
               {/* Item 1 */}
@@ -982,7 +982,7 @@ export default function RouteDetailsClient({ trek }: { trek: TrekRouteDTO }) {
                   Included
                 </div>
                 <div className="col-span-3 text-right font-headline-sm text-headline-sm">
-                  Rs. 18,000
+                  $135
                 </div>
               </div>
 
@@ -1001,7 +1001,7 @@ export default function RouteDetailsClient({ trek }: { trek: TrekRouteDTO }) {
                   Included
                 </div>
                 <div className="col-span-3 text-right font-headline-sm text-headline-sm">
-                  Rs. 72,000
+                  $535
                 </div>
               </div>
 
@@ -1019,7 +1019,7 @@ export default function RouteDetailsClient({ trek }: { trek: TrekRouteDTO }) {
                   Included
                 </div>
                 <div className="col-span-3 text-right font-headline-sm text-headline-sm">
-                  Rs. 56,000
+                  $415
                 </div>
               </div>
 
@@ -1037,7 +1037,7 @@ export default function RouteDetailsClient({ trek }: { trek: TrekRouteDTO }) {
                   Included
                 </div>
                 <div className="col-span-3 text-right font-headline-sm text-headline-sm">
-                  Rs. 24,000
+                  $180
                 </div>
               </div>
 
@@ -1055,7 +1055,7 @@ export default function RouteDetailsClient({ trek }: { trek: TrekRouteDTO }) {
                   Included
                 </div>
                 <div className="col-span-3 text-right font-headline-sm text-headline-sm">
-                  Rs. 15,000
+                  $110
                 </div>
               </div>
             </div>
@@ -1073,10 +1073,10 @@ export default function RouteDetailsClient({ trek }: { trek: TrekRouteDTO }) {
                 </div>
                 <div className="flex items-baseline gap-2">
                   <span className="font-display-lg text-display-lg text-primary leading-none">
-                    Rs. {(trek.priceFrom * 100).toLocaleString()}
+                    ${trek.priceFrom.toLocaleString("en-US")}
                   </span>
                   <span className="font-label-md text-label-md uppercase tracking-widest text-on-surface-variant">
-                    NPR / Person
+                    USD / Person
                   </span>
                 </div>
                 <p className="font-body-sm text-body-sm text-on-surface-variant mt-4">
@@ -1130,7 +1130,7 @@ export default function RouteDetailsClient({ trek }: { trek: TrekRouteDTO }) {
                     Book {trek.name}
                   </h3>
                   <p className="font-body-sm text-body-sm text-on-surface-variant">
-                    Starting from Rs. {(trek.priceFrom * 100).toLocaleString()} · No
+                    Starting from ${trek.priceFrom.toLocaleString("en-US")} · No
                     immediate deposit required
                   </p>
                 </div>

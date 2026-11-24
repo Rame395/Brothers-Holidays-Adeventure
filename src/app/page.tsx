@@ -34,14 +34,14 @@ export default async function HomePage() {
       {/* SECTION 1: HIMALAYAN HERO + ANIMATED SUSPENSION BRIDGE REVEAL */}
       <Hero />
 
-      {/* SECTION 2: TREKKING REGIONS CAROUSEL */}
-      <TrekkingRegions />
+      {/* SECTION 2: SELECTED HIGH ROUTES DIRECTORY PREVIEW */}
+      <MirrorHighRoutes treks={trekRoutes} />
 
       {/* SECTION 3: WHY CHOOSE US (SHERPA HERITAGE & PARALLAX MOUNTAIN) */}
       <WhyChooseUs />
 
-      {/* SECTION 4: SELECTED HIGH ROUTES DIRECTORY PREVIEW */}
-      <MirrorHighRoutes treks={trekRoutes} />
+      {/* SECTION 4: TREKKING REGIONS CAROUSEL */}
+      <TrekkingRegions />
 
       {/* SECTION 5: CINEMATIC INTERLUDE: ABOVE THE CLOUDS */}
       <section className="relative w-full overflow-hidden bg-white h-[44vw] min-h-[360px] max-h-[560px] flex items-center justify-center content-auto">
@@ -86,7 +86,7 @@ export default async function HomePage() {
 
               <p className="text-sm sm:text-base text-[#57534d] leading-relaxed">
                 From our office in Thamel, we run small-group treks and technical
-                climbs with transparent NPR pricing, generous acclimatization schedules,
+                climbs with transparent USD pricing, generous acclimatization schedules,
                 and senior Sherpa leaders who know every trail.
               </p>
 
@@ -212,7 +212,7 @@ export default async function HomePage() {
               <div className="pt-6 border-t border-white/15 space-y-3.5 text-sm text-white/90">
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-[#7dd3fc] shrink-0" />
-                  <span>Direct PDF itinerary &amp; transparent NPR quote</span>
+                  <span>Direct PDF itinerary &amp; transparent USD quote</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mountain className="w-4 h-4 text-[#7dd3fc] shrink-0" />
@@ -258,7 +258,7 @@ export default async function HomePage() {
           </h2>
 
           <p className="text-white/80 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-            Clear NPR pricing, in-house permits, and senior Sherpa guides from
+            Clear USD pricing, in-house permits, and senior Sherpa guides from
             Lukla or Pokhara back to Kathmandu.
           </p>
 

@@ -1228,7 +1228,7 @@ function makeDotTexture() {
     size / 2
   );
   g.addColorStop(0, "rgba(255,255,255,1)");
-  g.addColorStop(0.35, "rgba(255,255,255,0.5)");
+  g.addColorStop(0.4, "rgba(255,255,255,0.78)");
   g.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, size, size);
@@ -1332,51 +1332,149 @@ function Clouds() {
   );
 }
 
-/* ---------- high-altitude atmospheric crystals ---------- */
-const PARTICLE_COUNT = 120;
+/* ---------- high-altitude 2-layer 3D falling snowfall ---------- */
+const NEAR_SNOW_COUNT = 650;
+const FAR_SNOW_COUNT = 450;
+
+interface SnowLayerData {
+  positions: Float32Array;
+  speeds: Float32Array;
+  phases: Float32Array;
+  freqs: Float32Array;
+  drifts: Float32Array;
+}
+
+function buildSnowLayer(
+  count: number,
+  seed: number,
+  xSpan: number,
+  yMin: number,
+  yMax: number,
+  zMin: number,
+  zMax: number,
+  vyBase: number,
+  vySpread: number,
+  driftBase: number
+): SnowLayerData {
+  const rand = mulberry32(seed);
+  const positions = new Float32Array(count * 3);
+  const speeds = new Float32Array(count);
+  const phases = new Float32Array(count);
+  const freqs = new Float32Array(count);
+  const drifts = new Float32Array(count);
+
+  for (let i = 0; i < count; i++) {
+    positions[i * 3] = (rand() - 0.5) * xSpan * 2;
+    positions[i * 3 + 1] = yMin + rand() * (yMax - yMin);
+    positions[i * 3 + 2] = zMin + rand() * (zMax - zMin);
+    speeds[i] = vyBase + rand() * vySpread;
+    phases[i] = rand() * Math.PI * 2;
+    freqs[i] = 0.9 + rand() * 1.3;
+    drifts[i] = driftBase * (0.6 + rand() * 0.8);
+  }
+
+  return { positions, speeds, phases, freqs, drifts };
+}
+
+function advanceSnowLayer(
+  geo: THREE.BufferGeometry | null | undefined,
+  data: SnowLayerData,
+  count: number,
+  dt: number,
+  time: number,
+  xSpan: number,
+  yMin: number,
+  yMax: number,
+  breezeX: number
+) {
+  if (!geo) return;
+  const attr = geo.getAttribute("position") as THREE.BufferAttribute | undefined;
+  if (!attr) return;
+  const arr = attr.array as Float32Array;
+
+  for (let i = 0; i < count; i++) {
+    const ix = i * 3;
+    let x = arr[ix]! + (breezeX + Math.sin(time * data.freqs[i]! + data.phases[i]!) * data.drifts[i]!) * dt;
+    let y = arr[ix + 1]! - data.speeds[i]! * dt;
+
+    if (y < yMin) y = yMax - ((yMin - y) % (yMax - yMin));
+    if (x > xSpan) x -= xSpan * 2;
+    else if (x < -xSpan) x += xSpan * 2;
+
+    arr[ix] = x;
+    arr[ix + 1] = y;
+  }
+
+  attr.needsUpdate = true;
+}
 
 function Particles() {
-  const ref = useRef<THREE.Points>(null);
-  const driftRef = useRef({ x: 0, y: 0 });
+  const nearGeoRef = useRef<THREE.BufferGeometry>(null);
+  const farGeoRef = useRef<THREE.BufferGeometry>(null);
+  const timeRef = useRef(0);
   const dot = useMemo(() => makeDotTexture(), []);
-  const positions = useMemo(() => {
-    const rand = mulberry32(99);
-    const arr = new Float32Array(PARTICLE_COUNT * 3);
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      arr[i * 3] = (rand() - 0.5) * 48;
-      arr[i * 3 + 1] = 0.5 + rand() * 14;
-      arr[i * 3 + 2] = -44 + rand() * 58;
-    }
-    return arr;
-  }, []);
+
+  const nearSnow = useMemo(
+    () => buildSnowLayer(NEAR_SNOW_COUNT, 99, 26, -3.5, 14.5, -26, 20, 1.35, 1.15, 0.55),
+    []
+  );
+  const farSnow = useMemo(
+    () => buildSnowLayer(FAR_SNOW_COUNT, 313, 36, -2.5, 16.5, -48, -12, 0.85, 0.75, 0.4),
+    []
+  );
 
   useEffect(() => () => dot.dispose(), [dot]);
 
   useFrame((_, rawDelta) => {
-    if (!ref.current || !heroState.inView || heroState.reducedMotion) return;
+    if (!heroState.inView || heroState.reducedMotion) return;
     const dt = Math.min(rawDelta, 0.05);
-    driftRef.current.x = (driftRef.current.x + 0.3 * dt) % 10;
-    driftRef.current.y -= 0.06 * dt;
-    if (driftRef.current.y < -3) driftRef.current.y += 3;
-    ref.current.position.set(driftRef.current.x - 5, driftRef.current.y, 0);
+    timeRef.current += dt;
+    const t = timeRef.current;
+
+    advanceSnowLayer(nearGeoRef.current, nearSnow, NEAR_SNOW_COUNT, dt, t, 26, -3.5, 14.5, 0.28);
+    advanceSnowLayer(farGeoRef.current, farSnow, FAR_SNOW_COUNT, dt, t, 36, -2.5, 16.5, 0.2);
   });
 
   return (
-    <points ref={ref}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-      </bufferGeometry>
-      <pointsMaterial
-        map={dot}
-        size={0.1}
-        sizeAttenuation
-        transparent
-        depthWrite={false}
-        opacity={0.58}
-        color="#f6efe2"
-        blending={THREE.AdditiveBlending}
-      />
-    </points>
+    <group>
+      <points>
+        <bufferGeometry ref={nearGeoRef}>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[nearSnow.positions, 3]}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          map={dot}
+          size={0.22}
+          sizeAttenuation
+          transparent
+          depthWrite={false}
+          opacity={0.88}
+          color="#ffffff"
+          blending={THREE.NormalBlending}
+        />
+      </points>
+
+      <points>
+        <bufferGeometry ref={farGeoRef}>
+          <bufferAttribute
+            attach="attributes-position"
+            args={[farSnow.positions, 3]}
+          />
+        </bufferGeometry>
+        <pointsMaterial
+          map={dot}
+          size={0.15}
+          sizeAttenuation
+          transparent
+          depthWrite={false}
+          opacity={0.62}
+          color="#edf5ff"
+          blending={THREE.NormalBlending}
+        />
+      </points>
+    </group>
   );
 }
 
@@ -1417,13 +1515,14 @@ function CameraRig() {
   return null;
 }
 
-function ReadySignal() {
+function ReadySignal({ onReady }: { onReady?: () => void }) {
   const frames = useRef(0);
   const gl = useThree((s) => s.gl);
   useFrame(() => {
     frames.current += 1;
-    if (frames.current === 3) {
+    if (frames.current === 1) {
       gl.domElement.closest("[data-scene]")?.setAttribute("data-scene-ready", "true");
+      onReady?.();
     }
   });
   return null;
@@ -1818,7 +1917,7 @@ function KhumbuLandscape() {
       {/* Back Alpine Glacial Peaks */}
       <Ridge
         {...BACK_RIDGE_SPEC}
-        snowLine={0.44}
+        snowLine={0.26}
         segX={72}
         segZ={28}
         terrainStyle="alpine"
@@ -1826,10 +1925,10 @@ function KhumbuLandscape() {
         bumpMap={bumpMap}
       />
 
-      {/* Front Khumbu Terrain: Rough Craggy Gorge, Scree, Scrub, Glacial River, Boulders, Sparse Pines, Chorten & Steel Bridge */}
+      {/* Front Khumbu Terrain: Snow-Covered Winter Ridge, Exposed Granite, Glacial River, Frosted Pines, Chorten & Steel Bridge */}
       <Ridge
         {...FRONT_RIDGE_SPEC}
-        snowLine={0.68}
+        snowLine={0.12}
         segX={96}
         segZ={52}
         terrainStyle="foothill"
@@ -1844,7 +1943,13 @@ function KhumbuLandscape() {
   );
 }
 
-export default function HeroScene({ active = true }: { active?: boolean }) {
+export default function HeroScene({
+  active = true,
+  onReady,
+}: {
+  active?: boolean;
+  onReady?: () => void;
+}) {
   return (
     <Canvas
       frameloop={active ? "always" : "never"}
@@ -1854,15 +1959,15 @@ export default function HeroScene({ active = true }: { active?: boolean }) {
       style={{ background: "transparent" }}
     >
       <fog attach="fog" args={[FOG_COLOR, 18, 108]} />
-      <hemisphereLight args={["#d4e4f7", "#262b23", 1.0]} />
-      <directionalLight position={[-28, 26, -6]} intensity={2.45} color="#fff5e6" />
-      <directionalLight position={[18, 12, -70]} intensity={1.0} color="#e6effa" />
+      <hemisphereLight args={["#e4f0ff", "#5d7690", 1.18]} />
+      <directionalLight position={[-28, 26, -6]} intensity={2.15} color="#fff7ec" />
+      <directionalLight position={[18, 12, -70]} intensity={1.15} color="#dcebfa" />
 
       <KhumbuLandscape />
       <Clouds />
       <Particles />
       <CameraRig />
-      <ReadySignal />
+      <ReadySignal onReady={onReady} />
     </Canvas>
   );
 }

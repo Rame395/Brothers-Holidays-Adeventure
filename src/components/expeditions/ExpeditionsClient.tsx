@@ -478,7 +478,7 @@ export function ExpeditionsClient({
                     </th>
                     <th className="py-4 px-6 font-semibold">Sherpa Guidance</th>
                     <th className="py-4 px-6 font-semibold text-right">
-                      Tariff (Rs.)
+                      Tariff (USD)
                     </th>
                   </tr>
                 </thead>
@@ -590,12 +590,12 @@ export function ExpeditionsClient({
 
                       <td className="py-5 px-6 text-right align-middle">
                         <div className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-                          Rs.{" "}
+                          $
                           {obj.bandType === "death-zone"
-                            ? "18,50,000"
+                            ? "13,700"
                             : obj.bandType === "high-alpine"
-                            ? "7,80,000"
-                            : "4,50,000"}
+                            ? "5,800"
+                            : "3,350"}
                         </div>
                         <span className="font-label-sm text-label-sm text-on-surface-variant/70 block mt-0.5">
                           Per person
@@ -715,12 +715,12 @@ export function ExpeditionsClient({
                 Expedition Tariff
               </span>
               <div className="font-display-md text-display-md text-primary font-normal">
-                Rs.{" "}
+                $
                 {activeObjective.bandType === "death-zone"
-                  ? "18,50,000"
+                  ? "13,700"
                   : activeObjective.bandType === "high-alpine"
-                  ? "7,80,000"
-                  : "4,50,000"}
+                  ? "5,800"
+                  : "3,350"}
               </div>
               <span className="font-body-sm text-body-sm text-on-surface-variant">
                 All-inclusive per person · Permits, guides, logistics, medical

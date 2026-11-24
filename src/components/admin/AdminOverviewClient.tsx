@@ -313,7 +313,7 @@ export default function AdminOverviewClient({
                             {b.customerName}
                           </td>
                           <td className="py-3 pr-3 font-semibold text-[#104b87] tabular-nums whitespace-nowrap">
-                            Rs. {b.totalAmount.toLocaleString("en-IN")}
+                            ${b.totalAmount.toLocaleString("en-US")}
                           </td>
                           <td className="py-3">
                             <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-[#1c1917]">

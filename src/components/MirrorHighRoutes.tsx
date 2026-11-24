@@ -129,7 +129,7 @@ export default function MirrorHighRoutes({ treks }: { treks: TrekRouteDTO[] }) {
         </h2>
         <p className="text-sm sm:text-[15px] text-[#57534d] leading-relaxed">
           Handpicked high-altitude traverses across Nepal with proven acclimatization
-          schedules and transparent NPR tariffs.
+          schedules and transparent USD tariffs.
         </p>
       </div>
 
@@ -285,7 +285,7 @@ export default function MirrorHighRoutes({ treks }: { treks: TrekRouteDTO[] }) {
                     From / person
                   </span>
                   <span className="font-serif text-lg font-medium text-[#1c1917]">
-                    NPR {(trek.priceFrom * 100).toLocaleString("en-US")}
+                    ${trek.priceFrom.toLocaleString("en-US")}
                   </span>
                 </div>
 

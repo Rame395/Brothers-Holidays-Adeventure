@@ -1,7 +1,24 @@
 /** Booking rules shared by the booking panel. */
 
+export const USD_EXCHANGE_RATE = 135;
+
+export function nprToUsd(nprAmount: number, explicitUsd?: number | null): number {
+  if (typeof explicitUsd === "number" && Number.isFinite(explicitUsd) && explicitUsd > 0) {
+    return Math.round(explicitUsd);
+  }
+  return Math.max(1, Math.round(nprAmount / USD_EXCHANGE_RATE));
+}
+
+export function formatUsd(usdAmount: number): string {
+  return `$${new Intl.NumberFormat("en-US").format(Math.round(usdAmount))}`;
+}
+
+export function formatPriceUsd(nprAmount: number, explicitUsd?: number | null): string {
+  return formatUsd(nprToUsd(nprAmount, explicitUsd));
+}
+
 export function formatRs(amount: number): string {
-  return `Rs. ${new Intl.NumberFormat("en-IN").format(Math.round(amount))}`;
+  return formatPriceUsd(amount);
 }
 
 /** Travellers are always between 1 and the trip's maximum group size. */

@@ -249,8 +249,8 @@ export function DestinationsCatalogClient({
                 <strong className="text-white font-semibold">
                   {results.length}
                 </strong>{" "}
-                of {trips.length} Himalayan journeys · Pricing in Nepalese
-                Rupees (Rs.)
+                of {trips.length} Himalayan journeys · Pricing in US Dollars
+                (USD)
               </p>
             </div>
 

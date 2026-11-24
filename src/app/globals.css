@@ -296,10 +296,6 @@
   letter-spacing: 0.02em;
 }
 
-.scene-layer {
-  opacity: 1 !important;
-}
-
 /* ────────── Alpine Atmosphere & Misty Edge Blending ────────── */
 .bg-alpine-mist {
   background: linear-gradient(to bottom, #e4e8ec 0%, #c8d0d8 50%, #b0bcc6 85%, #ffffff 100%);

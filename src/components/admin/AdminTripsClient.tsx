@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { authFetch } from "@/lib/auth/client";
+import { formatPriceUsd } from "@/lib/booking";
 import AdminShell, { type AdminIdentityDTO } from "./AdminShell";
 
 export interface AdminTripRowDTO {
@@ -432,7 +433,7 @@ export default function AdminTripsClient({
                     </span>
                   </td>
                   <td className="py-3.5 pr-4 font-semibold text-[#104b87] tabular-nums whitespace-nowrap">
-                    Rs. {t.price.toLocaleString("en-IN")}
+                    {formatPriceUsd(t.price)}
                   </td>
                   <td className="py-3.5 pr-4">
                     <button

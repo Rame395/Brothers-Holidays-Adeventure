@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { nprToUsd } from "@/lib/booking";
 import { getPageSeo, getSiteSettings } from "@/lib/data";
 import type {
   JournalPostDTO,
@@ -328,27 +329,13 @@ export function buildTouristTripJsonLd(
   const tripUrl = absoluteUrl(`/destinations/${trip.slug}`);
   const bookUrl = absoluteUrl(`/destinations/${trip.slug}#book`);
 
-  const nprOffer = {
+  const offers = {
     "@type": "Offer",
-    price: trip.price,
-    priceCurrency: settings.defaultCurrency || "NPR",
+    price: nprToUsd(trip.price, trip.priceUsd),
+    priceCurrency: "USD",
     availability: "https://schema.org/InStock",
     url: bookUrl,
   };
-
-  const offers =
-    trip.priceUsd && trip.priceUsd > 0
-      ? [
-          nprOffer,
-          {
-            "@type": "Offer",
-            price: trip.priceUsd,
-            priceCurrency: "USD",
-            availability: "https://schema.org/InStock",
-            url: bookUrl,
-          },
-        ]
-      : nprOffer;
 
   return {
     "@context": "https://schema.org",

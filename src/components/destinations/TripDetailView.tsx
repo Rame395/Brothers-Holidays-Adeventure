@@ -45,7 +45,7 @@ import type {
   TripDTO,
   TripServiceIconKey,
 } from "@/lib/types";
-import { formatRs } from "@/lib/booking";
+import { formatPriceUsd } from "@/lib/booking";
 import { trackViewTrip } from "@/lib/analytics";
 import {
   formatPriceTierLabel,
@@ -1638,17 +1638,13 @@ export function TripDetailView({
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-[#64748b]">Price per person</p>
-                  <div className="flex items-baseline gap-2.5 justify-end">
+                  <div className="flex items-baseline gap-2 justify-end">
                     <span className="text-2xl sm:text-3xl font-bold text-[#104b87] tabular-nums">
-                      {formatRs(trip.price)}
+                      {formatPriceUsd(trip.price, trip.priceUsd)}
                     </span>
-                    {trip.priceUsd !== null &&
-                      trip.priceUsd !== undefined &&
-                      trip.priceUsd > 0 && (
-                        <span className="text-xs font-medium text-[#57534d] tabular-nums">
-                          (≈ ${trip.priceUsd.toLocaleString("en-US")} USD)
-                        </span>
-                      )}
+                    <span className="text-xs font-medium text-[#57534d] uppercase tracking-wider">
+                      USD
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1698,14 +1694,7 @@ export function TripDetailView({
                             {formatPriceTierLabel(tier)}
                           </span>
                           <span className="font-bold text-[#104b87] tabular-nums">
-                            {formatRs(tier.price)}
-                            {tier.priceUsd !== null &&
-                              tier.priceUsd !== undefined &&
-                              tier.priceUsd > 0 && (
-                                <span className="ml-2 text-xs font-medium text-[#64748b]">
-                                  (≈ ${tier.priceUsd.toLocaleString("en-US")})
-                                </span>
-                              )}
+                            {formatPriceUsd(tier.price, tier.priceUsd)}
                           </span>
                         </div>
                       ))}
@@ -1767,7 +1756,10 @@ export function TripDetailView({
                                 Per person
                               </span>
                               <span className="text-lg font-bold text-[#104b87] tabular-nums">
-                                {formatRs(effectivePrice)}
+                                {formatPriceUsd(
+                                  effectivePrice,
+                                  dep.priceOverride ? null : trip.priceUsd
+                                )}
                               </span>
                             </div>
 

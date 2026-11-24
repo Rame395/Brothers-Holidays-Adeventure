@@ -28,6 +28,7 @@ export function Hero() {
 
   const [inView, setInView] = useState(true);
   const [scene, setScene] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
   const [videoAllowed, setVideoAllowed] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
 
@@ -36,33 +37,18 @@ export function Hero() {
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    let idleHandle: number | null = null;
-    let timerHandle: ReturnType<typeof setTimeout> | null = null;
-
     const checkViewport = () => {
-      const isDesktop =
-        window.innerWidth >= 1024 &&
-        !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const webglAvailable = isDesktop && hasWebGL();
+      const reduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      const isDesktop = window.innerWidth >= 1024;
+      const webglAvailable = isDesktop && !reduced && hasWebGL();
       setScene(webglAvailable);
       // Avoid running a 13.7 MB HD video underneath the active 3D WebGL scene; fall back to video only if WebGL is unavailable
-      setVideoAllowed(isDesktop && !webglAvailable);
+      setVideoAllowed(isDesktop && !reduced && !webglAvailable);
     };
 
-    const winWithIdle = window as Window & {
-      requestIdleCallback?: (
-        cb: () => void,
-        opts?: { timeout: number }
-      ) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-    if (typeof winWithIdle.requestIdleCallback === "function") {
-      idleHandle = winWithIdle.requestIdleCallback(checkViewport, {
-        timeout: 650,
-      });
-    } else {
-      timerHandle = globalThis.setTimeout(checkViewport, 350);
-    }
+    checkViewport();
 
     const el = sectionRef.current;
     if (!el) return;
@@ -201,13 +187,6 @@ export function Hero() {
     return () => {
       observer.disconnect();
       if (raf) cancelAnimationFrame(raf);
-      if (
-        idleHandle !== null &&
-        typeof winWithIdle.cancelIdleCallback === "function"
-      ) {
-        winWithIdle.cancelIdleCallback(idleHandle);
-      }
-      if (timerHandle !== null) globalThis.clearTimeout(timerHandle);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("pointermove", onMove);
@@ -239,7 +218,7 @@ export function Hero() {
         id="top"
         className="relative lg:sticky lg:top-0 h-svh w-full overflow-hidden"
       >
-        {/* 1 — Crisp High-Priority Himalayan Poster + Deferred Desktop Aerial Footage */}
+        {/* 1 — Crisp High-Priority Himalayan Mountains Behind Transparent 3D Scene */}
         <div
           className="absolute inset-0 lg:will-change-transform"
           style={{
@@ -291,9 +270,11 @@ export function Hero() {
         {scene && (
           <div
             data-scene
-            className="scene-layer pointer-events-none absolute inset-0"
+            className={`pointer-events-none absolute inset-0 transition-opacity duration-200 ${
+              sceneReady ? "opacity-100" : "opacity-0"
+            }`}
           >
-            <HeroScene active={inView} />
+            <HeroScene active={inView} onReady={() => setSceneReady(true)} />
           </div>
         )}
 
@@ -312,8 +293,13 @@ export function Hero() {
           className="pointer-events-none absolute inset-0 z-[5]"
           style={{
             background:
-              "radial-gradient(ellipse 58% 52% at 20% 74%, rgba(10, 15, 20, 0.62) 0%, rgba(10, 15, 20, 0.28) 52%, transparent 78%)",
+              "radial-gradient(ellipse 62% 56% at 20% 74%, rgba(8, 15, 24, 0.72) 0%, rgba(8, 15, 24, 0.34) 52%, transparent 78%)",
           }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 z-[5] bg-gradient-to-t from-[#081318]/65 via-[#081318]/25 to-transparent"
+          style={{ opacity: "calc(1 - var(--p) * 1.45)" }}
         />
 
         {/* 4 — Foreground Editorial Interface */}

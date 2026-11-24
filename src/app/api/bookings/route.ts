@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { getOptionalCustomer } from "@/lib/auth/guards";
-import { bookingReference, clampTravellers } from "@/lib/booking";
+import { bookingReference, clampTravellers, nprToUsd } from "@/lib/booking";
 import { parsePriceTiers, resolveTierPrice } from "@/lib/weather-locations";
 
 const bookingSchema = z.object({
@@ -75,7 +75,12 @@ export async function POST(request: Request) {
     }
 
     const tierPricing = resolveTierPrice(trip.price, tiers, travellers);
-    const pricePerPerson = departureRecord?.priceOverride ?? tierPricing.price;
+    const pricePerPerson = departureRecord?.priceOverride
+      ? nprToUsd(departureRecord.priceOverride)
+      : nprToUsd(
+          tierPricing.price,
+          tierPricing.priceUsd ?? (tierPricing.matchedTier ? null : trip.priceUsd)
+        );
     const totalAmount = pricePerPerson * travellers;
 
     const suffix = crypto.randomBytes(2).toString("hex").toUpperCase();
@@ -126,7 +131,7 @@ export async function POST(request: Request) {
           travellers,
           pricePerPerson,
           totalAmount,
-          currency: "NPR",
+          currency: "USD",
           status: "PENDING",
           paymentStatus: "UNPAID",
           customerId: customer.id,
@@ -165,7 +170,7 @@ export async function POST(request: Request) {
           type: "NOTE",
           content: `New booking request ${reference} for ${trip.name} (${travellers} ${
             travellers === 1 ? "traveller" : "travellers"
-          }, NPR ${totalAmount.toLocaleString("en-US")}).`,
+          }, USD $${totalAmount.toLocaleString("en-US")}).`,
           bookingId: booking.id,
           customerId: customer.id,
         },

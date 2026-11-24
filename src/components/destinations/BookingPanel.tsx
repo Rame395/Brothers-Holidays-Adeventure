@@ -19,7 +19,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import type { TripDTO } from "@/lib/types";
-import { bookingTotal, clampTravellers, formatRs } from "@/lib/booking";
+import { bookingTotal, clampTravellers, formatUsd, nprToUsd } from "@/lib/booking";
 import { resolveTierPrice } from "@/lib/weather-locations";
 import {
   getStoredUtmParams,
@@ -198,7 +198,12 @@ function BookingPanelInner({
     () => resolveTierPrice(trip.price, trip.priceTiers || [], travellers),
     [trip.price, trip.priceTiers, travellers]
   );
-  const activeUnitPrice = matchedDeparture?.priceOverride ?? tierResult.price;
+  const activeUnitPrice = matchedDeparture?.priceOverride
+    ? nprToUsd(matchedDeparture.priceOverride)
+    : nprToUsd(
+        tierResult.price,
+        tierResult.priceUsd ?? (tierResult.matchedTier ? null : trip.priceUsd)
+      );
   const hasGroupDiscount =
     !matchedDeparture?.priceOverride &&
     Boolean(tierResult.matchedTier) &&
@@ -615,7 +620,7 @@ function BookingPanelInner({
 
             <div className="text-right">
               <p className="text-xl font-bold text-[#1c1917] tabular-nums leading-tight">
-                {formatRs(activeUnitPrice)}
+                {formatUsd(activeUnitPrice)}
               </p>
               <div className="mt-0.5 flex items-center justify-end gap-1.5">
                 {hasGroupDiscount && (
@@ -634,7 +639,7 @@ function BookingPanelInner({
               Total
             </span>
             <span className="text-2xl font-bold text-[#104b87] tabular-nums">
-              {formatRs(total)}
+              {formatUsd(total)}
             </span>
           </div>
 
@@ -667,7 +672,7 @@ function BookingPanelInner({
               · {travellers} {travellers === 1 ? "guest" : "guests"}
             </span>
             <span className="font-bold text-[#104b87] tabular-nums shrink-0">
-              {formatRs(total)}
+              {formatUsd(total)}
             </span>
           </div>
 
@@ -776,7 +781,7 @@ function BookingPanelInner({
           </div>
           {step === "done" && (
             <p className="text-lg font-bold text-[#104b87] tabular-nums">
-              Total: {formatRs(confirmedTotal ?? total)}
+              Total: {formatUsd(confirmedTotal ?? total)}
             </p>
           )}
           <button
