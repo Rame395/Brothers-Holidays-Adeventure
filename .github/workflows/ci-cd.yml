@@ -51,8 +51,8 @@ jobs:
       - name: Generate Prisma Client
         run: npm run db:generate
 
-      - name: Apply Prisma Migrations to Test Database
-        run: npx prisma migrate deploy
+      - name: Push Schema to Test Database
+        run: npm run db:push
         env:
           DATABASE_URL: "postgresql://postgres:password@localhost:5432/brothers_holidays_test?schema=public"
 
@@ -114,7 +114,7 @@ jobs:
             echo "Installing packages & updating database schema..."
             npm install --prefer-offline --no-audit
             npx prisma generate
-            npx prisma migrate deploy
+            npx prisma db push
 
             # 3. Build Next.js Production Bundle
             echo "Compiling Next.js production bundle..."
