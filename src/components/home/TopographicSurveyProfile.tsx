@@ -15,11 +15,11 @@ interface Waypoint {
 }
 
 const WAYPOINTS: Waypoint[] = [
-  { id: "lukla", name: "LUKLA", alt: 2860, x: 50, y: 133, color: "#104b87", progressAt: 0.0 },
-  { id: "mid-1", name: "WAYPOINT", alt: 3120, x: 175, y: 116.7, color: "#104b87", progressAt: 0.14 },
+  { id: "lukla", name: "LUKLA", alt: 2860, x: 50, y: 133, color: "#3f6e15", progressAt: 0.0 },
+  { id: "mid-1", name: "WAYPOINT", alt: 3120, x: 175, y: 116.7, color: "#3f6e15", progressAt: 0.14 },
   { id: "namche", name: "NAMCHE", alt: 3440, x: 290, y: 97.1, color: "#1c1917", progressAt: 0.28 },
   { id: "chola", name: "CHO LA PASS", alt: 5420, x: 490, y: 71, color: "#f05e25", progressAt: 0.49 },
-  { id: "gokyo", name: "GOKYO RI", alt: 5357, x: 665, y: 64.4, color: "#104b87", progressAt: 0.68 },
+  { id: "gokyo", name: "GOKYO RI", alt: 5357, x: 665, y: 64.4, color: "#3f6e15", progressAt: 0.68 },
   { id: "kalapatthar", name: "KALA PATTHAR", alt: 5644, x: 865, y: 61.2, color: "#f05e25", progressAt: 0.88 },
 ];
 
@@ -184,7 +184,7 @@ export default function TopographicSurveyProfile({ active }: { active?: boolean 
         <div className="flex flex-wrap items-center justify-between sm:justify-start gap-x-4 gap-y-2 bg-white px-3.5 sm:px-4 py-2.5 rounded-xl border border-slate-200 text-xs shadow-xs tabular-nums">
           <div>
             <span className="text-[#57534d] mr-1.5 font-medium">Stage:</span>
-            <span ref={stageTextRef} className="font-semibold text-[#104b87]">
+            <span ref={stageTextRef} className="font-semibold text-[#3f6e15]">
               Lukla to Namche Bazaar
             </span>
           </div>
@@ -197,7 +197,7 @@ export default function TopographicSurveyProfile({ active }: { active?: boolean 
           <button
             type="button"
             onClick={startAnimation}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#104b87] hover:text-[#f05e25] cursor-pointer px-2 py-1 -mr-1 rounded-md hover:bg-[#f8fafc]"
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#3f6e15] hover:text-[#f05e25] cursor-pointer px-2 py-1 -mr-1 rounded-md hover:bg-[#f8fafc]"
           >
             <RotateCcw className="h-3 w-3" />
             <span>Replay</span>
@@ -265,14 +265,14 @@ export default function TopographicSurveyProfile({ active }: { active?: boolean 
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
             <div className="text-xs font-medium text-[#1c1917]">
               <span>Route Profile: </span>
-              <span className="text-[#104b87] font-semibold">
+              <span className="text-[#3f6e15] font-semibold">
                 Lukla to Kala Patthar
               </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-4 text-[11px] text-[#57534d]">
               <div className="flex items-center gap-1.5">
-                <span className="w-3.5 h-0.5 bg-[#104b87] rounded-full inline-block" />
+                <span className="w-3.5 h-0.5 bg-[#3f6e15] rounded-full inline-block" />
                 <span>Main Trail</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -294,20 +294,20 @@ export default function TopographicSurveyProfile({ active }: { active?: boolean 
             >
               <defs>
                 <linearGradient id="transectStrokeStone" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#104b87" />
-                  <stop offset="38%" stopColor="#104b87" />
+                  <stop offset="0%" stopColor="#3f6e15" />
+                  <stop offset="38%" stopColor="#3f6e15" />
                   <stop offset="46%" stopColor="#f05e25" />
                   <stop offset="56%" stopColor="#f05e25" />
-                  <stop offset="62%" stopColor="#104b87" />
-                  <stop offset="82%" stopColor="#104b87" />
+                  <stop offset="62%" stopColor="#3f6e15" />
+                  <stop offset="82%" stopColor="#3f6e15" />
                   <stop offset="88%" stopColor="#f05e25" />
                   <stop offset="100%" stopColor="#f05e25" />
                 </linearGradient>
 
                 <linearGradient id="transectAreaStone" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#104b87" stopOpacity="0.14" />
-                  <stop offset="80%" stopColor="#104b87" stopOpacity="0.02" />
-                  <stop offset="100%" stopColor="#104b87" stopOpacity="0" />
+                  <stop offset="0%" stopColor="#3f6e15" stopOpacity="0.14" />
+                  <stop offset="80%" stopColor="#3f6e15" stopOpacity="0.02" />
+                  <stop offset="100%" stopColor="#3f6e15" stopOpacity="0" />
                 </linearGradient>
               </defs>
 
@@ -359,7 +359,7 @@ export default function TopographicSurveyProfile({ active }: { active?: boolean 
 
               <g ref={tracerRef} transform="translate(50, 133)" opacity="0">
                 <circle r="5" fill="#f05e25" opacity="0.45" />
-                <circle r="3" fill="#ffffff" stroke="#104b87" strokeWidth="1.5" />
+                <circle r="3" fill="#ffffff" stroke="#3f6e15" strokeWidth="1.5" />
               </g>
             </svg>
           </div>
@@ -379,7 +379,7 @@ export default function TopographicSurveyProfile({ active }: { active?: boolean 
               <span className="text-slate-500">5,420m</span>
             </div>
             <div className="absolute left-[71%] -translate-x-1/2 whitespace-nowrap">
-              <span className="font-semibold text-[#104b87]">Gokyo Ri</span>{" "}
+              <span className="font-semibold text-[#3f6e15]">Gokyo Ri</span>{" "}
               <span className="text-slate-500">5,357m</span>
             </div>
             <div className="absolute right-1 whitespace-nowrap">
@@ -399,7 +399,7 @@ export default function TopographicSurveyProfile({ active }: { active?: boolean 
             <span className="rounded-md bg-[#f8fafc] px-2 py-0.5 text-[#f05e25] font-semibold">
               Cho La <span className="font-normal text-slate-500">5,420m</span>
             </span>
-            <span className="rounded-md bg-[#f8fafc] px-2 py-0.5 text-[#104b87] font-semibold">
+            <span className="rounded-md bg-[#f8fafc] px-2 py-0.5 text-[#3f6e15] font-semibold">
               Gokyo Ri <span className="font-normal text-slate-500">5,357m</span>
             </span>
             <span className="rounded-md bg-[#f8fafc] px-2 py-0.5 text-[#f05e25] font-semibold">
@@ -420,7 +420,7 @@ export default function TopographicSurveyProfile({ active }: { active?: boolean 
               <p className="text-[#57534d] text-[10px] uppercase tracking-wider">
                 Elevation Gain
               </p>
-              <p className="font-semibold text-[#104b87] text-sm mt-0.5">
+              <p className="font-semibold text-[#3f6e15] text-sm mt-0.5">
                 +3,820 m
               </p>
             </div>

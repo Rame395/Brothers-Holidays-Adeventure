@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ParallaxBackdrop } from "@/components/motion/ParallaxBackdrop";
 
 export interface AlpineBackdropProps {
   imageSrc: string;
@@ -21,23 +21,17 @@ export function AlpineBackdrop({
 
   return (
     <>
-      {/* Oversized panoramic backdrop image */}
-      <div
-        aria-hidden="true"
-        className="absolute left-0 -top-[10%] h-[120%] w-full z-0 pointer-events-none"
-      >
-        <Image
-          src={imageSrc}
-          alt={imageAlt}
-          fill
-          sizes="100vw"
-          className={
-            isLight
-              ? `object-cover ${objectPosition} grayscale-[35%] opacity-30`
-              : `object-cover ${objectPosition} grayscale-[25%]`
-          }
-        />
-      </div>
+      {/* Oversized panoramic backdrop image with scroll parallax & Ken Burns */}
+      <ParallaxBackdrop
+        imageSrc={imageSrc}
+        imageAlt={imageAlt}
+        objectPosition={objectPosition}
+        kenBurns={!isLight}
+        speed={isLight ? 75 : 120}
+        imageClassName={
+          isLight ? "grayscale-[35%] opacity-30" : "grayscale-[25%]"
+        }
+      />
 
       {/* Atmospheric wash layer */}
       <div

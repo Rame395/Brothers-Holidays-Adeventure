@@ -98,7 +98,7 @@ export default async function RootLayout({
       data-scroll-behavior="smooth"
       className={`${poppins.variable} ${oswald.variable} scroll-smooth`}
     >
-      <body className="bg-white font-sans text-[#1c1917] antialiased selection:bg-[#104b87]/15 selection:text-[#104b87] min-h-screen flex flex-col">
+      <body className="bg-white font-sans text-[#1c1917] antialiased selection:bg-[#3f6e15]/15 selection:text-[#3f6e15] min-h-screen flex flex-col">
         <JsonLd data={buildOrganizationJsonLd(settings)} />
         <JsonLd data={buildWebSiteJsonLd(settings)} />
         <Suspense fallback={null}>

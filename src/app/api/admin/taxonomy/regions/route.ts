@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/auth/guards";
 import { revalidatePublicCatalog, slugify } from "@/lib/admin-cache";
+import { sanitizeRichHtml } from "@/lib/html-sanitize";
 
 const regionCreateSchema = z.object({
   name: z.string().trim().min(2, "Region name must be at least 2 characters").max(100),
@@ -10,6 +11,10 @@ const regionCreateSchema = z.object({
   slug: z.string().trim().max(96).optional().nullable(),
   blurb: z.string().trim().max(500).optional().default(""),
   heroImage: z.string().trim().min(1).max(300).optional().default("/images/trips/everest.jpg"),
+  seoContent: z.string().max(150000).optional().default(""),
+  metaTitle: z.string().trim().max(160).optional().nullable(),
+  metaDescription: z.string().trim().max(320).optional().nullable(),
+  focusKeyword: z.string().trim().max(100).optional().nullable(),
   sortOrder: z.coerce.number().int().min(0).max(9999).optional().default(0),
   isActive: z.boolean().optional().default(true),
 });
@@ -67,6 +72,10 @@ export async function POST(request: Request) {
         countrySlug: country.slug,
         blurb: d.blurb,
         heroImage: d.heroImage,
+        seoContent: sanitizeRichHtml(d.seoContent),
+        metaTitle: d.metaTitle?.trim() || null,
+        metaDescription: d.metaDescription?.trim() || null,
+        focusKeyword: d.focusKeyword?.trim() || null,
         sortOrder: d.sortOrder,
         isActive: d.isActive,
       },

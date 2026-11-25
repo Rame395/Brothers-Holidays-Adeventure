@@ -186,7 +186,7 @@ export default function AdminEditTripPage({
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] font-sans text-sm font-medium text-[#104b87]">
+        <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] font-sans text-sm font-medium text-[#3f6e15]">
           Loading expedition editor...
         </div>
       }

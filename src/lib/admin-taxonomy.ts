@@ -34,6 +34,10 @@ export interface AdminRegionWithCounts {
   countryName: string;
   blurb: string;
   heroImage: string;
+  seoContent: string;
+  metaTitle: string | null;
+  metaDescription: string | null;
+  focusKeyword: string | null;
   sortOrder: number;
   isActive: boolean;
   tripCount: number;
@@ -113,6 +117,10 @@ export async function getAdminTaxonomyWithCounts(): Promise<{
       countryName: r.country.name,
       blurb: r.blurb,
       heroImage: r.heroImage,
+      seoContent: r.seoContent,
+      metaTitle: r.metaTitle,
+      metaDescription: r.metaDescription,
+      focusKeyword: r.focusKeyword,
       sortOrder: r.sortOrder,
       isActive: r.isActive,
       tripCount: regionTripCounts.get(r.slug) ?? 0,

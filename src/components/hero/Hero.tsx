@@ -429,75 +429,15 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Seamless multi-layered Himalayan cloud-mist transition into Trekking Regions */}
+      {/* Soft bottom atmospheric fade into HeroCloudTransition */}
       <div
-        data-paused={inView ? "false" : "true"}
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 -bottom-px z-20 h-16 sm:h-24 lg:h-64 overflow-hidden"
-      >
-        {/* Multi-stop vertical atmospheric gradient */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.08) 28%, rgba(255,255,255,0.38) 58%, rgba(255,255,255,0.82) 82%, #ffffff 100%)",
-          }}
-        />
-
-        {/* Desktop drifting valley cloud ribbon */}
-        <div className="hidden lg:flex absolute inset-x-0 bottom-4 h-40 w-[200%] opacity-55 animate-cloud-drift-left">
-          <svg
-            className="w-1/2 h-full shrink-0"
-            viewBox="0 0 1200 240"
-            preserveAspectRatio="none"
-          >
-            <defs>
-              <linearGradient id="heroExitMist" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
-                <stop offset="50%" stopColor="#ffffff" stopOpacity="0.45" />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.92" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M0,125 Q240,45 480,115 T960,95 Q1120,70 1200,110 L1200,240 L0,240 Z"
-              fill="url(#heroExitMist)"
-            />
-          </svg>
-          <svg
-            className="w-1/2 h-full shrink-0"
-            viewBox="0 0 1200 240"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0,125 Q240,45 480,115 T960,95 Q1120,70 1200,110 L1200,240 L0,240 Z"
-              fill="url(#heroExitMist)"
-            />
-          </svg>
-        </div>
-
-        {/* Layered static organic mist ridges anchored to bottom edge */}
-        <svg
-          viewBox="0 0 1440 160"
-          preserveAspectRatio="none"
-          className="absolute inset-x-0 bottom-0 w-full h-14 sm:h-20 lg:h-32"
-        >
-          <path
-            d="M0,78 C240,22 440,120 720,68 C980,20 1210,112 1440,56 L1440,160 L0,160 Z"
-            fill="#ffffff"
-            fillOpacity="0.2"
-          />
-          <path
-            d="M0,104 C280,58 520,136 820,88 C1080,46 1270,124 1440,86 L1440,160 L0,160 Z"
-            fill="#ffffff"
-            fillOpacity="0.48"
-          />
-          <path
-            d="M0,128 C340,94 600,148 920,114 C1180,86 1330,138 1440,118 L1440,160 L0,160 Z"
-            fill="#ffffff"
-            fillOpacity="1"
-          />
-        </svg>
-      </div>
+        className="pointer-events-none absolute inset-x-0 -bottom-px z-20 h-20 sm:h-28 lg:h-36"
+        style={{
+          background:
+            "linear-gradient(to bottom, transparent 0%, rgba(237,242,247,0.28) 60%, rgba(237,242,247,0.65) 100%)",
+        }}
+      />
     </section>
   );
 }

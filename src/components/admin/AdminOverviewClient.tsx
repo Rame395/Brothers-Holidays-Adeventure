@@ -80,18 +80,18 @@ export default function AdminOverviewClient({
           {canReadTrips && (
             <Link
               href="/admin/taxonomy"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15] transition-colors"
             >
-              <Globe2 className="h-4 w-4 text-[#104b87]" />
+              <Globe2 className="h-4 w-4 text-[#3f6e15]" />
               <span>Countries &amp; Regions</span>
             </Link>
           )}
           {canReadTrips && (
             <Link
               href="/admin/categories"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87] transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15] transition-colors"
             >
-              <Layers className="h-4 w-4 text-[#104b87]" />
+              <Layers className="h-4 w-4 text-[#3f6e15]" />
               <span>Categories</span>
             </Link>
           )}
@@ -114,7 +114,7 @@ export default function AdminOverviewClient({
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#57534d]">
               Countries &amp; Regions
             </span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#104b87]/10 text-[#104b87]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3f6e15]/10 text-[#3f6e15]">
               <Globe2 className="h-4 w-4" />
             </span>
           </div>
@@ -174,7 +174,7 @@ export default function AdminOverviewClient({
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#57534d]">
               Leads &amp; Subscribers
             </span>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-[#104b87]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-[#3f6e15]">
               <MessageSquare className="h-4 w-4" />
             </span>
           </div>
@@ -195,13 +195,13 @@ export default function AdminOverviewClient({
         {canReadTrips && (
           <Link
             href="/admin/taxonomy"
-            className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-[#104b87] hover:shadow-md"
+            className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-[#3f6e15] hover:shadow-md"
           >
             <div className="flex items-center justify-between">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#104b87]/10 text-[#104b87]">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3f6e15]/10 text-[#3f6e15]">
                 <Globe2 className="h-5 w-5" />
               </span>
-              <ArrowRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-[#104b87]" />
+              <ArrowRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-[#3f6e15]" />
             </div>
             <h2 className="mt-4 font-heading font-bold text-xl text-[#1c1917]">
               Countries &amp; Regions
@@ -215,7 +215,7 @@ export default function AdminOverviewClient({
         {canReadTrips && (
           <Link
             href="/admin/categories"
-            className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-[#104b87] hover:shadow-md"
+            className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-[#3f6e15] hover:shadow-md"
           >
             <div className="flex items-center justify-between">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[#f05e25]">
@@ -235,13 +235,13 @@ export default function AdminOverviewClient({
         {canReadTrips && (
           <Link
             href="/admin/trips"
-            className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-[#104b87] hover:shadow-md"
+            className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-xs transition-all hover:border-[#3f6e15] hover:shadow-md"
           >
             <div className="flex items-center justify-between">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#104b87]/10 text-[#104b87]">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3f6e15]/10 text-[#3f6e15]">
                 <MapPin className="h-5 w-5" />
               </span>
-              <ArrowRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-[#104b87]" />
+              <ArrowRight className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-[#3f6e15]" />
             </div>
             <h2 className="mt-4 font-heading font-bold text-xl text-[#1c1917]">
               Trips &amp; Itineraries
@@ -277,7 +277,7 @@ export default function AdminOverviewClient({
           {canReadBookings && (
             <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2 text-[#104b87]">
+                <div className="flex items-center gap-2 text-[#3f6e15]">
                   <CalendarClock className="h-4 w-4 text-[#f05e25]" />
                   <h2 className="font-heading font-bold text-lg text-[#1c1917]">
                     Recent Bookings
@@ -303,7 +303,7 @@ export default function AdminOverviewClient({
                     <tbody className="divide-y divide-slate-100">
                       {recentBookings.map((b) => (
                         <tr key={b.id} className="hover:bg-slate-50/80">
-                          <td className="py-3 pr-3 font-mono text-xs font-medium text-[#104b87] whitespace-nowrap">
+                          <td className="py-3 pr-3 font-mono text-xs font-medium text-[#3f6e15] whitespace-nowrap">
                             {b.reference}
                           </td>
                           <td className="py-3 pr-3 font-medium text-[#1c1917] truncate max-w-[160px]">
@@ -312,7 +312,7 @@ export default function AdminOverviewClient({
                           <td className="py-3 pr-3 text-[#57534d] truncate max-w-[120px]">
                             {b.customerName}
                           </td>
-                          <td className="py-3 pr-3 font-semibold text-[#104b87] tabular-nums whitespace-nowrap">
+                          <td className="py-3 pr-3 font-semibold text-[#3f6e15] tabular-nums whitespace-nowrap">
                             ${b.totalAmount.toLocaleString("en-US")}
                           </td>
                           <td className="py-3">
@@ -336,8 +336,8 @@ export default function AdminOverviewClient({
           {canReadCrm && (
             <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2 text-[#104b87]">
-                  <Mail className="h-4 w-4 text-[#104b87]" />
+                <div className="flex items-center gap-2 text-[#3f6e15]">
+                  <Mail className="h-4 w-4 text-[#3f6e15]" />
                   <h2 className="font-heading font-bold text-lg text-[#1c1917]">
                     Recent Inquiries
                   </h2>
@@ -361,7 +361,7 @@ export default function AdminOverviewClient({
                     <tbody className="divide-y divide-slate-100">
                       {recentInquiries.map((inq) => (
                         <tr key={inq.id} className="hover:bg-slate-50/80">
-                          <td className="py-3 pr-3 font-mono text-xs font-medium text-[#104b87] whitespace-nowrap">
+                          <td className="py-3 pr-3 font-mono text-xs font-medium text-[#3f6e15] whitespace-nowrap">
                             {inq.reference}
                           </td>
                           <td className="py-3 pr-3 font-medium text-[#1c1917] truncate max-w-[140px]">
@@ -371,7 +371,7 @@ export default function AdminOverviewClient({
                             {inq.interest || inq.type}
                           </td>
                           <td className="py-3">
-                            <span className="inline-block rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-[#104b87]">
+                            <span className="inline-block rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-[#3f6e15]">
                               {inq.status}
                             </span>
                           </td>

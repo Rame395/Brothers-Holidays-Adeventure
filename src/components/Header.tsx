@@ -21,6 +21,7 @@ export default function Header({
   // Pages that already have a full-bleed dark hero canvas starting at top-0
   const isHeroPage =
     pathname === "/" ||
+    pathname === "/about" ||
     pathname.startsWith("/destinations") ||
     pathname.startsWith("/route");
 

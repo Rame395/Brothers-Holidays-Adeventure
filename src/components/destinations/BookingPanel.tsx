@@ -454,14 +454,14 @@ function BookingPanelInner({
               onClick={handleToggleCalendar}
               className={`w-full rounded-[10px] border bg-white px-4 py-3 text-[15px] font-medium text-[#1c1917] flex items-center justify-between transition-colors cursor-pointer ${
                 calendarOpen
-                  ? "border-[#104b87] ring-2 ring-[#104b87]/15"
-                  : "border-slate-300 hover:border-[#104b87]/60"
+                  ? "border-[#3f6e15] ring-2 ring-[#3f6e15]/15"
+                  : "border-slate-300 hover:border-[#3f6e15]/60"
               }`}
             >
               <span>
                 {activeDateIso ? fmtDisplayDate(activeDateIso) : "Select date"}
               </span>
-              <Calendar className="h-4 w-4 text-[#104b87] shrink-0" />
+              <Calendar className="h-4 w-4 text-[#3f6e15] shrink-0" />
             </button>
 
             {calendarOpen && (
@@ -477,7 +477,7 @@ function BookingPanelInner({
                     onClick={handlePrevMonth}
                     disabled={isPrevMonthDisabled}
                     aria-label="Previous month"
-                    className="grid h-8 w-8 place-items-center rounded-full text-[#57534d] hover:bg-slate-100 hover:text-[#104b87] disabled:opacity-30 cursor-pointer transition-colors"
+                    className="grid h-8 w-8 place-items-center rounded-full text-[#57534d] hover:bg-slate-100 hover:text-[#3f6e15] disabled:opacity-30 cursor-pointer transition-colors"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
@@ -487,7 +487,7 @@ function BookingPanelInner({
                       aria-label="Month"
                       value={viewMonth}
                       onChange={(e) => setViewMonth(Number(e.target.value))}
-                      className="rounded-[8px] border border-transparent bg-transparent px-1.5 py-1 text-sm font-semibold text-[#1c1917] hover:bg-slate-100 focus:border-[#104b87] focus:outline-none cursor-pointer"
+                      className="rounded-[8px] border border-transparent bg-transparent px-1.5 py-1 text-sm font-semibold text-[#1c1917] hover:bg-slate-100 focus:border-[#3f6e15] focus:outline-none cursor-pointer"
                     >
                       {MONTH_NAMES.map((name, idx) => {
                         const isPastMonth =
@@ -508,7 +508,7 @@ function BookingPanelInner({
                       aria-label="Year"
                       value={viewYear}
                       onChange={(e) => handleYearChange(Number(e.target.value))}
-                      className="rounded-[8px] border border-transparent bg-transparent px-1.5 py-1 text-sm font-semibold text-[#1c1917] hover:bg-slate-100 focus:border-[#104b87] focus:outline-none cursor-pointer tabular-nums"
+                      className="rounded-[8px] border border-transparent bg-transparent px-1.5 py-1 text-sm font-semibold text-[#1c1917] hover:bg-slate-100 focus:border-[#3f6e15] focus:outline-none cursor-pointer tabular-nums"
                     >
                       {yearOptions.map((yr) => (
                         <option key={yr} value={yr}>
@@ -523,7 +523,7 @@ function BookingPanelInner({
                     onClick={handleNextMonth}
                     disabled={isNextMonthDisabled}
                     aria-label="Next month"
-                    className="grid h-8 w-8 place-items-center rounded-full text-[#57534d] hover:bg-slate-100 hover:text-[#104b87] disabled:opacity-30 cursor-pointer transition-colors"
+                    className="grid h-8 w-8 place-items-center rounded-full text-[#57534d] hover:bg-slate-100 hover:text-[#3f6e15] disabled:opacity-30 cursor-pointer transition-colors"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
@@ -568,8 +568,8 @@ function BookingPanelInner({
                             : isSelected
                             ? "bg-[#f05e25] text-white font-semibold shadow-xs cursor-pointer"
                             : isToday
-                            ? "border border-[#104b87]/40 text-[#104b87] font-semibold hover:bg-[#104b87]/10 cursor-pointer"
-                            : "text-[#1c1917] font-medium hover:bg-[#104b87]/10 hover:text-[#104b87] cursor-pointer"
+                            ? "border border-[#3f6e15]/40 text-[#3f6e15] font-semibold hover:bg-[#3f6e15]/10 cursor-pointer"
+                            : "text-[#1c1917] font-medium hover:bg-[#3f6e15]/10 hover:text-[#3f6e15] cursor-pointer"
                         }`}
                       >
                         {cell.day}
@@ -593,7 +593,7 @@ function BookingPanelInner({
                   )
                 }
                 disabled={travellers <= 1}
-                className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87] disabled:opacity-35 cursor-pointer transition-colors"
+                className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15] disabled:opacity-35 cursor-pointer transition-colors"
               >
                 <Minus className="h-3.5 w-3.5" />
               </button>
@@ -612,7 +612,7 @@ function BookingPanelInner({
                   )
                 }
                 disabled={travellers >= maxGroupCapacity}
-                className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87] disabled:opacity-35 cursor-pointer transition-colors"
+                className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15] disabled:opacity-35 cursor-pointer transition-colors"
               >
                 <Plus className="h-3.5 w-3.5" />
               </button>
@@ -638,7 +638,7 @@ function BookingPanelInner({
             <span className="text-[15px] font-medium text-[#57534d]">
               Total
             </span>
-            <span className="text-2xl font-bold text-[#104b87] tabular-nums">
+            <span className="text-2xl font-bold text-[#3f6e15] tabular-nums">
               {formatUsd(total)}
             </span>
           </div>
@@ -648,7 +648,7 @@ function BookingPanelInner({
             <button
               type="button"
               onClick={handleOpenInquiry}
-              className="rounded-full bg-[#104b87] hover:bg-[#0a355f] px-4 py-3 text-sm font-semibold text-white transition-colors shadow-xs cursor-pointer"
+              className="rounded-full bg-[#3f6e15] hover:bg-[#315710] px-4 py-3 text-sm font-semibold text-white transition-colors shadow-xs cursor-pointer"
             >
               Trip Enquiry
             </button>
@@ -671,7 +671,7 @@ function BookingPanelInner({
               {activeDateIso ? fmtDisplayDate(activeDateIso) : "Flexible date"}{" "}
               · {travellers} {travellers === 1 ? "guest" : "guests"}
             </span>
-            <span className="font-bold text-[#104b87] tabular-nums shrink-0">
+            <span className="font-bold text-[#3f6e15] tabular-nums shrink-0">
               {formatUsd(total)}
             </span>
           </div>
@@ -698,7 +698,7 @@ function BookingPanelInner({
                 onChange={(e) =>
                   setForm((f) => ({ ...f, [key]: e.target.value }))
                 }
-                className={`w-full rounded-[10px] border bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-[#64748b] focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15 ${
+                className={`w-full rounded-[10px] border bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-[#64748b] focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15 ${
                   errors[key] ? "border-[#ba1a1a]" : "border-slate-300"
                 }`}
               />
@@ -720,7 +720,7 @@ function BookingPanelInner({
             onChange={(e) =>
               setForm((f) => ({ ...f, notes: e.target.value }))
             }
-            className="w-full resize-none rounded-[10px] border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-[#64748b] focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+            className="w-full resize-none rounded-[10px] border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-[#64748b] focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
           />
 
           {submitError && (
@@ -744,7 +744,7 @@ function BookingPanelInner({
               disabled={submitting}
               className={`flex-1 rounded-full py-2.5 text-sm font-semibold text-white shadow-xs cursor-pointer transition-colors disabled:opacity-60 ${
                 step === "inquiry"
-                  ? "bg-[#104b87] hover:bg-[#0a355f]"
+                  ? "bg-[#3f6e15] hover:bg-[#315710]"
                   : "bg-[#f05e25] hover:bg-[#d94e18]"
               }`}
             >
@@ -775,19 +775,19 @@ function BookingPanelInner({
             will reply shortly.
           </p>
           <div className="pt-1">
-            <span className="inline-block rounded-[8px] bg-[#f8fafc] border border-slate-200 px-3 py-1 text-xs font-semibold text-[#104b87] tabular-nums">
+            <span className="inline-block rounded-[8px] bg-[#f8fafc] border border-slate-200 px-3 py-1 text-xs font-semibold text-[#3f6e15] tabular-nums">
               Ref: {reference}
             </span>
           </div>
           {step === "done" && (
-            <p className="text-lg font-bold text-[#104b87] tabular-nums">
+            <p className="text-lg font-bold text-[#3f6e15] tabular-nums">
               Total: {formatUsd(confirmedTotal ?? total)}
             </p>
           )}
           <button
             type="button"
             onClick={() => setStep("quote")}
-            className="mt-2 inline-block text-xs font-semibold text-[#104b87] hover:underline cursor-pointer"
+            className="mt-2 inline-block text-xs font-semibold text-[#3f6e15] hover:underline cursor-pointer"
           >
             Back to booking options
           </button>
@@ -797,14 +797,14 @@ function BookingPanelInner({
       {/* Bottom Expert Help Strip */}
       <div className="rounded-b-[16px] border-t border-slate-100 bg-[#f8fafc] px-6 py-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-11 w-11 rounded-full border border-[#104b87]/20 bg-white grid place-items-center shrink-0 shadow-2xs">
-            <Mountain className="h-5 w-5 text-[#104b87]" />
+          <div className="h-11 w-11 rounded-full border border-[#3f6e15]/20 bg-white grid place-items-center shrink-0 shadow-2xs">
+            <Mountain className="h-5 w-5 text-[#3f6e15]" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-[#64748b] leading-tight">Quick help?</p>
             <Link
               href="/contact"
-              className="text-[15px] font-semibold text-[#1c1917] hover:text-[#104b87] transition-colors truncate block"
+              className="text-[15px] font-semibold text-[#1c1917] hover:text-[#3f6e15] transition-colors truncate block"
             >
               Expert Advice
             </Link>
@@ -816,7 +816,7 @@ function BookingPanelInner({
           rel="noopener noreferrer"
           onClick={() => trackWhatsAppClick(`booking_panel_${trip.slug}`)}
           aria-label="Chat with a trek expert on WhatsApp"
-          className="h-11 w-11 rounded-full bg-[#104b87]/10 text-[#104b87] hover:bg-[#104b87] hover:text-white grid place-items-center transition-colors shrink-0"
+          className="h-11 w-11 rounded-full bg-[#3f6e15]/10 text-[#3f6e15] hover:bg-[#3f6e15] hover:text-white grid place-items-center transition-colors shrink-0"
         >
           <MessageCircle className="h-5 w-5" />
         </a>

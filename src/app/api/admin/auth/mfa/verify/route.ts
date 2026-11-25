@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/rate-limit";
 import { getClientIp, getUserAgent } from "@/lib/auth/request";
 import { issueAdminTrustedDevice, rotateAdminSession } from "@/lib/auth/session";
+import { verifyAndConsumeAdminEmailOtp } from "@/lib/auth/admin-email-otp";
 import { verifyAndConsumeBackupCode, verifyTotpToken } from "@/lib/auth/totp";
 import { mfaVerifySchema, sanitizeRedirectPath } from "@/lib/auth/validation";
 
@@ -63,34 +64,37 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!adminRow || !adminRow.mfaEnabled || !adminRow.mfaSecretEncrypted) {
+    if (!adminRow) {
       return NextResponse.json(
-        {
-          ok: false,
-          error: "MFA setup required",
-          nextStep: "mfa_setup",
-        },
-        { status: 400 }
+        { ok: false, error: "Invalid verification code" },
+        { status: 401 }
       );
     }
 
     const cleanCode = parsed.data.code.replace(/\s+/g, "");
-    const shouldTryBackup =
-      parsed.data.useBackupCode || !/^\d{6}$/.test(cleanCode);
-
     let verified = false;
-    let methodUsed: "totp" | "backup_code" = "totp";
+    let methodUsed: "email_otp" | "totp" | "backup_code" = "email_otp";
 
-    if (!shouldTryBackup) {
-      const secretBase32 = decryptSecret(adminRow.mfaSecretEncrypted);
-      verified = verifyTotpToken(secretBase32, cleanCode);
-    } else {
-      methodUsed = "backup_code";
-      verified = await verifyAndConsumeBackupCode(
-        "ADMIN",
-        adminRow.id,
-        parsed.data.code
-      );
+    if (!parsed.data.useBackupCode) {
+      verified = await verifyAndConsumeAdminEmailOtp(adminRow.id, cleanCode);
+    }
+
+    if (!verified && adminRow.mfaEnabled && adminRow.mfaSecretEncrypted) {
+      const shouldTryBackup =
+        parsed.data.useBackupCode || !/^\d{6}$/.test(cleanCode);
+
+      if (!shouldTryBackup) {
+        methodUsed = "totp";
+        const secretBase32 = decryptSecret(adminRow.mfaSecretEncrypted);
+        verified = verifyTotpToken(secretBase32, cleanCode);
+      } else {
+        methodUsed = "backup_code";
+        verified = await verifyAndConsumeBackupCode(
+          "ADMIN",
+          adminRow.id,
+          parsed.data.code
+        );
+      }
     }
 
     if (!verified) {

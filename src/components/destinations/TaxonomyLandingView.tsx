@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock, Compass, MapPin, Mountain } from "lucide-react";
 import { TripCard } from "@/components/destinations/TripCard";
+import { RegionSeoContentSection } from "@/components/destinations/RegionSeoContentSection";
 import type { TripDTO } from "@/lib/types";
 
 export interface TaxonomySiblingLink {
@@ -24,6 +25,7 @@ export function TaxonomyLandingView({
   trips,
   siblingTitle,
   siblings,
+  seoContent,
 }: {
   eyebrow: string;
   title: string;
@@ -33,6 +35,7 @@ export function TaxonomyLandingView({
   trips: TripDTO[];
   siblingTitle: string;
   siblings: TaxonomySiblingLink[];
+  seoContent?: string | null;
 }) {
   const maxAlt =
     trips.length > 0 ? Math.max(...trips.map((t) => t.maxAltitude)) : 0;
@@ -140,7 +143,7 @@ export function TaxonomyLandingView({
         {/* Internal Linking Sibling Chips */}
         {siblings.length > 0 && (
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#104b87]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3f6e15]">
               {siblingTitle}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -150,8 +153,8 @@ export function TaxonomyLandingView({
                   href={sib.href}
                   className={`rounded-full px-4 py-1.5 text-xs sm:text-sm font-medium transition-colors ${
                     sib.active
-                      ? "bg-[#104b87] text-white font-semibold shadow-xs"
-                      : "border border-slate-200 bg-[#f8fafc] text-[#57534d] hover:border-[#104b87] hover:text-[#104b87]"
+                      ? "bg-[#3f6e15] text-white font-semibold shadow-xs"
+                      : "border border-slate-200 bg-[#f8fafc] text-[#57534d] hover:border-[#3f6e15] hover:text-[#3f6e15]"
                   }`}
                 >
                   {sib.label}
@@ -179,7 +182,7 @@ export function TaxonomyLandingView({
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Link
                 href="/destinations"
-                className="rounded-full border border-slate-200 bg-[#f8fafc] px-5 py-2.5 text-sm font-semibold text-[#104b87] hover:border-[#104b87]"
+                className="rounded-full border border-slate-200 bg-[#f8fafc] px-5 py-2.5 text-sm font-semibold text-[#3f6e15] hover:border-[#3f6e15]"
               >
                 Browse All Destinations
               </Link>
@@ -208,13 +211,15 @@ export function TaxonomyLandingView({
           </div>
           <Link
             href="/contact"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#104b87] hover:bg-[#0a355f] px-6 py-3 text-sm font-semibold text-white shrink-0 transition-colors"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#3f6e15] hover:bg-[#315710] px-6 py-3 text-sm font-semibold text-white shrink-0 transition-colors"
           >
             <span>Plan Custom Expedition</span>
             <ArrowRight className="h-4 w-4" />
           </Link>
         </section>
       </div>
+
+      <RegionSeoContentSection regionName={title} seoContent={seoContent} />
     </div>
   );
 }

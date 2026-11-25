@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import {
   DollarSign,
   Globe,
@@ -239,7 +240,7 @@ export default function WhyChooseUs() {
         {/* User's uploaded mountain photo */}
         <div className="absolute inset-0 w-full h-full animate-mountain-breathe">
           <Image
-            src="/images/why-us-mountain.jpg"
+            src="/images/booking-bg-alpine-snow-peak.jpg"
             alt="Majestic Himalayan snow peaks of Everest and Nuptse"
             fill
             sizes="100vw"
@@ -358,7 +359,7 @@ export default function WhyChooseUs() {
         className="relative z-20 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 will-change-transform"
       >
         {/* SECTION HEADER (BLACK/CHARCOAL TYPOGRAPHY — NO BLUE AS REQUESTED) */}
-        <div className="text-center max-w-4xl mx-auto mb-14 sm:mb-16 lg:mb-20 space-y-3">
+        <ScrollReveal className="text-center max-w-4xl mx-auto mb-14 sm:mb-16 lg:mb-20 space-y-3">
           <div className="inline-flex items-center justify-center gap-2.5 mb-1">
             <span className="w-6 h-[2px] bg-[#f05e25]" />
             <span className="text-[11px] font-semibold tracking-[0.22em] text-[#57534d] uppercase">
@@ -375,35 +376,39 @@ export default function WhyChooseUs() {
             Built on deep Sherpa heritage, uncompromising safety standards, and
             personalized care to deliver an unforgettable journey in the Himalayas.
           </p>
-        </div>
+        </ScrollReveal>
 
         {/* 6-PILLAR FROSTED GLASS CARDS (CLEAN LIGHT CANVAS, BLACK TITLES, BALANCED STONE BODY) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
-          {PILLARS.map((pillar) => {
+          {PILLARS.map((pillar, idx) => {
             const Icon = pillar.icon;
             return (
-              <div
+              <ScrollReveal
                 key={pillar.title}
-                className="group relative rounded-[20px] bg-white/92 hover:bg-white p-6 sm:p-8 border border-white/80 hover:border-stone-200/90 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] hover:shadow-[0_16px_32px_-8px_rgba(15,23,42,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center"
+                delay={idx * 110}
+                distance={56}
+                className="h-full"
               >
-                {/* Refined squircle badge with dark icon and orange hover */}
-                <div className="w-14 h-14 rounded-2xl bg-stone-100/90 text-[#1c1917] group-hover:bg-[#f05e25] group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs mb-5">
-                  <Icon className="w-6 h-6 stroke-[2] transition-transform duration-300 group-hover:scale-110" />
+                <div className="group relative h-full rounded-[20px] bg-white/92 hover:bg-white p-6 sm:p-8 border border-white/80 hover:border-stone-200/90 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] hover:shadow-[0_16px_32px_-8px_rgba(15,23,42,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center">
+                  {/* Refined squircle badge with dark icon and orange hover */}
+                  <div className="w-14 h-14 rounded-2xl bg-stone-100/90 text-[#1c1917] group-hover:bg-[#f05e25] group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs mb-5">
+                    <Icon className="w-6 h-6 stroke-[2] transition-transform duration-300 group-hover:scale-110" />
+                  </div>
+
+                  {/* Pillar Title in crisp dark typography */}
+                  <h3 className="font-heading font-bold text-base sm:text-lg text-[#1c1917] uppercase tracking-[0.12em] group-hover:text-[#f05e25] transition-colors duration-200">
+                    {pillar.title}
+                  </h3>
+
+                  {/* Subtle accent line under title */}
+                  <span className="w-6 group-hover:w-10 h-[2px] bg-[#f05e25]/30 group-hover:bg-[#f05e25] transition-all duration-300 my-3 rounded-full" />
+
+                  {/* Pillar Description in balanced, readable stone-600 */}
+                  <p className="font-sans text-[#57534d] leading-relaxed text-xs sm:text-sm max-w-xs mt-1">
+                    {pillar.description}
+                  </p>
                 </div>
-
-                {/* Pillar Title in crisp dark typography */}
-                <h3 className="font-heading font-bold text-base sm:text-lg text-[#1c1917] uppercase tracking-[0.12em] group-hover:text-[#f05e25] transition-colors duration-200">
-                  {pillar.title}
-                </h3>
-
-                {/* Subtle accent line under title */}
-                <span className="w-6 group-hover:w-10 h-[2px] bg-[#f05e25]/30 group-hover:bg-[#f05e25] transition-all duration-300 my-3 rounded-full" />
-
-                {/* Pillar Description in balanced, readable stone-600 */}
-                <p className="font-sans text-[#57534d] leading-relaxed text-xs sm:text-sm max-w-xs mt-1">
-                  {pillar.description}
-                </p>
-              </div>
+              </ScrollReveal>
             );
           })}
         </div>

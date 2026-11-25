@@ -159,7 +159,7 @@ export default function CountryLandingPage({
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-mono text-sm text-[#104b87]">
+        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-mono text-sm text-[#3f6e15]">
           Loading Country Expeditions…
         </div>
       }

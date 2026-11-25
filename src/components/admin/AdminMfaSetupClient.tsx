@@ -190,7 +190,7 @@ export default function AdminMfaSetupClient({
                 {backupCodes.map((c) => (
                   <div
                     key={c}
-                    className="rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-2 font-mono text-xs text-center font-semibold text-[#104b87] tracking-wider"
+                    className="rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-2 font-mono text-xs text-center font-semibold text-[#3f6e15] tracking-wider"
                   >
                     {c}
                   </div>
@@ -201,7 +201,7 @@ export default function AdminMfaSetupClient({
                 <button
                   type="button"
                   onClick={handleCopyBackupCodes}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-[#f8fafc] px-4 py-2.5 text-sm font-medium text-[#1c1917] hover:border-[#104b87] cursor-pointer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-[#f8fafc] px-4 py-2.5 text-sm font-medium text-[#1c1917] hover:border-[#3f6e15] cursor-pointer"
                 >
                   {copiedCodes ? (
                     <>
@@ -218,7 +218,7 @@ export default function AdminMfaSetupClient({
                 <button
                   type="button"
                   onClick={handleDownloadBackupCodes}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-[#f8fafc] px-4 py-2.5 text-sm font-medium text-[#1c1917] hover:border-[#104b87] cursor-pointer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-[#f8fafc] px-4 py-2.5 text-sm font-medium text-[#1c1917] hover:border-[#3f6e15] cursor-pointer"
                 >
                   <Download className="h-4 w-4" />
                   <span>Download .txt</span>
@@ -237,7 +237,7 @@ export default function AdminMfaSetupClient({
               </button>
             </div>
           ) : loadingSetup ? (
-            <div className="py-14 text-center text-sm font-medium text-[#104b87]">
+            <div className="py-14 text-center text-sm font-medium text-[#3f6e15]">
               Generating encrypted TOTP secret...
             </div>
           ) : (
@@ -270,7 +270,7 @@ export default function AdminMfaSetupClient({
                       <span className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
                         Manual Entry Key
                       </span>
-                      <code className="block break-all rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-2 font-mono text-xs text-[#104b87]">
+                      <code className="block break-all rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-2 font-mono text-xs text-[#3f6e15]">
                         {manualKey}
                       </code>
                     </div>
@@ -278,7 +278,7 @@ export default function AdminMfaSetupClient({
                   <button
                     type="button"
                     onClick={handleRegenerate}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#104b87] hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#3f6e15] hover:underline cursor-pointer"
                   >
                     <RefreshCw className="h-3.5 w-3.5" />
                     Regenerate Secret
@@ -307,7 +307,7 @@ export default function AdminMfaSetupClient({
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="000000"
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-mono text-xl tracking-[0.4em] text-[#1c1917] placeholder:text-slate-300 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-center font-mono text-xl tracking-[0.4em] text-[#1c1917] placeholder:text-slate-300 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
                   />
                 </div>
 

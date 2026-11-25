@@ -21,6 +21,7 @@ import {
   verifyTurnstile,
 } from "@/lib/auth/request";
 import { createAdminSession, hasValidAdminTrustedDevice } from "@/lib/auth/session";
+import { issueAdminEmailOtp } from "@/lib/auth/admin-email-otp";
 import { adminLoginSchema } from "@/lib/auth/validation";
 
 const GENERIC_LOGIN_ERROR = "Invalid email or password";
@@ -161,22 +162,15 @@ export async function POST(request: Request) {
     }
 
     const upgradedHash = needsRehash ? await hashPassword(password) : undefined;
-    const mustEnrollMfa = !admin.mfaEnabled && admin.mfaRequired;
-    const trustedDevice = admin.mfaEnabled
+    const trustedDevice = admin.mfaRequired
       ? await hasValidAdminTrustedDevice({
           adminUserId: admin.id,
           passwordChangedAt: admin.passwordChangedAt,
           mfaVerifiedAt: admin.mfaVerifiedAt,
         })
       : false;
-    const mfaSatisfied =
-      (!admin.mfaEnabled && !admin.mfaRequired) ||
-      (admin.mfaEnabled && trustedDevice);
-    const nextStep = mustEnrollMfa
-      ? "mfa_setup"
-      : mfaSatisfied
-      ? "done"
-      : "mfa_verify";
+    const mfaSatisfied = !admin.mfaRequired || trustedDevice;
+    const nextStep = mfaSatisfied ? "done" : "mfa_verify";
 
     await prisma.adminUser.update({
       where: { id: admin.id },
@@ -196,6 +190,14 @@ export async function POST(request: Request) {
       ipAddress,
       userAgent,
     });
+
+    if (nextStep === "mfa_verify") {
+      await issueAdminEmailOtp({
+        adminUserId: admin.id,
+        email: admin.email,
+        name: admin.name,
+      });
+    }
 
     await logAuthEvent({
       actorType: AuthActorType.ADMIN,

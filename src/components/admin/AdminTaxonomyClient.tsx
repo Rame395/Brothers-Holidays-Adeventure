@@ -16,12 +16,15 @@ import {
 } from "lucide-react";
 import { authFetch } from "@/lib/auth/client";
 import { HERO_IMAGE_PRESETS, slugifyClient } from "@/lib/admin-presets";
+import { analyzeRegionSeo } from "@/lib/seo-score";
 import type {
   AdminCategoryWithCounts,
   AdminCountryWithCounts,
   AdminRegionWithCounts,
 } from "@/lib/admin-taxonomy";
 import AdminShell, { type AdminIdentityDTO } from "./AdminShell";
+import GoogleDocsEditor from "./GoogleDocsEditor";
+import RegionSeoScoreMeter from "./RegionSeoScoreMeter";
 
 export type TabKey = "countries" | "categories" | "regions";
 
@@ -31,6 +34,10 @@ interface TaxonomyFormState {
   slug: string;
   blurb: string;
   heroImage: string;
+  seoContent: string;
+  metaTitle: string;
+  metaDescription: string;
+  focusKeyword: string;
   sortOrder: string;
   isActive: boolean;
   groupByRegion: boolean;
@@ -44,6 +51,10 @@ function makeEmptyForm(defaultCountryId: string): TaxonomyFormState {
     slug: "",
     blurb: "",
     heroImage: "/images/trips/everest.jpg",
+    seoContent: "",
+    metaTitle: "",
+    metaDescription: "",
+    focusKeyword: "",
     sortOrder: "0",
     isActive: true,
     groupByRegion: false,
@@ -121,6 +132,10 @@ export default function AdminTaxonomyClient({
       slug: c.slug,
       blurb: c.blurb,
       heroImage: c.heroImage,
+      seoContent: "",
+      metaTitle: "",
+      metaDescription: "",
+      focusKeyword: "",
       sortOrder: String(c.sortOrder),
       isActive: c.isActive,
       groupByRegion: false,
@@ -138,6 +153,10 @@ export default function AdminTaxonomyClient({
       slug: cat.slug,
       blurb: cat.blurb,
       heroImage: cat.heroImage,
+      seoContent: "",
+      metaTitle: "",
+      metaDescription: "",
+      focusKeyword: "",
       sortOrder: String(cat.sortOrder),
       isActive: cat.isActive,
       groupByRegion: cat.groupByRegion,
@@ -155,6 +174,10 @@ export default function AdminTaxonomyClient({
       slug: r.slug,
       blurb: r.blurb,
       heroImage: r.heroImage,
+      seoContent: r.seoContent ?? "",
+      metaTitle: r.metaTitle ?? "",
+      metaDescription: r.metaDescription ?? "",
+      focusKeyword: r.focusKeyword ?? "",
       sortOrder: String(r.sortOrder),
       isActive: r.isActive,
       groupByRegion: false,
@@ -162,6 +185,9 @@ export default function AdminTaxonomyClient({
     });
     setSlugTouched(true);
     setStatusMsg(null);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -194,6 +220,10 @@ export default function AdminTaxonomyClient({
       payload.groupByRegion = form.groupByRegion;
     } else if (tab === "regions") {
       payload.countryId = form.countryId;
+      payload.seoContent = form.seoContent;
+      payload.metaTitle = form.metaTitle.trim() || null;
+      payload.metaDescription = form.metaDescription.trim() || null;
+      payload.focusKeyword = form.focusKeyword.trim() || null;
     }
 
     try {
@@ -302,7 +332,7 @@ export default function AdminTaxonomyClient({
         <Link
           href="/destinations"
           target="_blank"
-          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#104b87] hover:border-[#104b87] transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#3f6e15] hover:border-[#3f6e15] transition-colors"
         >
           <span>Preview Catalog</span>
           <ArrowUpRight className="h-4 w-4" />
@@ -316,8 +346,8 @@ export default function AdminTaxonomyClient({
           onClick={() => switchTab("countries")}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold cursor-pointer transition-colors ${
             tab === "countries"
-              ? "bg-[#104b87] text-white shadow-xs"
-              : "border border-slate-200 bg-white text-[#57534d] hover:border-[#104b87] hover:text-[#104b87]"
+              ? "bg-[#3f6e15] text-white shadow-xs"
+              : "border border-slate-200 bg-white text-[#57534d] hover:border-[#3f6e15] hover:text-[#3f6e15]"
           }`}
         >
           <Globe2 className="h-4 w-4" />
@@ -338,8 +368,8 @@ export default function AdminTaxonomyClient({
           onClick={() => switchTab("categories")}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold cursor-pointer transition-colors ${
             tab === "categories"
-              ? "bg-[#104b87] text-white shadow-xs"
-              : "border border-slate-200 bg-white text-[#57534d] hover:border-[#104b87] hover:text-[#104b87]"
+              ? "bg-[#3f6e15] text-white shadow-xs"
+              : "border border-slate-200 bg-white text-[#57534d] hover:border-[#3f6e15] hover:text-[#3f6e15]"
           }`}
         >
           <Layers className="h-4 w-4" />
@@ -360,8 +390,8 @@ export default function AdminTaxonomyClient({
           onClick={() => switchTab("regions")}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold cursor-pointer transition-colors ${
             tab === "regions"
-              ? "bg-[#104b87] text-white shadow-xs"
-              : "border border-slate-200 bg-white text-[#57534d] hover:border-[#104b87] hover:text-[#104b87]"
+              ? "bg-[#3f6e15] text-white shadow-xs"
+              : "border border-slate-200 bg-white text-[#57534d] hover:border-[#3f6e15] hover:text-[#3f6e15]"
           }`}
         >
           <MapPin className="h-4 w-4" />
@@ -398,9 +428,15 @@ export default function AdminTaxonomyClient({
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
+      <div
+        className={
+          tab === "regions"
+            ? "space-y-6"
+            : "grid gap-6 lg:grid-cols-[380px_1fr]"
+        }
+      >
         {/* Add / Edit Form Panel */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4 self-start">
+        <section className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-5 self-start">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 className="font-heading font-bold text-xl text-[#1c1917]">
               {form.id ? `Edit ${singularLabel}` : `Add ${singularLabel}`}
@@ -409,7 +445,7 @@ export default function AdminTaxonomyClient({
               <button
                 type="button"
                 onClick={resetForm}
-                className="text-xs font-semibold text-[#104b87] hover:underline cursor-pointer"
+                className="text-xs font-semibold text-[#3f6e15] hover:underline cursor-pointer"
               >
                 Cancel Edit
               </button>
@@ -420,30 +456,307 @@ export default function AdminTaxonomyClient({
             <p className="text-sm text-[#57534d] leading-relaxed">
               Your role has read-only access to destinations taxonomy. Contact a Super Admin or Editor to add or modify entries.
             </p>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {tab === "regions" && (
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Parent Country
-                  </label>
+          ) : tab === "regions" ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] items-start">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Parent Country
+                      </label>
+                      <select
+                        required
+                        value={form.countryId}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            countryId: e.target.value,
+                          }))
+                        }
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
+                      >
+                        {countries.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} ({c.slug})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Display Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Annapurna Region"
+                        value={form.name}
+                        onChange={(e) => {
+                          const name = e.target.value;
+                          setForm((prev) => ({
+                            ...prev,
+                            name,
+                            slug: slugTouched ? prev.slug : slugifyClient(name),
+                          }));
+                        }}
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                        URL / Filter Slug
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="auto-generated-slug"
+                        value={form.slug}
+                        onChange={(e) => {
+                          setSlugTouched(true);
+                          setForm((prev) => ({
+                            ...prev,
+                            slug: slugifyClient(e.target.value),
+                          }));
+                        }}
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono text-xs text-[#3f6e15] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Banner Image Path / URL
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={form.heroImage}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            heroImage: e.target.value,
+                          }))
+                        }
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono text-xs text-[#1c1917] focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
+                      />
+                    </div>
+                  </div>
+
                   <select
-                    required
-                    value={form.countryId}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, countryId: e.target.value }))
+                    aria-label="Quick image preset"
+                    value={
+                      HERO_IMAGE_PRESETS.some((p) => p.url === form.heroImage)
+                        ? form.heroImage
+                        : ""
                     }
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setForm((prev) => ({ ...prev, heroImage: e.target.value }));
+                      }
+                    }}
+                    className="w-full rounded-xl border border-slate-200 bg-[#f8fafc] px-3 py-2 text-xs text-[#1c1917] focus:border-[#3f6e15] focus:outline-none"
                   >
-                    {countries.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.slug})
+                    <option value="">Choose local image preset...</option>
+                    {HERO_IMAGE_PRESETS.map((preset) => (
+                      <option key={preset.url} value={preset.url}>
+                        {preset.label} ({preset.url})
                       </option>
                     ))}
                   </select>
-                </div>
-              )}
 
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                      Short Banner Blurb
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Brief editorial line for menus and banners..."
+                      value={form.blurb}
+                      onChange={(e) =>
+                        setForm((prev) => ({ ...prev, blurb: e.target.value }))
+                      }
+                      className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
+                    />
+                  </div>
+
+                  {/* SEO Meta Fields */}
+                  <div className="rounded-xl border border-slate-200 bg-[#f8fafc] p-4 space-y-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#f05e25]">
+                      Region SEO Metadata
+                    </p>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Focus Keyword
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Annapurna Region Trekking"
+                        value={form.focusKeyword}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            focusKeyword: e.target.value,
+                          }))
+                        }
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#f05e25] focus:outline-none focus:ring-2 focus:ring-[#f05e25]/15"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                          Meta Title (45–65 chars)
+                        </label>
+                        <span className="font-mono text-[11px] text-slate-500 tabular-nums">
+                          {form.metaTitle.trim().length} / 65
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        maxLength={160}
+                        placeholder="e.g. Annapurna Region Trekking Guide: Routes, Permits & Best Seasons"
+                        value={form.metaTitle}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            metaTitle: e.target.value,
+                          }))
+                        }
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#f05e25] focus:outline-none focus:ring-2 focus:ring-[#f05e25]/15"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+                          Meta Description (120–165 chars)
+                        </label>
+                        <span className="font-mono text-[11px] text-slate-500 tabular-nums">
+                          {form.metaDescription.trim().length} / 165
+                        </span>
+                      </div>
+                      <textarea
+                        rows={2}
+                        maxLength={320}
+                        placeholder="Compelling search result summary highlighting routes, altitudes, acclimatization, and local Sherpa expertise..."
+                        value={form.metaDescription}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            metaDescription: e.target.value,
+                          }))
+                        }
+                        className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#f05e25] focus:outline-none focus:ring-2 focus:ring-[#f05e25]/15"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 items-center">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Sort Order
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={9999}
+                        value={form.sortOrder}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            sortOrder: e.target.value,
+                          }))
+                        }
+                        className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 font-mono text-sm text-[#1c1917] focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
+                      />
+                    </div>
+
+                    <label className="flex items-center gap-2 pt-5 text-sm font-medium text-[#1c1917] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={form.isActive}
+                        onChange={(e) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            isActive: e.target.checked,
+                          }))
+                        }
+                        className="h-4 w-4 accent-[#3f6e15]"
+                      />
+                      <span>Active on site</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Live SEO Score Meter */}
+                <RegionSeoScoreMeter
+                  name={form.name}
+                  slug={form.slug}
+                  focusKeyword={form.focusKeyword}
+                  metaTitle={form.metaTitle}
+                  metaDescription={form.metaDescription}
+                  seoContent={form.seoContent}
+                />
+              </div>
+
+              {/* Full-Width Google Docs-Style Content Editor */}
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-700">
+                    <span className="h-2 w-2 rounded-full bg-[#f05e25]" />
+                    <span>Region Guide Content (Displayed Below Trip Cards)</span>
+                  </label>
+                  <span className="text-xs text-slate-500">
+                    Rich text, headings (H2/H3), links, images &amp; tables
+                  </span>
+                </div>
+
+                <GoogleDocsEditor
+                  value={form.seoContent}
+                  onChange={(html) =>
+                    setForm((prev) => ({ ...prev, seoContent: html }))
+                  }
+                  disabled={!canWrite}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                {form.id && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f05e25] hover:bg-[#d94e18] px-6 py-3 text-sm font-semibold text-white disabled:opacity-60 cursor-pointer transition-colors shadow-xs"
+                >
+                  {form.id ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  <span>
+                    {saving
+                      ? "Saving..."
+                      : form.id
+                      ? "Save Region & SEO Content"
+                      : "Create Region"}
+                  </span>
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
                   Display Name
@@ -467,7 +780,7 @@ export default function AdminTaxonomyClient({
                       slug: slugTouched ? prev.slug : slugifyClient(name),
                     }));
                   }}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
                 />
               </div>
 
@@ -487,7 +800,7 @@ export default function AdminTaxonomyClient({
                       slug: slugifyClient(e.target.value),
                     }));
                   }}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono text-xs text-[#104b87] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono text-xs text-[#3f6e15] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
                 />
               </div>
 
@@ -502,7 +815,7 @@ export default function AdminTaxonomyClient({
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, blurb: e.target.value }))
                   }
-                  className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+                  className="w-full resize-none rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
                 />
               </div>
 
@@ -517,7 +830,7 @@ export default function AdminTaxonomyClient({
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, heroImage: e.target.value }))
                   }
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono text-xs text-[#1c1917] focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono text-xs text-[#1c1917] focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
                 />
                 <select
                   aria-label="Quick image preset"
@@ -531,7 +844,7 @@ export default function AdminTaxonomyClient({
                       setForm((prev) => ({ ...prev, heroImage: e.target.value }));
                     }
                   }}
-                  className="mt-2 w-full rounded-xl border border-slate-200 bg-[#f8fafc] px-3 py-2 text-xs text-[#1c1917] focus:border-[#104b87] focus:outline-none"
+                  className="mt-2 w-full rounded-xl border border-slate-200 bg-[#f8fafc] px-3 py-2 text-xs text-[#1c1917] focus:border-[#3f6e15] focus:outline-none"
                 >
                   <option value="">Choose local image preset...</option>
                   {HERO_IMAGE_PRESETS.map((preset) => (
@@ -555,7 +868,7 @@ export default function AdminTaxonomyClient({
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, sortOrder: e.target.value }))
                     }
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 font-mono text-sm text-[#1c1917] focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 font-mono text-sm text-[#1c1917] focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
                   />
                 </div>
 
@@ -569,7 +882,7 @@ export default function AdminTaxonomyClient({
                         isActive: e.target.checked,
                       }))
                     }
-                    className="h-4 w-4 accent-[#104b87]"
+                    className="h-4 w-4 accent-[#3f6e15]"
                   />
                   <span>Active on site</span>
                 </label>
@@ -586,7 +899,7 @@ export default function AdminTaxonomyClient({
                         groupByRegion: e.target.checked,
                       }))
                     }
-                    className="mt-1 h-4 w-4 accent-[#104b87]"
+                    className="mt-1 h-4 w-4 accent-[#3f6e15]"
                   />
                   <span>
                     <strong className="block text-sm font-semibold text-[#1c1917]">
@@ -643,6 +956,7 @@ export default function AdminTaxonomyClient({
                   <th className="pb-3 pr-4">{singularLabel}</th>
                   <th className="pb-3 pr-4">Slug</th>
                   {tab === "regions" && <th className="pb-3 pr-4">Country</th>}
+                  {tab === "regions" && <th className="pb-3 pr-4">SEO Score</th>}
                   {tab === "categories" && <th className="pb-3 pr-4">Layout</th>}
                   <th className="pb-3 pr-4">Order</th>
                   <th className="pb-3 pr-4">Usage</th>
@@ -674,7 +988,7 @@ export default function AdminTaxonomyClient({
                           </div>
                         </div>
                       </td>
-                      <td className="py-3.5 pr-4 font-mono text-xs text-[#104b87]">
+                      <td className="py-3.5 pr-4 font-mono text-xs text-[#3f6e15]">
                         {c.slug}
                       </td>
                       <td className="py-3.5 pr-4 font-medium text-[#57534d] tabular-nums">
@@ -705,7 +1019,7 @@ export default function AdminTaxonomyClient({
                             <button
                               type="button"
                               onClick={() => startEditCountry(c)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87] cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15] cursor-pointer"
                             >
                               <Edit3 className="h-3.5 w-3.5" />
                               <span>Edit</span>
@@ -749,7 +1063,7 @@ export default function AdminTaxonomyClient({
                           </div>
                         </div>
                       </td>
-                      <td className="py-3.5 pr-4 font-mono text-xs text-[#104b87]">
+                      <td className="py-3.5 pr-4 font-mono text-xs text-[#3f6e15]">
                         {cat.slug}
                       </td>
                       <td className="py-3.5 pr-4 text-xs font-medium text-[#57534d]">
@@ -787,7 +1101,7 @@ export default function AdminTaxonomyClient({
                             <button
                               type="button"
                               onClick={() => startEditCategory(cat)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87] cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15] cursor-pointer"
                             >
                               <Edit3 className="h-3.5 w-3.5" />
                               <span>Edit</span>
@@ -809,7 +1123,29 @@ export default function AdminTaxonomyClient({
                   ))}
 
                 {tab === "regions" &&
-                  regions.map((reg) => (
+                  regions.map((reg) => {
+                    const hasContent = Boolean(reg.seoContent?.trim());
+                    const seoAnalysis = hasContent
+                      ? analyzeRegionSeo({
+                          name: reg.name,
+                          slug: reg.slug,
+                          focusKeyword: reg.focusKeyword,
+                          metaTitle: reg.metaTitle,
+                          metaDescription: reg.metaDescription,
+                          htmlContent: reg.seoContent,
+                        })
+                      : null;
+                    const scoreColor = !seoAnalysis
+                      ? "border-slate-200 bg-slate-100 text-slate-500"
+                      : seoAnalysis.score >= 80
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : seoAnalysis.score >= 60
+                      ? "border-amber-200 bg-amber-50 text-amber-800"
+                      : seoAnalysis.score >= 35
+                      ? "border-orange-200 bg-orange-50 text-[#d94e18]"
+                      : "border-rose-200 bg-rose-50 text-rose-700";
+
+                    return (
                     <tr key={reg.id} className="hover:bg-slate-50/70">
                       <td className="py-3.5 pr-4">
                         <div className="flex items-center gap-3">
@@ -824,11 +1160,18 @@ export default function AdminTaxonomyClient({
                           </p>
                         </div>
                       </td>
-                      <td className="py-3.5 pr-4 font-mono text-xs text-[#104b87]">
+                      <td className="py-3.5 pr-4 font-mono text-xs text-[#3f6e15]">
                         {reg.slug}
                       </td>
                       <td className="py-3.5 pr-4 text-sm text-[#57534d]">
                         {reg.countryName}
+                      </td>
+                      <td className="py-3.5 pr-4 whitespace-nowrap">
+                        <span
+                          className={`inline-block rounded-full border px-2.5 py-0.5 text-[11px] font-semibold tabular-nums ${scoreColor}`}
+                        >
+                          {seoAnalysis ? `SEO ${seoAnalysis.score}/100` : "No SEO Content"}
+                        </span>
                       </td>
                       <td className="py-3.5 pr-4 font-medium text-[#57534d] tabular-nums">
                         {reg.sortOrder}
@@ -858,7 +1201,7 @@ export default function AdminTaxonomyClient({
                             <button
                               type="button"
                               onClick={() => startEditRegion(reg)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87] cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15] cursor-pointer"
                             >
                               <Edit3 className="h-3.5 w-3.5" />
                               <span>Edit</span>
@@ -877,7 +1220,8 @@ export default function AdminTaxonomyClient({
                         )}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
               </tbody>
             </table>
           </div>

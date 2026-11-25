@@ -54,7 +54,7 @@ function AdminResetForm() {
         </p>
         <Link
           href="/admin/forgot-password"
-          className="inline-block text-sm font-semibold text-[#104b87] hover:underline"
+          className="inline-block text-sm font-semibold text-[#3f6e15] hover:underline"
         >
           Request a New Reset Link
         </Link>
@@ -106,7 +106,7 @@ function AdminResetForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Minimum 12 characters"
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
         />
         <div className="pt-1 space-y-1">
           <div className="h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
@@ -140,7 +140,7 @@ function AdminResetForm() {
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
         />
       </div>
 
@@ -174,7 +174,7 @@ export default function AdminResetPasswordPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-lg">
           <Suspense
             fallback={
-              <div className="py-8 text-center text-sm font-medium text-[#104b87]">
+              <div className="py-8 text-center text-sm font-medium text-[#3f6e15]">
                 Validating token...
               </div>
             }

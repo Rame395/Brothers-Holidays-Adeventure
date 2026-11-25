@@ -43,17 +43,22 @@ export async function generateMetadata({
     };
   }
 
-  const title = `${region.name} Treks & Guided Routes in ${region.country.name} | ${settings.siteName}`;
+  const title =
+    region.metaTitle?.trim() ||
+    `${region.name} Treks & Guided Routes in ${region.country.name} | ${settings.siteName}`;
   const description =
+    region.metaDescription?.trim() ||
     region.blurb?.trim() ||
     `Discover acclimatization-first trekking itineraries, altitudes, permits, and Sherpa-guided departures across ${region.name}, ${region.country.name}.`;
   const canonical = absoluteUrl(`/destinations/region/${region.slug}`);
   const ogImage = absoluteUrl(region.heroImage || settings.defaultOgImage);
+  const focusKw = region.focusKeyword?.trim();
 
   return {
     title: { absolute: title },
     description,
     keywords: [
+      ...(focusKw ? [focusKw] : []),
       `${region.name} trek`,
       `${region.name} trekking`,
       `${region.country.name} trekking`,
@@ -143,6 +148,7 @@ async function RegionLandingContent({
         trips={trips}
         siblingTitle={`Trekking Regions in ${region.country.name}`}
         siblings={siblings}
+        seoContent={region.seoContent}
       />
     </>
   );
@@ -156,7 +162,7 @@ export default function RegionLandingPage({
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-mono text-sm text-[#104b87]">
+        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-mono text-sm text-[#3f6e15]">
           Loading Regional Routes…
         </div>
       }

@@ -83,6 +83,27 @@ export function BrothersMark({ className }: { className?: string }) {
 }
 export const KharkaMark = BrothersMark;
 
+const NAV_LINKS: Array<{
+  href: string;
+  label: string;
+  match: (pathname: string) => boolean;
+}> = [
+  {
+    href: "/destinations?view=all",
+    label: "All Trips",
+    match: (p) => p === "/destinations",
+  },
+  { href: "/treks", label: "Treks", match: (p) => p.startsWith("/treks") },
+  {
+    href: "/expeditions",
+    label: "Expeditions",
+    match: (p) => p.startsWith("/expeditions"),
+  },
+  { href: "/journal", label: "Journal", match: (p) => p.startsWith("/journal") },
+  { href: "/guides", label: "Guides", match: (p) => p.startsWith("/guides") },
+  { href: "/about", label: "About", match: (p) => p === "/about" },
+];
+
 export function MegaPanel({
   activeCountry,
   activeCategory,
@@ -297,6 +318,7 @@ export function Nav({
   const [hoverImg, setHoverImg] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [customerName, setCustomerName] = useState<string | null>(null);
   const closeTimer = useRef<number | null>(null);
   const pathname = usePathname();
@@ -309,14 +331,37 @@ export function Nav({
     pathname.startsWith("/destinations/region/");
   const isSolid = !hasDarkHero || scrolled || megaOpen || open;
 
+  const desktopLinkClass = (active: boolean) =>
+    `relative whitespace-nowrap rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.12em] transition-all duration-200 ${
+      active
+        ? isSolid
+          ? "bg-white text-[#3f6e15] shadow-sm ring-1 ring-stone-200"
+          : "bg-white/25 text-white"
+        : isSolid
+        ? "text-[#1c1917]/80 hover:bg-white hover:text-[#3f6e15]"
+        : "text-white/90 hover:bg-white/15 hover:text-white"
+    }`;
+
   useEffect(() => {
+    let raf = 0;
     const onScroll = () => {
-      const next = window.scrollY > 40;
-      setScrolled((prev) => (prev === next ? prev : next));
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        const y = window.scrollY;
+        const next = y > 40;
+        setScrolled((prev) => (prev === next ? prev : next));
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = max > 0 ? Math.min(100, Math.max(0, (y / max) * 100)) : 0;
+        setScrollProgress(Math.round(pct * 2) / 2);
+      });
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
   }, []);
 
   useEffect(() => {
@@ -404,13 +449,31 @@ export function Nav({
     <header
       className={`fixed inset-x-0 top-0 z-50 w-full transition-all duration-300 ${
         isSolid
-          ? "bg-white/95 backdrop-blur-md border-b border-stone-200/80 shadow-[0_4px_24px_rgba(28,25,23,0.06)]"
-          : "bg-gradient-to-b from-black/45 via-black/15 to-transparent border-b border-transparent"
+          ? "bg-white/90 backdrop-blur-xl border-b border-stone-200/70 shadow-[0_8px_30px_-14px_rgba(28,25,23,0.18)]"
+          : "bg-gradient-to-b from-black/55 via-black/20 to-transparent border-b border-transparent"
       }`}
       onMouseLeave={scheduleCloseMega}
     >
+      {/* Scroll progress line */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]"
+      >
+        <div
+          className="h-full bg-gradient-to-r from-[#3f6e15] via-[#8bc34a] to-[#f05e25] transition-[width,opacity] duration-150"
+          style={{
+            width: `${scrollProgress}%`,
+            opacity: scrolled && !megaOpen && !open ? 1 : 0,
+          }}
+        />
+      </div>
+
       <div className="max-w-7xl mx-auto relative">
-        <nav className="w-full px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+        <nav
+          className={`w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 transition-all duration-300 ${
+            scrolled || !hasDarkHero ? "py-2.5" : "py-3.5 sm:py-4"
+          }`}
+        >
           {/* Left: Brand Logo */}
           <Link
             href="/"
@@ -426,24 +489,30 @@ export function Nav({
             <img
               src="/images/brothers_logo_navbar.png"
               alt="BROTHERS Holidays Adventure"
-              className={`h-7 sm:h-9 w-auto max-w-[140px] sm:max-w-[165px] object-contain transition-all duration-300 ${
-                isSolid ? "brightness-0" : ""
+              className={`h-9 sm:h-11 w-auto max-w-[150px] sm:max-w-[190px] object-contain transition-all duration-300 group-hover:scale-[1.03] ${
+                isSolid ? "brightness-0" : "drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]"
               }`}
             />
           </Link>
 
-          {/* Center / Main Desktop Links */}
-          <div className="hidden lg:flex items-center gap-5 xl:gap-6">
+          {/* Center: Pill Navigation */}
+          <div
+            className={`hidden lg:flex items-center gap-1 rounded-full border p-1 transition-colors duration-300 ${
+              isSolid
+                ? "bg-stone-100/80 border-stone-200/80"
+                : "bg-white/10 border-white/20 backdrop-blur-md"
+            }`}
+          >
             <button
               type="button"
               onMouseEnter={openMega}
               onFocus={openMega}
               onClick={() => setMegaOpen((v) => !v)}
               aria-expanded={megaOpen}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[8px] text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[11.5px] font-bold uppercase tracking-[0.12em] text-white shadow-sm transition-all cursor-pointer ${
                 megaOpen
-                  ? "bg-[#ff7a45] text-white"
-                  : "bg-[#f05e25] hover:bg-[#ff7a45] text-white"
+                  ? "bg-[#d94e18]"
+                  : "bg-[#f05e25] hover:bg-[#d94e18]"
               }`}
             >
               <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -455,92 +524,57 @@ export function Nav({
               />
             </button>
 
-            <Link
-              href="/destinations"
-              onMouseEnter={scheduleCloseMega}
-              className={`text-xs font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
-                isSolid
-                  ? "text-[#1c1917]/85 hover:text-[#f05e25]"
-                  : "text-white/95 hover:text-[#ff8a50] drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
-              }`}
-            >
-              All Trips
-            </Link>
-            <Link
-              href="/treks"
-              onMouseEnter={scheduleCloseMega}
-              className={`text-xs font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
-                isSolid
-                  ? "text-[#1c1917]/85 hover:text-[#f05e25]"
-                  : "text-white/95 hover:text-[#ff8a50] drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
-              }`}
-            >
-              Treks
-            </Link>
-            <Link
-              href="/expeditions"
-              onMouseEnter={scheduleCloseMega}
-              className={`text-xs font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
-                isSolid
-                  ? "text-[#1c1917]/85 hover:text-[#f05e25]"
-                  : "text-white/95 hover:text-[#ff8a50] drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
-              }`}
-            >
-              Expeditions
-            </Link>
-            <Link
-              href="/journal"
-              onMouseEnter={scheduleCloseMega}
-              className={`text-xs font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
-                isSolid
-                  ? "text-[#1c1917]/85 hover:text-[#f05e25]"
-                  : "text-white/95 hover:text-[#ff8a50] drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
-              }`}
-            >
-              Journal
-            </Link>
-            <Link
-              href="/#who-we-are"
-              onMouseEnter={scheduleCloseMega}
-              className={`text-xs font-medium uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
-                isSolid
-                  ? "text-[#1c1917]/85 hover:text-[#f05e25]"
-                  : "text-white/95 hover:text-[#ff8a50] drop-shadow-[0_1px_6px_rgba(0,0,0,0.45)]"
-              }`}
-            >
-              About
-            </Link>
+            {NAV_LINKS.map((link) => {
+              const active = link.match(pathname);
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  onMouseEnter={scheduleCloseMega}
+                  aria-current={active ? "page" : undefined}
+                  className={desktopLinkClass(active)}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Right Desktop Actions */}
-          <div className="hidden lg:flex items-center gap-3 shrink-0">
+          <div className="hidden lg:flex items-center gap-2.5 shrink-0">
             <Link
               href="/contact"
               onMouseEnter={scheduleCloseMega}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[8px] border text-xs font-semibold uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
-                isSolid
-                  ? "border-[#f05e25]/70 hover:border-[#f05e25] bg-[#f05e25]/10 hover:bg-[#f05e25] text-[#f05e25] hover:text-white"
-                  : "border-white/40 hover:border-[#f05e25] bg-white/10 hover:bg-[#f05e25] text-white backdrop-blur-xs"
-              }`}
+              className="group inline-flex items-center gap-1.5 rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-4 py-2 text-[11.5px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_6px_16px_-6px_rgba(240,94,37,0.7)] transition-all hover:-translate-y-0.5 whitespace-nowrap"
             >
-              <Send className="w-3 h-3" />
+              <Send className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               <span>Contact</span>
             </Link>
 
             <Link
               href={customerName ? "/account" : "/login"}
               onMouseEnter={scheduleCloseMega}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[8px] border text-xs font-medium tracking-wide transition-colors whitespace-nowrap ${
+              className={`inline-flex items-center gap-2 rounded-full border pl-1.5 pr-3.5 py-1 text-xs font-semibold transition-all whitespace-nowrap ${
                 isSolid
-                  ? "border-stone-200 hover:border-stone-300 bg-stone-50 hover:bg-stone-100 text-[#1c1917]"
-                  : "border-white/25 hover:border-white/50 bg-white/10 hover:bg-white/20 text-white backdrop-blur-xs"
+                  ? "border-stone-200 bg-white hover:border-[#3f6e15]/40 text-[#1c1917]"
+                  : "border-white/30 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md"
               }`}
             >
-              <User
-                className={`w-3.5 h-3.5 shrink-0 ${
-                  isSolid ? "text-[#f05e25]" : "text-white"
+              <span
+                className={`grid h-7 w-7 place-items-center rounded-full text-[11px] font-bold ${
+                  customerName
+                    ? "bg-[#3f6e15] text-white"
+                    : isSolid
+                    ? "bg-[#3f6e15]/10 text-[#3f6e15]"
+                    : "bg-white/20 text-white"
                 }`}
-              />
+              >
+                {customerName ? (
+                  customerName.charAt(0).toUpperCase()
+                ) : (
+                  <User className="h-3.5 w-3.5" />
+                )}
+              </span>
               <span>{customerName ?? "Sign In"}</span>
             </Link>
           </div>
@@ -549,21 +583,17 @@ export function Nav({
           <div className="flex lg:hidden items-center gap-2.5">
             <Link
               href="/contact"
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-[6px] border text-[11px] font-semibold uppercase tracking-wider transition-colors ${
-                isSolid
-                  ? "border-[#f05e25]/70 bg-[#f05e25]/10 text-[#f05e25]"
-                  : "border-white/40 bg-white/10 text-white backdrop-blur-xs"
-              }`}
+              className="flex items-center gap-1.5 rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm transition-colors"
             >
               <span>Contact</span>
             </Link>
 
             <button
               type="button"
-              className={`w-8 h-8 rounded-[8px] border flex items-center justify-center cursor-pointer transition-colors ${
+              className={`w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition-colors ${
                 isSolid
-                  ? "bg-stone-100 border-stone-200 text-[#1c1917] hover:border-stone-300"
-                  : "bg-white/10 border-white/25 text-white hover:border-white/50 backdrop-blur-xs"
+                  ? "bg-white border-stone-200 text-[#1c1917] hover:border-[#3f6e15]/40"
+                  : "bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-md"
               }`}
               onClick={() => setOpen((v) => !v)}
               aria-label={open ? "Close navigation menu" : "Open navigation menu"}
@@ -587,10 +617,14 @@ export function Nav({
           aria-hidden={!megaOpen}
           className={
             megaOpen
-              ? "hidden lg:block mx-4 sm:mx-6 lg:mx-8 mt-0 rounded-b-2xl border border-t-0 border-stone-200 bg-white shadow-2xl overflow-hidden"
+              ? "hidden lg:block mx-4 sm:mx-6 lg:mx-8 mt-1 rounded-2xl border border-stone-200/80 bg-white shadow-[0_24px_60px_-20px_rgba(28,25,23,0.3)] overflow-hidden"
               : "hidden"
           }
         >
+          <div
+            aria-hidden="true"
+            className="h-[3px] w-full bg-gradient-to-r from-[#3f6e15] via-[#f05e25] to-[#3f6e15]"
+          />
           <div className="grid grid-cols-[155px_195px_1fr] xl:grid-cols-[155px_195px_1fr_210px] gap-6 p-6 xl:p-7">
             {/* Column 1: Countries */}
             <div className="border-r border-stone-200 pr-4 space-y-1">
@@ -618,7 +652,7 @@ export function Nav({
                     }}
                     className={`flex w-full items-center justify-between rounded-[8px] px-2.5 py-2 text-left text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
                       isSelected
-                        ? "bg-[#1c1917] text-white"
+                        ? "bg-[#3f6e15] text-white shadow-sm"
                         : "text-stone-700 hover:bg-stone-100 hover:text-[#1c1917]"
                     }`}
                   >
@@ -698,6 +732,31 @@ export function Nav({
               </div>
             </div>
           </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200/80 bg-[#faf9f7] px-6 xl:px-7 py-3">
+            <p className="text-xs text-[#57534d]">
+              Can&apos;t find your route? Our Kathmandu team builds private
+              departures on request.
+            </p>
+            <div className="flex items-center gap-4">
+              <Link
+                href="/destinations?view=all"
+                onClick={() => setMegaOpen(false)}
+                className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#3f6e15] hover:text-[#f05e25] transition-colors"
+              >
+                <span>Browse All Trips</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+              <Link
+                href="/contact"
+                onClick={() => setMegaOpen(false)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white transition-colors"
+              >
+                <Send className="h-3 w-3" />
+                <span>Plan a Custom Trip</span>
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Mobile Drawer */}
@@ -763,42 +822,30 @@ export function Nav({
               );
             })}
 
-            <div className="mt-4 pt-2 space-y-1.5">
-              <Link
-                href="/destinations"
-                onClick={() => setOpen(false)}
-                className="block py-2 text-sm text-[#1c1917] font-medium hover:text-[#f05e25]"
-              >
-                All Trips
-              </Link>
-              <Link
-                href="/treks"
-                onClick={() => setOpen(false)}
-                className="block py-2 text-sm text-[#1c1917] font-medium hover:text-[#f05e25]"
-              >
-                Treks
-              </Link>
-              <Link
-                href="/expeditions"
-                onClick={() => setOpen(false)}
-                className="block py-2 text-sm text-[#1c1917] font-medium hover:text-[#f05e25]"
-              >
-                Expeditions
-              </Link>
-              <Link
-                href="/journal"
-                onClick={() => setOpen(false)}
-                className="block py-2 text-sm text-[#1c1917] font-medium hover:text-[#f05e25]"
-              >
-                Journal
-              </Link>
-              <Link
-                href="/#who-we-are"
-                onClick={() => setOpen(false)}
-                className="block py-2 text-sm text-[#1c1917] font-medium hover:text-[#f05e25]"
-              >
-                About
-              </Link>
+            <div className="mt-4 pt-2 space-y-1">
+              {NAV_LINKS.map((link) => {
+                const active = link.match(pathname);
+                return (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm transition-colors ${
+                      active
+                        ? "bg-[#3f6e15]/10 text-[#3f6e15] font-semibold"
+                        : "text-[#1c1917] font-medium hover:bg-stone-100 hover:text-[#3f6e15]"
+                    }`}
+                  >
+                    <span>{link.label}</span>
+                    <ChevronRight
+                      className={`h-4 w-4 ${
+                        active ? "text-[#3f6e15]" : "text-stone-300"
+                      }`}
+                    />
+                  </Link>
+                );
+              })}
               <div className="pt-2 space-y-2.5">
                 <Link
                   href="/contact"

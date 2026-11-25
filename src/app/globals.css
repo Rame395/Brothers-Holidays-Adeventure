@@ -6,19 +6,19 @@
   --color-tertiary-fixed: #ffedd5;
   --color-surface-container-low: #f8fafc;
   --color-tertiary-container: #c2410c;
-  --color-primary-fixed: #dbeafe;
+  --color-primary-fixed: #e9f5dc;
   --color-surface-variant: #e4e8ec;
   --color-secondary-container: #e4e8ec;
   --color-on-surface: #1c1917;
   --color-error-container: #ffdad6;
   --color-outline: #64748b;
   --color-surface-container-highest: #dce3ea;
-  --color-on-primary-fixed-variant: #104b87;
+  --color-on-primary-fixed-variant: #3f6e15;
   --color-surface-container-lowest: #ffffff;
-  --color-primary: #104b87;
-  --color-primary-light: #2c6fb0;
-  --color-primary-dark: #0a355f;
-  --color-primary-muted: #104b8726;
+  --color-primary: #3f6e15;
+  --color-primary-light: #558b1f;
+  --color-primary-dark: #315710;
+  --color-primary-muted: #3f6e1526;
   --color-on-tertiary: #ffffff;
   --color-on-surface-variant: #57534d;
   --color-outline-variant: #e2e8f0;
@@ -26,13 +26,13 @@
   --color-inverse-on-surface: #f8fafc;
   --color-surface-container: #f1f5f9;
   --color-on-tertiary-fixed-variant: #9a3412;
-  --color-surface-tint: #104b87;
+  --color-surface-tint: #3f6e15;
   --color-secondary-fixed-dim: #c8d0d8;
-  --color-primary-container: #0a355f;
+  --color-primary-container: #315710;
   --color-on-secondary-container: #334155;
-  --color-on-primary-fixed: #071e38;
+  --color-on-primary-fixed: #1b3209;
   --color-on-secondary-fixed-variant: #334155;
-  --color-primary-fixed-dim: #93c5fd;
+  --color-primary-fixed-dim: #a3cf75;
   --color-accent: #f05e25;
   --color-accent-hover: #d94e18;
   --color-accent-soft: #ff7a45;
@@ -46,11 +46,11 @@
   --color-on-tertiary-fixed: #431407;
   --color-tertiary-fixed-dim: #fdba74;
   --color-inverse-surface: #071526;
-  --color-on-primary-container: #dbeafe;
+  --color-on-primary-container: #e9f5dc;
   --color-on-secondary: #ffffff;
   --color-on-error-container: #93000a;
   --color-surface-container-high: #e4e8ec;
-  --color-inverse-primary: #60a5fa;
+  --color-inverse-primary: #8bc34a;
   --color-background: #ffffff;
   --color-error: #ba1a1a;
   --color-on-primary: #ffffff;
@@ -257,7 +257,8 @@
   .animate-scroll-line,
   .animate-cloud-drift-left,
   .animate-cloud-drift-right,
-  .animate-mountain-breathe {
+  .animate-mountain-breathe,
+  .animate-ken-burns {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
@@ -325,6 +326,16 @@
   50% { transform: scale(1.06) translateY(-10px); }
 }
 
+@keyframes kenBurnsSlow {
+  0% { transform: scale(1.02); }
+  100% { transform: scale(1.14); }
+}
+
+.animate-ken-burns {
+  animation: kenBurnsSlow 14s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
 .animate-cloud-drift-left {
   animation: cloudDriftLeft 18s linear infinite;
   will-change: transform;
@@ -350,4 +361,134 @@
   background-color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+/* ────────── Region SEO Article / Docs Canvas Typography ────────── */
+.region-seo-prose {
+  color: #44403c;
+  font-size: 0.975rem;
+  line-height: 1.8;
+}
+
+.region-seo-prose > * + * {
+  margin-top: 1rem;
+}
+
+.region-seo-prose h1,
+.region-seo-prose h2,
+.region-seo-prose h3,
+.region-seo-prose h4 {
+  color: #1c1917;
+  font-family: var(--font-heading), "Oswald", sans-serif;
+  letter-spacing: 0.015em;
+  line-height: 1.25;
+}
+
+.region-seo-prose h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.65rem;
+  font-weight: 700;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.region-seo-prose h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.28rem;
+  font-weight: 600;
+  color: #3f6e15;
+}
+
+.region-seo-prose h4 {
+  margin-top: 1.2rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.region-seo-prose p {
+  margin-bottom: 0.85rem;
+}
+
+.region-seo-prose ul,
+.region-seo-prose ol {
+  margin: 0.85rem 0;
+  padding-left: 1.5rem;
+}
+
+.region-seo-prose ul {
+  list-style-type: disc;
+}
+
+.region-seo-prose ol {
+  list-style-type: decimal;
+}
+
+.region-seo-prose li {
+  margin-top: 0.35rem;
+}
+
+.region-seo-prose a {
+  color: #f05e25;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.region-seo-prose a:hover {
+  color: #d94e18;
+}
+
+.region-seo-prose blockquote {
+  margin: 1.25rem 0;
+  border-left: 4px solid #f05e25;
+  background-color: #faf9f7;
+  padding: 0.9rem 1.2rem;
+  border-radius: 0 0.75rem 0.75rem 0;
+  color: #1c1917;
+  font-style: italic;
+}
+
+.region-seo-prose hr {
+  margin: 1.75rem 0;
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.region-seo-prose figure,
+.region-seo-prose img {
+  margin: 1.25rem auto;
+  max-width: 100%;
+  border-radius: 0.85rem;
+}
+
+.region-seo-prose figcaption {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  color: #64748b;
+  text-align: center;
+}
+
+.region-seo-prose table {
+  width: 100%;
+  margin: 1.25rem 0;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+}
+
+.region-seo-prose th,
+.region-seo-prose td {
+  border: 1px solid #e2e8f0;
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+}
+
+.region-seo-prose th {
+  background-color: #f8fafc;
+  color: #1c1917;
+  font-weight: 600;
 }

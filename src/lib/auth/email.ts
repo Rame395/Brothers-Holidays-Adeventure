@@ -170,6 +170,32 @@ export async function sendSecurityAlertEmail(params: {
   });
 }
 
+export async function sendAdminLoginOtpEmail(params: {
+  to: string;
+  name: string;
+  code: string;
+}): Promise<void> {
+  const safeCode = escapeHtml(params.code);
+  const subject = `Your Admin Sign-In Code: ${params.code} — BROTHERS Holidays Adventure`;
+  const text = `Hello ${params.name},\n\nYour 6-digit Admin Portal verification code is: ${params.code}\n\nThis code expires in 10 minutes. If you did not try to sign in, ignore this email and change your password immediately.`;
+  const html = wrapEmailHtml(
+    "Admin Portal Verification Code",
+    `<p>Hello ${escapeHtml(params.name)},</p>
+     <p>Enter this 6-digit verification code to complete your sign-in to the BROTHERS Holidays Admin Portal:</p>
+     <div style="margin:24px 0; padding:18px 24px; background:#071317; border:1px solid #f05e2566; border-radius:10px; text-align:center;">
+       <span style="font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:28px; font-weight:700; letter-spacing:8px; color:#ffffff;">${safeCode}</span>
+     </div>
+     <p style="font-size:12px; color:#9bb0b5;">This single-use code expires in 10 minutes. If you did not initiate this login, secure your account immediately.</p>`
+  );
+
+  await sendEmailMessage({
+    to: params.to,
+    subject,
+    html,
+    text,
+  });
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, "&amp;")

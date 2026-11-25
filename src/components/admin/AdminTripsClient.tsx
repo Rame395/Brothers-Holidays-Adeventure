@@ -242,16 +242,16 @@ export default function AdminTripsClient({
         <>
           <Link
             href="/admin/taxonomy"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87] transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15] transition-colors"
           >
-            <Globe2 className="h-4 w-4 text-[#104b87]" />
+            <Globe2 className="h-4 w-4 text-[#3f6e15]" />
             <span>Countries &amp; Regions</span>
           </Link>
           <Link
             href="/admin/categories"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87] transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15] transition-colors"
           >
-            <Layers className="h-4 w-4 text-[#104b87]" />
+            <Layers className="h-4 w-4 text-[#3f6e15]" />
             <span>Categories</span>
           </Link>
           {canWrite && (
@@ -275,7 +275,7 @@ export default function AdminTripsClient({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search trip name, slug, or area..."
-            className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+            className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
           />
         </label>
 
@@ -283,7 +283,7 @@ export default function AdminTripsClient({
           aria-label="Filter by country"
           value={countryFilter}
           onChange={(e) => setCountryFilter(e.target.value)}
-          className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] focus:border-[#104b87] focus:outline-none"
+          className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] focus:border-[#3f6e15] focus:outline-none"
         >
           <option value="all">All Countries ({trips.length})</option>
           {countries.map((c) => (
@@ -297,7 +297,7 @@ export default function AdminTripsClient({
           aria-label="Filter by category"
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] focus:border-[#104b87] focus:outline-none"
+          className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] focus:border-[#3f6e15] focus:outline-none"
         >
           <option value="all">All Categories</option>
           {categories.map((cat) => (
@@ -313,7 +313,7 @@ export default function AdminTripsClient({
           onChange={(e) =>
             setStatusFilter(e.target.value as "all" | "published" | "draft")
           }
-          className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] focus:border-[#104b87] focus:outline-none"
+          className="rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] focus:border-[#3f6e15] focus:outline-none"
         >
           <option value="all">All Statuses</option>
           <option value="published">Published Only</option>
@@ -334,7 +334,7 @@ export default function AdminTripsClient({
             {statusMsg.editId && (
               <Link
                 href={`/admin/trips/${statusMsg.editId}`}
-                className="font-semibold text-[#104b87] underline hover:text-[#f05e25]"
+                className="font-semibold text-[#3f6e15] underline hover:text-[#f05e25]"
               >
                 Edit Copy →
               </Link>
@@ -380,14 +380,14 @@ export default function AdminTripsClient({
                       <div className="min-w-0">
                         <Link
                           href={`/admin/trips/${t.id}`}
-                          className="font-semibold text-[#1c1917] hover:text-[#104b87] truncate max-w-[230px] block"
+                          className="font-semibold text-[#1c1917] hover:text-[#3f6e15] truncate max-w-[230px] block"
                         >
                           {t.name}
                         </Link>
                         <Link
                           href={`/destinations/${t.slug}`}
                           target="_blank"
-                          className="inline-flex items-center gap-1 font-mono text-xs text-[#104b87] hover:underline"
+                          className="inline-flex items-center gap-1 font-mono text-xs text-[#3f6e15] hover:underline"
                         >
                           <span>/{t.slug}</span>
                           <ArrowUpRight className="h-3 w-3" />
@@ -411,7 +411,7 @@ export default function AdminTripsClient({
                         t.categories.map((catSlug) => (
                           <span
                             key={catSlug}
-                            className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-[#104b87] whitespace-nowrap"
+                            className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-[#3f6e15] whitespace-nowrap"
                           >
                             {categoryNameMap.get(catSlug) ?? catSlug}
                           </span>
@@ -432,7 +432,7 @@ export default function AdminTripsClient({
                       {t._count.reviews ?? 0} reviews
                     </span>
                   </td>
-                  <td className="py-3.5 pr-4 font-semibold text-[#104b87] tabular-nums whitespace-nowrap">
+                  <td className="py-3.5 pr-4 font-semibold text-[#3f6e15] tabular-nums whitespace-nowrap">
                     {formatPriceUsd(t.price)}
                   </td>
                   <td className="py-3.5 pr-4">
@@ -472,7 +472,7 @@ export default function AdminTripsClient({
                     <div className="inline-flex items-center gap-1.5">
                       <Link
                         href={`/admin/trips/${t.id}`}
-                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87]"
+                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15]"
                       >
                         <Edit3 className="h-3.5 w-3.5" />
                         <span>{canWrite ? "Edit" : "View"}</span>
@@ -484,7 +484,7 @@ export default function AdminTripsClient({
                             disabled={busyId === t.id}
                             onClick={() => void handleDuplicateTrip(t.id, t.name)}
                             title="Duplicate trip as draft"
-                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-[#104b87] hover:border-[#104b87] cursor-pointer disabled:opacity-50"
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-[#3f6e15] hover:border-[#3f6e15] cursor-pointer disabled:opacity-50"
                           >
                             <Copy className="h-3.5 w-3.5" />
                           </button>

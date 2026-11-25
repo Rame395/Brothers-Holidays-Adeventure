@@ -75,13 +75,8 @@ export async function requireAdmin(options?: {
   }
 
   const admin = session.adminUser;
-  if (!options?.allowPendingMfa) {
-    if (!admin.mfaEnabled && admin.mfaRequired) {
-      redirect("/admin/mfa-setup");
-    }
-    if (!session.mfaVerified) {
-      redirect("/admin/mfa-verify");
-    }
+  if (!options?.allowPendingMfa && !session.mfaVerified) {
+    redirect("/admin/mfa-verify");
   }
 
   if (options?.roles && !options.roles.includes(admin.role)) {
@@ -147,33 +142,18 @@ export async function requireAdminApi(
   }
 
   const admin = session.adminUser;
-  if (!options?.allowPendingMfa) {
-    if (!admin.mfaEnabled && admin.mfaRequired) {
-      return {
-        ok: false as const,
-        response: NextResponse.json(
-          {
-            ok: false,
-            error: "Two-factor authentication enrollment required",
-            nextStep: "mfa_setup",
-          },
-          { status: 403 }
-        ),
-      };
-    }
-    if (!session.mfaVerified) {
-      return {
-        ok: false as const,
-        response: NextResponse.json(
-          {
-            ok: false,
-            error: "Two-factor verification required",
-            nextStep: "mfa_verify",
-          },
-          { status: 403 }
-        ),
-      };
-    }
+  if (!options?.allowPendingMfa && !session.mfaVerified) {
+    return {
+      ok: false as const,
+      response: NextResponse.json(
+        {
+          ok: false,
+          error: "Email verification required",
+          nextStep: "mfa_verify",
+        },
+        { status: 403 }
+      ),
+    };
   }
 
   if (options?.roles && !options.roles.includes(admin.role)) {

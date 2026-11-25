@@ -32,6 +32,10 @@ export interface DestinationRegionDTO {
   countrySlug: string;
   blurb: string;
   heroImage: string;
+  seoContent?: string;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  focusKeyword?: string | null;
   sortOrder: number;
   isActive: boolean;
 }

@@ -3,6 +3,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { requireAdminApi } from "@/lib/auth/guards";
 import { revalidatePublicCatalog, slugify } from "@/lib/admin-cache";
+import { sanitizeRichHtml } from "@/lib/html-sanitize";
 
 const regionPatchSchema = z.object({
   name: z.string().trim().min(2).max(100).optional(),
@@ -10,6 +11,10 @@ const regionPatchSchema = z.object({
   slug: z.string().trim().max(96).optional(),
   blurb: z.string().trim().max(500).optional(),
   heroImage: z.string().trim().min(1).max(300).optional(),
+  seoContent: z.string().max(150000).optional(),
+  metaTitle: z.string().trim().max(160).optional().nullable(),
+  metaDescription: z.string().trim().max(320).optional().nullable(),
+  focusKeyword: z.string().trim().max(100).optional().nullable(),
   sortOrder: z.coerce.number().int().min(0).max(9999).optional(),
   isActive: z.boolean().optional(),
 });
@@ -91,6 +96,18 @@ export async function PATCH(
             : {}),
           ...(d.blurb !== undefined ? { blurb: d.blurb } : {}),
           ...(d.heroImage !== undefined ? { heroImage: d.heroImage } : {}),
+          ...(d.seoContent !== undefined
+            ? { seoContent: sanitizeRichHtml(d.seoContent) }
+            : {}),
+          ...(d.metaTitle !== undefined
+            ? { metaTitle: d.metaTitle?.trim() || null }
+            : {}),
+          ...(d.metaDescription !== undefined
+            ? { metaDescription: d.metaDescription?.trim() || null }
+            : {}),
+          ...(d.focusKeyword !== undefined
+            ? { focusKeyword: d.focusKeyword?.trim() || null }
+            : {}),
           ...(d.sortOrder !== undefined ? { sortOrder: d.sortOrder } : {}),
           ...(d.isActive !== undefined ? { isActive: d.isActive } : {}),
         },

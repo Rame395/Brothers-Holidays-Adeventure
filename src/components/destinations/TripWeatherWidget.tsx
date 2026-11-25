@@ -47,24 +47,24 @@ function WeatherConditionIcon({
     return <Sun className={`${className} text-[#f05e25]`} />;
   }
   if (code <= 2) {
-    return <CloudSun className={`${className} text-[#104b87]`} />;
+    return <CloudSun className={`${className} text-[#3f6e15]`} />;
   }
   if (code === 3) {
-    return <Cloud className={`${className} text-[#104b87]`} />;
+    return <Cloud className={`${className} text-[#3f6e15]`} />;
   }
   if (code === 45 || code === 48) {
     return <CloudFog className={`${className} text-slate-500`} />;
   }
   if ((code >= 71 && code <= 77) || code === 85 || code === 86) {
-    return <CloudSnow className={`${className} text-[#104b87]`} />;
+    return <CloudSnow className={`${className} text-[#3f6e15]`} />;
   }
   if (code >= 95) {
     return <CloudLightning className={`${className} text-[#f05e25]`} />;
   }
   if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
-    return <CloudRain className={`${className} text-[#104b87]`} />;
+    return <CloudRain className={`${className} text-[#3f6e15]`} />;
   }
-  return <CloudSun className={`${className} text-[#104b87]`} />;
+  return <CloudSun className={`${className} text-[#3f6e15]`} />;
 }
 
 function formatDayLabel(dateIso: string, index: number): string {
@@ -186,7 +186,7 @@ export function TripWeatherWidget({
         {/* Left: Current Live Conditions */}
         <div className="space-y-3 min-w-0">
           <div className="flex items-start gap-4">
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#104b87]/[0.07]">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#3f6e15]/[0.07]">
               <WeatherConditionIcon
                 code={weather.current.weatherCode}
                 className="h-6 w-6"
@@ -218,11 +218,11 @@ export function TripWeatherWidget({
 
           <div className="flex flex-wrap items-center gap-4 text-xs text-[#64748b] tabular-nums">
             <span className="inline-flex items-center gap-1.5">
-              <Droplets className="h-3.5 w-3.5 text-[#104b87]" />
+              <Droplets className="h-3.5 w-3.5 text-[#3f6e15]" />
               {weather.current.humidity}% humidity
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Wind className="h-3.5 w-3.5 text-[#104b87]" />
+              <Wind className="h-3.5 w-3.5 text-[#3f6e15]" />
               {weather.current.windKmh} km/h wind
             </span>
           </div>
@@ -259,7 +259,7 @@ export function TripWeatherWidget({
                     </span>
                   </p>
                   <p className="inline-flex items-center justify-center gap-1 text-[11px] text-[#64748b]">
-                    <Droplets className="h-3 w-3 text-[#104b87]" />
+                    <Droplets className="h-3 w-3 text-[#3f6e15]" />
                     {d.precipMm} mm
                   </p>
                 </div>
@@ -273,7 +273,7 @@ export function TripWeatherWidget({
                 type="button"
                 onClick={() => scrollDays(-180)}
                 aria-label="Scroll earlier days"
-                className="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-[#57534d] hover:border-[#104b87] hover:text-[#104b87] cursor-pointer transition-colors"
+                className="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-[#57534d] hover:border-[#3f6e15] hover:text-[#3f6e15] cursor-pointer transition-colors"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
@@ -281,7 +281,7 @@ export function TripWeatherWidget({
                 type="button"
                 onClick={() => scrollDays(180)}
                 aria-label="Scroll later days"
-                className="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-[#57534d] hover:border-[#104b87] hover:text-[#104b87] cursor-pointer transition-colors"
+                className="grid h-6 w-6 place-items-center rounded-full border border-slate-200 bg-white text-[#57534d] hover:border-[#3f6e15] hover:text-[#3f6e15] cursor-pointer transition-colors"
               >
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
@@ -290,7 +290,7 @@ export function TripWeatherWidget({
               href="https://open-meteo.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-[#64748b] hover:text-[#104b87] transition-colors"
+              className="text-[11px] text-[#64748b] hover:text-[#3f6e15] transition-colors"
             >
               Forecast via Open-Meteo
             </a>

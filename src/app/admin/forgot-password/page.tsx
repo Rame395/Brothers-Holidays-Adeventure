@@ -74,7 +74,7 @@ export default function AdminForgotPasswordPage() {
               </p>
               <Link
                 href="/admin/login"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-[#104b87] hover:underline"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[#3f6e15] hover:underline"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Return to Admin Login
@@ -102,7 +102,7 @@ export default function AdminForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@brothersholidays.com"
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
                 />
               </div>
 
@@ -119,7 +119,7 @@ export default function AdminForgotPasswordPage() {
               <div className="text-center">
                 <Link
                   href="/admin/login"
-                  className="text-xs font-semibold text-[#104b87] hover:underline"
+                  className="text-xs font-semibold text-[#3f6e15] hover:underline"
                 >
                   ← Back to Admin Sign In
                 </Link>

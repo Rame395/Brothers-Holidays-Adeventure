@@ -154,8 +154,8 @@ export default function AdminSecurityOverviewClient({
     >
       {/* Identity & RBAC Matrix */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 rounded-2xl border border-[#104b87]/20 bg-gradient-to-br from-[#104b87]/[0.06] to-white p-6 shadow-xs space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#104b87]">
+        <div className="lg:col-span-2 rounded-2xl border border-[#3f6e15]/20 bg-gradient-to-br from-[#3f6e15]/[0.06] to-white p-6 shadow-xs space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3f6e15]">
             Zero-Trust Access Verified
           </p>
           <h2 className="font-heading font-bold text-2xl text-[#1c1917]">
@@ -163,7 +163,7 @@ export default function AdminSecurityOverviewClient({
           </h2>
           <p className="text-sm text-[#57534d] leading-relaxed">
             Your administrator account (
-            <code className="font-mono text-xs font-semibold text-[#104b87]">
+            <code className="font-mono text-xs font-semibold text-[#3f6e15]">
               {admin.email}
             </code>
             ) is authenticated via Argon2id, mandatory TOTP MFA, strict{" "}
@@ -176,7 +176,7 @@ export default function AdminSecurityOverviewClient({
             {permissions.map((perm) => (
               <span
                 key={perm}
-                className="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1 font-mono text-xs font-medium text-[#104b87]"
+                className="rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1 font-mono text-xs font-medium text-[#3f6e15]"
               >
                 {perm}
               </span>
@@ -186,7 +186,7 @@ export default function AdminSecurityOverviewClient({
 
         {/* Change Passphrase */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-          <div className="flex items-center gap-2 text-[#104b87]">
+          <div className="flex items-center gap-2 text-[#3f6e15]">
             <KeyRound className="h-4 w-4 text-[#f05e25]" />
             <h3 className="font-heading font-bold text-lg text-[#1c1917]">
               Rotate Admin Passphrase
@@ -210,7 +210,7 @@ export default function AdminSecurityOverviewClient({
               placeholder="Current password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
             />
             <input
               type="password"
@@ -219,7 +219,7 @@ export default function AdminSecurityOverviewClient({
               placeholder="New passphrase (12+ chars)"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
             />
             {newPassword && (
               <p className="text-xs font-medium text-[#57534d]">
@@ -233,7 +233,7 @@ export default function AdminSecurityOverviewClient({
               placeholder="Confirm new passphrase"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
             />
             <button
               type="submit"
@@ -249,7 +249,7 @@ export default function AdminSecurityOverviewClient({
       {/* Active Sessions */}
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
         <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2 text-[#104b87]">
+          <div className="flex items-center gap-2 text-[#3f6e15]">
             <Laptop className="h-4 w-4 text-[#f05e25]" />
             <h3 className="font-heading font-bold text-xl text-[#1c1917]">
               Active Administrator Sessions ({sessions.length})
@@ -307,8 +307,8 @@ export default function AdminSecurityOverviewClient({
 
       {/* Security Audit Log */}
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-        <div className="flex items-center gap-2 border-b border-slate-100 pb-3 text-[#104b87]">
-          <Activity className="h-4 w-4 text-[#104b87]" />
+        <div className="flex items-center gap-2 border-b border-slate-100 pb-3 text-[#3f6e15]">
+          <Activity className="h-4 w-4 text-[#3f6e15]" />
           <h3 className="font-heading font-bold text-xl text-[#1c1917]">
             Security Audit Trail (Latest 25 Events)
           </h3>
@@ -332,7 +332,7 @@ export default function AdminSecurityOverviewClient({
                   <td className="py-3 pr-4 font-mono text-xs text-[#57534d] whitespace-nowrap">
                     {new Date(log.createdAt).toLocaleString()}
                   </td>
-                  <td className="py-3 pr-4 font-mono text-xs font-semibold text-[#104b87]">
+                  <td className="py-3 pr-4 font-mono text-xs font-semibold text-[#3f6e15]">
                     {log.actorType}
                   </td>
                   <td className="py-3 pr-4 font-mono text-xs font-medium text-[#1c1917]">

@@ -86,7 +86,7 @@ function AdminLoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="admin@brothersholidays.com"
-          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+          className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
         />
       </div>
 
@@ -100,7 +100,7 @@ function AdminLoginForm() {
           </label>
           <Link
             href="/admin/forgot-password"
-            className="text-xs font-semibold text-[#104b87] hover:underline"
+            className="text-xs font-semibold text-[#3f6e15] hover:underline"
           >
             Forgot passphrase?
           </Link>
@@ -114,7 +114,7 @@ function AdminLoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••••••"
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15"
+            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-11 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15"
           />
           <button
             type="button"
@@ -172,7 +172,7 @@ export default function AdminLoginPage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-lg">
           <Suspense
             fallback={
-              <div className="py-12 text-center text-sm font-medium text-[#104b87]">
+              <div className="py-12 text-center text-sm font-medium text-[#3f6e15]">
                 Loading secure portal...
               </div>
             }
@@ -183,12 +183,12 @@ export default function AdminLoginPage() {
 
         <div className="flex items-center justify-between px-2 text-xs text-[#57534d]">
           <span className="inline-flex items-center gap-1.5 font-medium">
-            <ShieldCheck className="h-4 w-4 text-[#104b87]" />
+            <ShieldCheck className="h-4 w-4 text-[#3f6e15]" />
             Isolated Admin Boundary
           </span>
           <Link
             href="/"
-            className="font-semibold text-[#104b87] hover:underline transition-colors"
+            className="font-semibold text-[#3f6e15] hover:underline transition-colors"
           >
             ← Public Website
           </Link>

@@ -24,7 +24,7 @@ export default function AnimatedElevationGraph({
   midLabel,
   peakLabel,
   className = "",
-  strokeColor = "#104b87",
+  strokeColor = "#3f6e15",
   fillColor = "rgba(16, 75, 135, 0.16)",
   peakStrokeColor = "#071526",
   labelClassName = "text-white/65",

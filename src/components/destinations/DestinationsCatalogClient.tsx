@@ -10,10 +10,34 @@ import {
   RotateCcw,
   MapPin,
   SlidersHorizontal,
+  ChevronDown,
+  Mountain,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { TripCard } from "@/components/destinations/TripCard";
+import { RegionSeoContentSection } from "@/components/destinations/RegionSeoContentSection";
+import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import type { DestinationTaxonomyDTO, TripDTO } from "@/lib/types";
+
+function subscribeReducedMotion(callback: () => void) {
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+}
+
+function getReducedMotionSnapshot() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function getReducedMotionServerSnapshot() {
+  return false;
+}
 
 function FilterChip({
   active,
@@ -73,8 +97,75 @@ export function DestinationsCatalogClient({
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const showFilters = searchParams.get("view") === "all";
   const [q, setQ] = useState(() => searchParams.get("q") || "");
   const [showAtlasIndex, setShowAtlasIndex] = useState(false);
+
+  const heroSectionRef = useRef<HTMLElement | null>(null);
+  const heroBgRef = useRef<HTMLDivElement | null>(null);
+  const heroContentRef = useRef<HTMLDivElement | null>(null);
+  const scrollCueRef = useRef<HTMLDivElement | null>(null);
+
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot
+  );
+
+  useEffect(() => {
+    const heroSection = heroSectionRef.current;
+    const heroBg = heroBgRef.current;
+    const heroContent = heroContentRef.current;
+    const scrollCue = scrollCueRef.current;
+    if (!heroSection || !heroBg) return;
+
+    if (reducedMotion) {
+      heroBg.style.transform = "";
+      if (heroContent) {
+        heroContent.style.transform = "";
+        heroContent.style.opacity = "";
+      }
+      if (scrollCue) {
+        scrollCue.style.opacity = "";
+      }
+      return;
+    }
+
+    let rafId = 0;
+
+    const updateParallax = () => {
+      const heroHeight = heroSection.offsetHeight || 1;
+      const scrollY = Math.max(0, window.scrollY);
+      if (scrollY > heroHeight + 120) return;
+
+      const p = Math.min(1, scrollY / heroHeight);
+      heroBg.style.transform = `translate3d(0, ${(scrollY * 0.34).toFixed(2)}px, 0) scale(${(1.04 + p * 0.1).toFixed(4)})`;
+
+      if (heroContent) {
+        heroContent.style.transform = `translate3d(0, ${(-scrollY * 0.18).toFixed(2)}px, 0)`;
+        heroContent.style.opacity = Math.max(0, 1 - p * 1.1).toFixed(3);
+      }
+      if (scrollCue) {
+        scrollCue.style.opacity = Math.max(0, 1 - p * 3.2).toFixed(3);
+      }
+    };
+
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        updateParallax();
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    updateParallax();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
+  }, [reducedMotion]);
 
   const { countries, categories, regions } = taxonomy;
 
@@ -191,73 +282,162 @@ export function DestinationsCatalogClient({
     ).length;
   }, [trips, country, category]);
 
+  const activeRegionObj = region
+    ? regions.find((r) => r.slug === region)
+    : undefined;
+  const activeCountryObj = country
+    ? countries.find((c) => c.slug === country)
+    : undefined;
+
   const heroImg =
-    (region && regions.find((r) => r.slug === region)?.heroImage) ||
-    (category && categories.find((c) => c.slug === category)?.heroImage) ||
-    (country && countries.find((c) => c.slug === country)?.heroImage) ||
+    activeRegionObj?.heroImage ||
+    activeCategoryObj?.heroImage ||
+    activeCountryObj?.heroImage ||
     "/images/trips/everest.jpg";
 
   const title =
-    (region && regions.find((r) => r.slug === region)?.name) ||
-    (category && categories.find((c) => c.slug === category)?.name) ||
-    (country && countries.find((c) => c.slug === country)?.name) ||
+    activeRegionObj?.name ||
+    activeCategoryObj?.name ||
+    activeCountryObj?.name ||
     "All Destinations & Trips";
 
-  const activeCountryName = country
-    ? countries.find((c) => c.slug === country)?.name ?? country
-    : "All Countries";
+  const blurb =
+    activeRegionObj?.blurb?.trim() ||
+    activeCategoryObj?.blurb?.trim() ||
+    activeCountryObj?.blurb?.trim() ||
+    "Handcrafted Himalayan treks, cultural journeys, and high-altitude expeditions led by seasoned local Sherpa guides.";
+
+  const activeCountryName = activeCountryObj?.name ?? country ?? "All Countries";
+
+  const maxAlt = useMemo(() => {
+    let max = 0;
+    for (const t of results) {
+      if (t.maxAltitude > max) max = t.maxAltitude;
+    }
+    return max;
+  }, [results]);
 
   const hasActiveFilters = Boolean(country || category || region || q.trim());
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#1c1917]">
       {/* Hero Banner */}
-      <section className="relative flex min-h-[44vh] items-end overflow-hidden bg-[#071526]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          key={heroImg}
-          src={heroImg}
-          alt={title}
-          className="absolute inset-0 h-full w-full object-cover opacity-80 transition-all duration-700"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#071526] via-[#071526]/60 to-[#071526]/30" />
+      <section
+        ref={heroSectionRef}
+        className="relative flex min-h-[58vh] sm:min-h-[62vh] lg:min-h-[66vh] items-end overflow-hidden bg-[#071526]"
+      >
+        <div
+          ref={heroBgRef}
+          aria-hidden="true"
+          className="absolute inset-0 will-change-transform"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            key={heroImg}
+            src={heroImg}
+            alt={title}
+            className={`h-full w-full object-cover opacity-85 ${
+              reducedMotion ? "" : "animate-ken-burns"
+            }`}
+          />
+        </div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#071526] via-[#071526]/55 to-[#071526]/30" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#071526]/70 via-[#071526]/25 to-transparent" />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-px inset-x-0 h-10 sm:h-14 z-10"
+          className="pointer-events-none absolute -bottom-px inset-x-0 h-16 sm:h-24 z-10"
           style={{
             background:
-              "linear-gradient(to top, #f8fafc 0%, rgba(248,250,252,0.5) 45%, transparent 100%)",
+              "linear-gradient(to top, #f8fafc 0%, rgba(248,250,252,0.58) 45%, transparent 100%)",
           }}
         />
 
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-12 pt-28 lg:px-8">
-          <nav className="font-heading text-xs uppercase tracking-[0.22em] font-semibold flex items-center gap-2 text-white/70">
+        <div
+          ref={heroContentRef}
+          className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-14 sm:pb-16 lg:pb-20 pt-32 lg:px-8 will-change-transform"
+        >
+          <nav className="animate-rise font-heading text-xs uppercase tracking-[0.22em] font-semibold flex flex-wrap items-center gap-2 text-white/75">
             <Link href="/" className="hover:text-[#ff8a50] transition-colors">
               Home
             </Link>
             <span className="text-white/40">/</span>
-            <span className="text-[#ff8a50]">Destinations</span>
+            <Link
+              href="/destinations?view=all"
+              className={
+                activeCountryObj || activeRegionObj || activeCategoryObj
+                  ? "hover:text-[#ff8a50] transition-colors"
+                  : "text-[#ff8a50]"
+              }
+            >
+              Destinations
+            </Link>
+            {activeCountryObj && (
+              <>
+                <span className="text-white/40">/</span>
+                <span className={activeRegionObj ? "text-white/80" : "text-[#ff8a50]"}>
+                  {activeCountryObj.name}
+                </span>
+              </>
+            )}
+            {activeRegionObj && (
+              <>
+                <span className="text-white/40">/</span>
+                <span className="text-[#ff8a50]">{activeRegionObj.name}</span>
+              </>
+            )}
           </nav>
 
-          <div className="mt-4 flex flex-col md:flex-row md:items-end justify-between gap-5">
-            <div>
-              <h1 className="font-heading font-black text-4xl sm:text-5xl md:text-6xl text-white uppercase tracking-tight leading-tight">
+          <div className="mt-4 flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+            <div className="space-y-4 max-w-3xl">
+              <h1
+                className="animate-rise font-heading font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white uppercase tracking-tight leading-[1.03] drop-shadow-[0_6px_28px_rgba(7,21,38,0.65)]"
+                style={{ animationDelay: "70ms" }}
+              >
                 {title}
               </h1>
-              <p className="mt-2 font-sans text-xs sm:text-sm text-white/80">
-                Displaying{" "}
-                <strong className="text-white font-semibold">
-                  {results.length}
-                </strong>{" "}
-                of {trips.length} Himalayan journeys · Pricing in US Dollars
-                (USD)
+
+              <div
+                className="animate-rise w-14 h-[3px] rounded-full bg-[#f05e25]"
+                style={{ animationDelay: "130ms" }}
+              />
+
+              <p
+                className="animate-rise font-sans text-sm sm:text-base text-white/85 leading-relaxed max-w-2xl"
+                style={{ animationDelay: "180ms" }}
+              >
+                {blurb}
               </p>
+
+              <div
+                className="animate-rise flex flex-wrap items-center gap-2.5 pt-1"
+                style={{ animationDelay: "230ms" }}
+              >
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-3.5 py-1.5 text-xs font-medium text-white tabular-nums">
+                  <Compass className="h-3.5 w-3.5 text-[#ff8a50]" />
+                  <span>
+                    <strong className="font-semibold">{results.length}</strong>{" "}
+                    Curated {results.length === 1 ? "Journey" : "Journeys"}
+                  </span>
+                </span>
+
+                {maxAlt > 0 && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-3.5 py-1.5 text-xs font-medium text-white tabular-nums">
+                    <Mountain className="h-3.5 w-3.5 text-[#ff8a50]" />
+                    <span>Up to {maxAlt.toLocaleString("en-US")} m</span>
+                  </span>
+                )}
+
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-3.5 py-1.5 text-xs font-medium text-white/90">
+                  <span>Transparent USD Pricing</span>
+                </span>
+              </div>
             </div>
 
             <button
               type="button"
               onClick={() => setShowAtlasIndex((v) => !v)}
-              className="self-start md:self-end inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 font-heading font-semibold text-xs uppercase tracking-wider text-white backdrop-blur-md hover:bg-[#f05e25] hover:border-[#f05e25] transition-all cursor-pointer shadow-xs"
+              className="animate-rise self-start lg:self-end inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-2.5 font-heading font-semibold text-xs uppercase tracking-wider text-white backdrop-blur-md hover:bg-[#f05e25] hover:border-[#f05e25] transition-all cursor-pointer shadow-md shrink-0"
+              style={{ animationDelay: "260ms" }}
             >
               <Compass className="h-4 w-4 text-[#ff8a50]" />
               <span>
@@ -267,6 +447,18 @@ export function DestinationsCatalogClient({
               </span>
             </button>
           </div>
+        </div>
+
+        {/* Scroll to Explore Cue */}
+        <div
+          ref={scrollCueRef}
+          aria-hidden="true"
+          className="pointer-events-none hidden sm:flex absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex-col items-center gap-1 text-white/75"
+        >
+          <span className="text-[10px] font-heading uppercase tracking-[0.24em]">
+            Scroll to explore
+          </span>
+          <ChevronDown className="h-4 w-4 text-[#ff8a50] anim-scroll-cue" />
         </div>
       </section>
 
@@ -334,7 +526,8 @@ export function DestinationsCatalogClient({
       )}
 
       {/* Sticky Filter & Search Bar */}
-      <section className="sticky top-16 z-30 border-b border-stone-200/80 bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(28,25,23,0.04)]">
+      {showFilters && (
+        <section className="sticky top-16 z-30 border-b border-stone-200/80 bg-white/95 backdrop-blur-xl shadow-[0_8px_30px_rgba(28,25,23,0.04)]">
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           {/* ROW 1: Architectural Country Tabs & Sleek Search */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-stone-200/75 pt-3 pb-0">
@@ -585,7 +778,7 @@ export function DestinationsCatalogClient({
                 type="button"
                 onClick={() => {
                   setQ("");
-                  router.replace("/destinations", { scroll: false });
+                  router.replace("/destinations?view=all", { scroll: false });
                 }}
                 className="inline-flex items-center gap-1.5 text-[#f05e25] hover:text-[#d94e18] font-sans font-semibold text-xs transition-colors cursor-pointer ml-auto"
               >
@@ -596,12 +789,21 @@ export function DestinationsCatalogClient({
           )}
         </div>
       </section>
+      )}
 
       {/* Trips Grid */}
       <section className="mx-auto max-w-7xl px-5 py-12 lg:px-8">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {results.map((t, i) => (
-            <TripCard key={t.slug} trip={t} index={i} />
+            <ScrollReveal
+              key={t.slug}
+              delay={(i % 3) * 95}
+              distance={48}
+              duration={780}
+              className="h-full"
+            >
+              <TripCard trip={t} index={i} />
+            </ScrollReveal>
           ))}
         </div>
 
@@ -618,16 +820,24 @@ export function DestinationsCatalogClient({
               type="button"
               onClick={() => {
                 setQ("");
-                router.replace("/destinations", { scroll: false });
+                router.replace("/destinations?view=all", { scroll: false });
               }}
               className="mt-2 inline-flex items-center gap-2 rounded-xl bg-[#f05e25] px-6 py-3 text-xs font-heading uppercase tracking-wider font-bold text-white hover:bg-[#ff7a45] transition-colors cursor-pointer shadow-sm"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Clear all filters</span>
+              <span>{showFilters ? "Clear all filters" : "Browse All Trips"}</span>
             </button>
           </div>
         )}
       </section>
+
+      {/* Admin-Managed Region SEO Guide (shown when viewing a specific region) */}
+      {activeRegionObj && (
+        <RegionSeoContentSection
+          regionName={activeRegionObj.name}
+          seoContent={activeRegionObj.seoContent}
+        />
+      )}
     </div>
   );
 }
