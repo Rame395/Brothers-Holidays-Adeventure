@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowUpRight,
+  BookOpen,
   Globe2,
   Layers,
   LayoutDashboard,
@@ -77,6 +78,13 @@ export default function AdminShell({
       exact: false,
     },
     {
+      href: "/admin/guides",
+      label: "Travel Guides",
+      icon: BookOpen,
+      visible: canReadTrips,
+      exact: false,
+    },
+    {
       href: "/admin/seo",
       label: "SEO & Settings",
       icon: Search,
@@ -134,7 +142,7 @@ export default function AdminShell({
                 onClick={() => setMobileNavOpen(false)}
                 className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
                   isActive
-                    ? "bg-[#104b87] text-white font-semibold shadow-sm"
+                    ? "bg-[#3f6e15] text-white font-semibold shadow-sm"
                     : "text-white/75 hover:bg-white/10 hover:text-white"
                 }`}
               >

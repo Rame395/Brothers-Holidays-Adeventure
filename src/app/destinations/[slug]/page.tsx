@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { TripDetailView } from "@/components/destinations/TripDetailView";
 import { JsonLd } from "@/components/seo/JsonLd";
+import prisma from "@/lib/prisma";
 import {
   getAllTripSlugs,
   getRelatedTrips,
@@ -71,7 +72,7 @@ async function DestinationDetailContent({
         </p>
         <Link
           href="/destinations"
-          className="mt-6 rounded-full bg-[#104b87] px-6 py-2.5 font-mono text-xs uppercase tracking-widest font-semibold text-white hover:bg-[#0a355f]"
+          className="mt-6 rounded-full bg-[#3f6e15] px-6 py-2.5 font-mono text-xs uppercase tracking-widest font-semibold text-white hover:bg-[#315710]"
         >
           Browse All Destinations
         </Link>
@@ -79,12 +80,19 @@ async function DestinationDetailContent({
     );
   }
 
-  const related = await getRelatedTrips(
-    trip.slug,
-    trip.region,
-    trip.categories,
-    3
-  );
+  const [related, travelGuides] = await Promise.all([
+    getRelatedTrips(trip.slug, trip.region, trip.categories, 3),
+    prisma.travelGuide.findMany({
+      where: { isPublished: true },
+      select: {
+        slug: true,
+        title: true,
+        location: true,
+        focusKeyword: true,
+      },
+      orderBy: { updatedAt: "desc" },
+    }),
+  ]);
 
   return (
     <>
@@ -101,6 +109,7 @@ async function DestinationDetailContent({
         trip={trip}
         related={related}
         whatsappNumber={settings.whatsappNumber}
+        travelGuides={travelGuides}
       />
     </>
   );
@@ -114,7 +123,7 @@ export default function DestinationDetailPage({
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-mono text-sm text-[#104b87]">
+        <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center font-mono text-sm text-[#3f6e15]">
           Loading Expedition Dossier…
         </div>
       }

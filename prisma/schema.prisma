@@ -163,17 +163,21 @@ model TripCategory {
 }
 
 model DestinationRegion {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  name        String
-  countryId   String
-  countrySlug String
-  blurb       String   @default("") @db.Text
-  heroImage   String   @default("/images/trips/everest.jpg")
-  sortOrder   Int      @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  countryId       String
+  countrySlug     String
+  blurb           String   @default("") @db.Text
+  heroImage       String   @default("/images/trips/everest.jpg")
+  seoContent      String   @default("") @db.Text
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  focusKeyword    String?
+  sortOrder       Int      @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   country DestinationCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
 
@@ -447,6 +451,24 @@ model JournalPost {
   author AdminUser? @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
   @@index([isPublished, publishedAt])
+}
+
+model TravelGuide {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  title           String
+  subtitle        String   @default("")
+  location        String   @default("Nepal")
+  heroImage       String   @default("/images/trips/kathmandu.jpg")
+  content         String   @default("") @db.Text
+  focusKeyword    String?
+  metaTitle       String?
+  metaDescription String?  @db.Text
+  isPublished     Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([isPublished, updatedAt])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

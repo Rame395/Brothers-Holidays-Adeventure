@@ -9,7 +9,7 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
   cacheTag("trips", "treks", "journal", "taxonomy", "seo");
 
   const base = getSiteUrl();
-  const [countries, regions, categories, trips, trekRoutes, posts] =
+  const [countries, regions, categories, trips, trekRoutes, posts, guides] =
     await Promise.all([
       prisma.destinationCountry.findMany({
         where: { isActive: true },
@@ -40,6 +40,10 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
       prisma.journalPost.findMany({
         where: { isPublished: true },
         select: { slug: true, image: true, updatedAt: true },
+      }),
+      prisma.travelGuide.findMany({
+        where: { isPublished: true },
+        select: { slug: true, heroImage: true, updatedAt: true },
       }),
     ]);
 
@@ -115,6 +119,14 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     images: post.image ? [absoluteUrl(post.image)] : undefined,
   }));
 
+  const guideRoutes: MetadataRoute.Sitemap = guides.map((guide) => ({
+    url: `${base}/guides/${guide.slug}`,
+    lastModified: guide.updatedAt,
+    changeFrequency: "monthly",
+    priority: 0.85,
+    images: guide.heroImage ? [absoluteUrl(guide.heroImage)] : undefined,
+  }));
+
   return [
     ...staticRoutes,
     ...countryRoutes,
@@ -123,6 +135,8 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     ...tripRoutes,
     ...routePages,
     ...journalRoutes,
+    { url: `${base}/guides`, changeFrequency: "weekly", priority: 0.8 },
+    ...guideRoutes,
   ];
 }
 

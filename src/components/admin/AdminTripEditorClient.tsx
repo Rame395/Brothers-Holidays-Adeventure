@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -9,6 +9,7 @@ import {
   ArrowLeftRight,
   ArrowUp,
   ArrowUpRight,
+  BookOpen,
   Calendar,
   Check,
   ChevronDown,
@@ -317,7 +318,7 @@ const DEPARTURE_STATUSES: DepartureDraft["status"][] = [
 ];
 
 const INPUT_CLS =
-  "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none focus:ring-2 focus:ring-[#104b87]/15 disabled:bg-slate-50";
+  "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none focus:ring-2 focus:ring-[#3f6e15]/15 disabled:bg-slate-50";
 
 const LABEL_CLS =
   "block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5";
@@ -581,7 +582,7 @@ function ChecklistBuilder({
       ? "text-rose-700"
       : accentColor === "orange"
       ? "text-[#f05e25]"
-      : "text-[#104b87]";
+      : "text-[#3f6e15]";
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
@@ -596,7 +597,7 @@ function ChecklistBuilder({
           <button
             type="button"
             onClick={loadTemplate}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-[#f8fafc] px-3.5 py-2 text-xs font-semibold text-[#104b87] hover:border-[#104b87] hover:bg-sky-50 cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-[#f8fafc] px-3.5 py-2 text-xs font-semibold text-[#3f6e15] hover:border-[#3f6e15] hover:bg-sky-50 cursor-pointer transition-colors"
           >
             <Sparkles className="h-3.5 w-3.5 text-[#f05e25]" />
             <span>{templateLabel ?? "Load Template"}</span>
@@ -631,7 +632,7 @@ function ChecklistBuilder({
                     disabled={idx === 0}
                     onClick={() => moveItem(idx, -1)}
                     aria-label="Move item up"
-                    className="rounded p-1 text-slate-400 hover:text-[#104b87] disabled:opacity-25 cursor-pointer"
+                    className="rounded p-1 text-slate-400 hover:text-[#3f6e15] disabled:opacity-25 cursor-pointer"
                   >
                     <ArrowUp className="h-3.5 w-3.5" />
                   </button>
@@ -640,7 +641,7 @@ function ChecklistBuilder({
                     disabled={idx === items.length - 1}
                     onClick={() => moveItem(idx, 1)}
                     aria-label="Move item down"
-                    className="rounded p-1 text-slate-400 hover:text-[#104b87] disabled:opacity-25 cursor-pointer"
+                    className="rounded p-1 text-slate-400 hover:text-[#3f6e15] disabled:opacity-25 cursor-pointer"
                   >
                     <ArrowDown className="h-3.5 w-3.5" />
                   </button>
@@ -788,7 +789,7 @@ function ServiceGroupBuilder({
             <button
               type="button"
               onClick={loadTemplate}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-[#f8fafc] px-3.5 py-2 text-xs font-semibold text-[#104b87] hover:border-[#104b87] hover:bg-sky-50 cursor-pointer transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-[#f8fafc] px-3.5 py-2 text-xs font-semibold text-[#3f6e15] hover:border-[#3f6e15] hover:bg-sky-50 cursor-pointer transition-colors"
             >
               <Sparkles className="h-3.5 w-3.5 text-[#f05e25]" />
               <span>{templateLabel}</span>
@@ -796,7 +797,7 @@ function ServiceGroupBuilder({
             <button
               type="button"
               onClick={addGroup}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#104b87] hover:bg-[#0a355f] px-3.5 py-2 text-xs font-semibold text-white cursor-pointer transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#3f6e15] hover:bg-[#315710] px-3.5 py-2 text-xs font-semibold text-white cursor-pointer transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Add Category</span>
@@ -813,7 +814,7 @@ function ServiceGroupBuilder({
               className="rounded-xl border border-slate-200 bg-[#f8fafc] p-4 space-y-3"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#104b87]">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#3f6e15]">
                   Category #{idx + 1}
                 </span>
                 {!disabled && (
@@ -822,7 +823,7 @@ function ServiceGroupBuilder({
                       type="button"
                       disabled={idx === 0}
                       onClick={() => moveGroup(idx, -1)}
-                      className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#104b87] hover:text-[#104b87] disabled:opacity-30 cursor-pointer"
+                      className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#3f6e15] hover:text-[#3f6e15] disabled:opacity-30 cursor-pointer"
                       aria-label="Move category up"
                     >
                       <ArrowUp className="h-3.5 w-3.5" />
@@ -831,7 +832,7 @@ function ServiceGroupBuilder({
                       type="button"
                       disabled={idx === groups.length - 1}
                       onClick={() => moveGroup(idx, 1)}
-                      className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#104b87] hover:text-[#104b87] disabled:opacity-30 cursor-pointer"
+                      className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#3f6e15] hover:text-[#3f6e15] disabled:opacity-30 cursor-pointer"
                       aria-label="Move category down"
                     >
                       <ArrowDown className="h-3.5 w-3.5" />
@@ -1034,7 +1035,7 @@ function ImageUploadZone({
             ? "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
             : dragging
             ? "border-[#f05e25] bg-orange-50/50 cursor-pointer"
-            : "border-slate-300 bg-[#f8fafc] hover:border-[#104b87] hover:bg-sky-50/40 cursor-pointer"
+            : "border-slate-300 bg-[#f8fafc] hover:border-[#3f6e15] hover:bg-sky-50/40 cursor-pointer"
         }`}
       >
         <input
@@ -1049,7 +1050,7 @@ function ImageUploadZone({
         {uploading ? (
           <Loader2 className="h-6 w-6 animate-spin text-[#f05e25]" />
         ) : (
-          <UploadCloud className="h-6 w-6 text-[#104b87]" />
+          <UploadCloud className="h-6 w-6 text-[#3f6e15]" />
         )}
         <p className="mt-2 text-sm font-semibold text-[#1c1917]">
           {uploading ? "Uploading image..." : label}
@@ -1129,6 +1130,39 @@ export default function AdminTripEditorClient({
 
   // Manual Gallery URL input state
   const [manualGalleryUrl, setManualGalleryUrl] = useState("");
+
+  // Available Travel Guides for one-click itinerary day attachment
+  const [availableGuides, setAvailableGuides] = useState<
+    Array<{ id: string; slug: string; title: string; isPublished: boolean }>
+  >([]);
+
+  useEffect(() => {
+    let mounted = true;
+    authFetch("/api/admin/guides")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(
+        (
+          json: {
+            ok?: boolean;
+            guides?: Array<{
+              id: string;
+              slug: string;
+              title: string;
+              isPublished: boolean;
+            }>;
+          } | null
+        ) => {
+          if (!mounted || !json?.ok || !Array.isArray(json.guides)) return;
+          setAvailableGuides(json.guides.filter((g) => g.isPublished));
+        }
+      )
+      .catch(() => {
+        // Ignore silent fetch error in optional guide picker
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const regionsForFormCountry = useMemo(
     () => regions.filter((r) => r.countrySlug === form.country),
@@ -1707,7 +1741,7 @@ export default function AdminTripEditorClient({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/admin/trips"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87]"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15]"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>All Trips</span>
@@ -1727,7 +1761,7 @@ export default function AdminTripEditorClient({
             <Link
               href={`/destinations/${form.slug}`}
               target="_blank"
-              className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-[#104b87] hover:border-[#104b87]"
+              className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-[#3f6e15] hover:border-[#3f6e15]"
             >
               <span>Preview Live</span>
               <ArrowUpRight className="h-4 w-4" />
@@ -1740,7 +1774,7 @@ export default function AdminTripEditorClient({
                 type="button"
                 disabled={saving}
                 onClick={() => void saveTrip(false)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-[#1c1917] hover:border-[#104b87] hover:text-[#104b87] disabled:opacity-60 cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-[#1c1917] hover:border-[#3f6e15] hover:text-[#3f6e15] disabled:opacity-60 cursor-pointer"
               >
                 <Save className="h-4 w-4" />
                 <span>Save Draft</span>
@@ -1802,8 +1836,8 @@ export default function AdminTripEditorClient({
                 onClick={() => setActiveTab(t.key)}
                 className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-medium whitespace-nowrap cursor-pointer transition-colors ${
                   active
-                    ? "bg-[#104b87] text-white font-semibold shadow-xs"
-                    : "border border-slate-200 bg-white text-[#57534d] hover:border-[#104b87] hover:text-[#104b87]"
+                    ? "bg-[#3f6e15] text-white font-semibold shadow-xs"
+                    : "border border-slate-200 bg-white text-[#57534d] hover:border-[#3f6e15] hover:text-[#3f6e15]"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -1830,7 +1864,7 @@ export default function AdminTripEditorClient({
         <div className="space-y-6">
           {/* Taxonomy & Menu Placement */}
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#104b87]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3f6e15]">
               1. Menu Placement (Country → Category → Region)
             </p>
 
@@ -1918,7 +1952,7 @@ export default function AdminTripEditorClient({
                         }
                       }}
                       placeholder="e.g. Helicopter Tours"
-                      className="flex-1 min-w-[200px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none"
+                      className="flex-1 min-w-[200px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none"
                     />
                     <label className="inline-flex items-center gap-2 text-xs font-medium text-[#1c1917] cursor-pointer select-none px-1">
                       <input
@@ -1927,7 +1961,7 @@ export default function AdminTripEditorClient({
                         onChange={(e) =>
                           setQuickCatGroupByRegion(e.target.checked)
                         }
-                        className="h-4 w-4 accent-[#104b87]"
+                        className="h-4 w-4 accent-[#3f6e15]"
                       />
                       <span>Group by Region</span>
                     </label>
@@ -1955,7 +1989,7 @@ export default function AdminTripEditorClient({
                       key={cat.id}
                       className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium cursor-pointer transition-colors ${
                         checked
-                          ? "border-[#104b87] bg-[#104b87]/10 text-[#104b87] font-semibold"
+                          ? "border-[#3f6e15] bg-[#3f6e15]/10 text-[#3f6e15] font-semibold"
                           : "border-slate-200 bg-white text-[#57534d] hover:border-slate-300"
                       }`}
                     >
@@ -1971,7 +2005,7 @@ export default function AdminTripEditorClient({
                               : prev.categories.filter((s) => s !== cat.slug),
                           }));
                         }}
-                        className="h-4 w-4 accent-[#104b87]"
+                        className="h-4 w-4 accent-[#3f6e15]"
                       />
                       <span>{cat.name}</span>
                     </label>
@@ -1983,7 +2017,7 @@ export default function AdminTripEditorClient({
 
           {/* Identity & Trail Specifications */}
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#104b87]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3f6e15]">
               2. Core Specifications
             </p>
 
@@ -2021,7 +2055,7 @@ export default function AdminTripEditorClient({
                     }));
                   }}
                   placeholder="everest-base-camp-trek"
-                  className={`${INPUT_CLS} font-mono text-xs text-[#104b87]`}
+                  className={`${INPUT_CLS} font-mono text-xs text-[#3f6e15]`}
                 />
               </div>
             </div>
@@ -2167,8 +2201,8 @@ export default function AdminTripEditorClient({
                       }}
                       className={`rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer transition-colors ${
                         active
-                          ? "bg-[#104b87] text-white"
-                          : "border border-slate-200 bg-[#f8fafc] text-[#57534d] hover:border-[#104b87]"
+                          ? "bg-[#3f6e15] text-white"
+                          : "border border-slate-200 bg-[#f8fafc] text-[#57534d] hover:border-[#3f6e15]"
                       }`}
                     >
                       {mLabel}
@@ -2212,7 +2246,7 @@ export default function AdminTripEditorClient({
                         featuredOrder: e.target.value,
                       }))
                     }
-                    className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-mono text-sm text-[#1c1917] focus:border-[#104b87] focus:outline-none"
+                    className="w-24 rounded-lg border border-slate-300 bg-white px-3 py-1.5 font-mono text-sm text-[#1c1917] focus:border-[#3f6e15] focus:outline-none"
                   />
                 </div>
               )}
@@ -2221,7 +2255,7 @@ export default function AdminTripEditorClient({
 
           {/* Editorial Copy */}
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#104b87]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3f6e15]">
               3. Editorial Story &amp; SEO
             </p>
 
@@ -2291,7 +2325,7 @@ export default function AdminTripEditorClient({
           {/* 4. Trip Facts & Live Mountain Weather */}
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#104b87]">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3f6e15]">
                 4. Trip Facts &amp; Mountain Weather
               </p>
               <span className="text-xs text-[#57534d]">
@@ -2374,7 +2408,7 @@ export default function AdminTripEditorClient({
                         disabled={geoSearching}
                         onClick={() => void handleSearchWeatherLocation()}
                         title="Find exact coordinates for this location"
-                        className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-[#104b87]/30 bg-[#104b87]/8 px-3 py-2 text-xs font-semibold text-[#104b87] hover:bg-[#104b87] hover:text-white disabled:opacity-50 cursor-pointer transition-colors"
+                        className="inline-flex items-center gap-1.5 shrink-0 rounded-xl border border-[#3f6e15]/30 bg-[#3f6e15]/8 px-3 py-2 text-xs font-semibold text-[#3f6e15] hover:bg-[#3f6e15] hover:text-white disabled:opacity-50 cursor-pointer transition-colors"
                       >
                         {geoSearching ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -2427,7 +2461,7 @@ export default function AdminTripEditorClient({
               {geoResults.length > 0 && (
                 <div className="rounded-xl border border-slate-200 bg-[#f8fafc] p-3 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#104b87]">
+                    <span className="text-xs font-semibold text-[#3f6e15]">
                       Select exact weather coordinates:
                     </span>
                     <button
@@ -2452,7 +2486,7 @@ export default function AdminTripEditorClient({
                           }));
                           setGeoResults([]);
                         }}
-                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-left hover:border-[#104b87] hover:bg-sky-50/40 cursor-pointer transition-colors"
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-left hover:border-[#3f6e15] hover:bg-sky-50/40 cursor-pointer transition-colors"
                       >
                         <p className="text-sm font-semibold text-[#1c1917]">
                           {place.name}
@@ -2616,7 +2650,7 @@ export default function AdminTripEditorClient({
                     }
                   }}
                   placeholder="Or paste image path e.g. /images/trips/gokyo.jpg"
-                  className="flex-1 min-w-[220px] rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono text-xs text-[#1c1917] placeholder:text-slate-400 focus:border-[#104b87] focus:outline-none"
+                  className="flex-1 min-w-[220px] rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-mono text-xs text-[#1c1917] placeholder:text-slate-400 focus:border-[#3f6e15] focus:outline-none"
                 />
                 <button
                   type="button"
@@ -2627,7 +2661,7 @@ export default function AdminTripEditorClient({
                       setManualGalleryUrl("");
                     }
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#104b87] hover:border-[#104b87] cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#3f6e15] hover:border-[#3f6e15] cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Add URL</span>
@@ -2668,7 +2702,7 @@ export default function AdminTripEditorClient({
                         <button
                           type="button"
                           onClick={() => setPhotoAsCover(photoUrl)}
-                          className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-[#104b87] hover:border-[#104b87] cursor-pointer"
+                          className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-[#3f6e15] hover:border-[#3f6e15] cursor-pointer"
                         >
                           Set Hero
                         </button>
@@ -2685,7 +2719,7 @@ export default function AdminTripEditorClient({
                             disabled={idx === 0}
                             onClick={() => moveGalleryPhoto(idx, -1)}
                             title="Move earlier"
-                            className="rounded p-1 text-slate-400 hover:text-[#104b87] disabled:opacity-25 cursor-pointer"
+                            className="rounded p-1 text-slate-400 hover:text-[#3f6e15] disabled:opacity-25 cursor-pointer"
                           >
                             <ArrowLeft className="h-3.5 w-3.5" />
                           </button>
@@ -2694,7 +2728,7 @@ export default function AdminTripEditorClient({
                             disabled={idx === uniqueGalleryPhotos.length - 1}
                             onClick={() => moveGalleryPhoto(idx, 1)}
                             title="Move later"
-                            className="rounded p-1 text-slate-400 hover:text-[#104b87] disabled:opacity-25 cursor-pointer"
+                            className="rounded p-1 text-slate-400 hover:text-[#3f6e15] disabled:opacity-25 cursor-pointer"
                           >
                             <ArrowLeftRight className="h-3.5 w-3.5" />
                           </button>
@@ -2718,7 +2752,7 @@ export default function AdminTripEditorClient({
           {/* Route Map & Video */}
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
             <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#104b87]/10 text-[#104b87]">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#3f6e15]/10 text-[#3f6e15]">
                 <MapIcon className="h-4 w-4" />
               </span>
               <div>
@@ -2873,7 +2907,7 @@ export default function AdminTripEditorClient({
                       }
                       className="flex flex-1 min-w-[200px] items-center gap-3 text-left cursor-pointer"
                     >
-                      <span className="rounded-lg bg-[#104b87]/10 px-2.5 py-1 font-mono text-xs font-bold text-[#104b87]">
+                      <span className="rounded-lg bg-[#3f6e15]/10 px-2.5 py-1 font-mono text-xs font-bold text-[#3f6e15]">
                         {day.dayLabel || `Day ${idx + 1}`}
                       </span>
                       <span className="text-sm font-semibold text-[#1c1917] truncate">
@@ -2896,7 +2930,7 @@ export default function AdminTripEditorClient({
                           disabled={idx === 0}
                           onClick={() => moveItineraryDay(idx, -1)}
                           title="Move stage up"
-                          className="rounded p-1.5 text-slate-400 hover:text-[#104b87] disabled:opacity-25 cursor-pointer"
+                          className="rounded p-1.5 text-slate-400 hover:text-[#3f6e15] disabled:opacity-25 cursor-pointer"
                         >
                           <ArrowUp className="h-4 w-4" />
                         </button>
@@ -2905,7 +2939,7 @@ export default function AdminTripEditorClient({
                           disabled={idx === form.itinerary.length - 1}
                           onClick={() => moveItineraryDay(idx, 1)}
                           title="Move stage down"
-                          className="rounded p-1.5 text-slate-400 hover:text-[#104b87] disabled:opacity-25 cursor-pointer"
+                          className="rounded p-1.5 text-slate-400 hover:text-[#3f6e15] disabled:opacity-25 cursor-pointer"
                         >
                           <ArrowDown className="h-4 w-4" />
                         </button>
@@ -2913,7 +2947,7 @@ export default function AdminTripEditorClient({
                           type="button"
                           onClick={() => duplicateItineraryDay(idx)}
                           title="Duplicate stage"
-                          className="rounded p-1.5 text-slate-400 hover:text-[#104b87] cursor-pointer"
+                          className="rounded p-1.5 text-slate-400 hover:text-[#3f6e15] cursor-pointer"
                         >
                           <Copy className="h-4 w-4" />
                         </button>
@@ -3087,46 +3121,114 @@ export default function AdminTripEditorClient({
                         </div>
                       </div>
 
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div>
-                          <label className={LABEL_CLS}>
-                            Optional Guide Pill Label
+                      <div className="rounded-xl border border-[#3f6e15]/20 bg-[#3f6e15]/[0.03] p-3.5 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <label className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#3f6e15]">
+                            <BookOpen className="h-3.5 w-3.5" />
+                            <span>Attach Travel Guide (Optional)</span>
                           </label>
-                          <input
-                            type="text"
-                            disabled={!canWrite}
-                            value={day.guideLabel}
-                            onChange={(e) => {
-                              const next = [...form.itinerary];
-                              next[idx] = {
-                                ...next[idx],
-                                guideLabel: e.target.value,
-                              };
-                              setForm((prev) => ({ ...prev, itinerary: next }));
-                            }}
-                            placeholder="e.g. Kathmandu, Nepal: Complete Travel Guide"
-                            className={INPUT_CLS}
-                          />
+                          <Link
+                            href="/admin/guides"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#3f6e15] hover:underline"
+                          >
+                            <span>Manage Guides</span>
+                            <ArrowUpRight className="h-3 w-3" />
+                          </Link>
                         </div>
-                        <div>
-                          <label className={LABEL_CLS}>
-                            Optional Guide Link URL
-                          </label>
-                          <input
-                            type="text"
-                            disabled={!canWrite}
-                            value={day.guideUrl}
-                            onChange={(e) => {
-                              const next = [...form.itinerary];
+
+                        <select
+                          disabled={!canWrite}
+                          value={
+                            availableGuides.find(
+                              (g) => `/guides/${g.slug}` === day.guideUrl.trim()
+                            )?.slug ?? ""
+                          }
+                          onChange={(e) => {
+                            const selectedSlug = e.target.value;
+                            const next = [...form.itinerary];
+                            if (!selectedSlug) {
                               next[idx] = {
                                 ...next[idx],
-                                guideUrl: e.target.value,
+                                guideLabel: "",
+                                guideUrl: "",
                               };
-                              setForm((prev) => ({ ...prev, itinerary: next }));
-                            }}
-                            placeholder="/journal/... or https://..."
-                            className={`${INPUT_CLS} font-mono text-xs`}
-                          />
+                            } else {
+                              const picked = availableGuides.find(
+                                (g) => g.slug === selectedSlug
+                              );
+                              if (picked) {
+                                next[idx] = {
+                                  ...next[idx],
+                                  guideLabel: picked.title,
+                                  guideUrl: `/guides/${picked.slug}`,
+                                };
+                              }
+                            }
+                            setForm((prev) => ({ ...prev, itinerary: next }));
+                          }}
+                          className={INPUT_CLS}
+                        >
+                          <option value="">
+                            {availableGuides.length > 0
+                              ? "Select a published Travel Guide (or type custom URL below)..."
+                              : "No published guides yet — create one in Travel Guides"}
+                          </option>
+                          {availableGuides.map((g) => (
+                            <option key={g.id} value={g.slug}>
+                              {g.title} (/guides/{g.slug})
+                            </option>
+                          ))}
+                        </select>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div>
+                            <label className={LABEL_CLS}>
+                              Optional Guide Pill Label
+                            </label>
+                            <input
+                              type="text"
+                              disabled={!canWrite}
+                              value={day.guideLabel}
+                              onChange={(e) => {
+                                const next = [...form.itinerary];
+                                next[idx] = {
+                                  ...next[idx],
+                                  guideLabel: e.target.value,
+                                };
+                                setForm((prev) => ({
+                                  ...prev,
+                                  itinerary: next,
+                                }));
+                              }}
+                              placeholder="e.g. Kathmandu, Nepal: Complete Travel Guide"
+                              className={INPUT_CLS}
+                            />
+                          </div>
+                          <div>
+                            <label className={LABEL_CLS}>
+                              Optional Guide Link URL
+                            </label>
+                            <input
+                              type="text"
+                              disabled={!canWrite}
+                              value={day.guideUrl}
+                              onChange={(e) => {
+                                const next = [...form.itinerary];
+                                next[idx] = {
+                                  ...next[idx],
+                                  guideUrl: e.target.value,
+                                };
+                                setForm((prev) => ({
+                                  ...prev,
+                                  itinerary: next,
+                                }));
+                              }}
+                              placeholder="/guides/... or https://..."
+                              className={`${INPUT_CLS} font-mono text-xs`}
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -3311,7 +3413,7 @@ export default function AdminTripEditorClient({
       {activeTab === "cost" && (
         <div className="space-y-6">
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#104b87]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#3f6e15]">
               Base Package Tariff
             </p>
             <div className="grid gap-4 sm:grid-cols-3">
@@ -3419,7 +3521,7 @@ export default function AdminTripEditorClient({
                         ],
                       }));
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-[#f8fafc] px-3.5 py-2 text-xs font-semibold text-[#104b87] hover:border-[#104b87] hover:bg-sky-50 cursor-pointer transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-[#f8fafc] px-3.5 py-2 text-xs font-semibold text-[#3f6e15] hover:border-[#3f6e15] hover:bg-sky-50 cursor-pointer transition-colors"
                   >
                     <Sparkles className="h-3.5 w-3.5 text-[#f05e25]" />
                     <span>Generate Standard Tiers</span>
@@ -3442,7 +3544,7 @@ export default function AdminTripEditorClient({
                         ],
                       }))
                     }
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#104b87] hover:bg-[#0a355f] px-3.5 py-2 text-xs font-semibold text-white cursor-pointer shadow-xs"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-[#3f6e15] hover:bg-[#315710] px-3.5 py-2 text-xs font-semibold text-white cursor-pointer shadow-xs"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     <span>Add Tier</span>
@@ -3610,7 +3712,7 @@ export default function AdminTripEditorClient({
                     className="rounded-xl border border-slate-200 bg-[#f8fafc] p-4 space-y-3"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-[#104b87]">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-[#3f6e15]">
                         Departure #{idx + 1}
                         {dep.bookingCount > 0 &&
                           ` · ${dep.bookingCount} active booking(s)`}
@@ -3803,7 +3905,7 @@ export default function AdminTripEditorClient({
                       placement: "know_before_you_go",
                     })
                   }
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#104b87] hover:bg-[#0a355f] px-3.5 py-2 text-xs font-semibold text-white cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#3f6e15] hover:bg-[#315710] px-3.5 py-2 text-xs font-semibold text-white cursor-pointer"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Add Topic</span>
@@ -3828,7 +3930,7 @@ export default function AdminTripEditorClient({
                         placement: "know_before_you_go",
                       })
                     }
-                    className="rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-1.5 text-xs font-medium text-[#104b87] hover:border-[#104b87] hover:bg-sky-50 cursor-pointer transition-colors"
+                    className="rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-1.5 text-xs font-medium text-[#3f6e15] hover:border-[#3f6e15] hover:bg-sky-50 cursor-pointer transition-colors"
                   >
                     + {preset.label}
                   </button>
@@ -3844,7 +3946,7 @@ export default function AdminTripEditorClient({
                     className="rounded-xl border border-slate-200 bg-[#f8fafc] p-4 space-y-3"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-[#104b87]">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-[#3f6e15]">
                         Guide Topic #{idx + 1}
                       </span>
                       {canWrite && (
@@ -3858,7 +3960,7 @@ export default function AdminTripEditorClient({
                                 knowBeforeYouGoItems[idx - 1].id
                               )
                             }
-                            className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#104b87] hover:text-[#104b87] disabled:opacity-30 cursor-pointer"
+                            className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#3f6e15] hover:text-[#3f6e15] disabled:opacity-30 cursor-pointer"
                             aria-label="Move topic up"
                           >
                             <ArrowUp className="h-3.5 w-3.5" />
@@ -3872,7 +3974,7 @@ export default function AdminTripEditorClient({
                                 knowBeforeYouGoItems[idx + 1].id
                               )
                             }
-                            className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#104b87] hover:text-[#104b87] disabled:opacity-30 cursor-pointer"
+                            className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#3f6e15] hover:text-[#3f6e15] disabled:opacity-30 cursor-pointer"
                             aria-label="Move topic down"
                           >
                             <ArrowDown className="h-3.5 w-3.5" />
@@ -3952,7 +4054,7 @@ export default function AdminTripEditorClient({
                       placement: "bottom",
                     })
                   }
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#104b87] hover:bg-[#0a355f] px-3.5 py-2 text-xs font-semibold text-white cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-[#3f6e15] hover:bg-[#315710] px-3.5 py-2 text-xs font-semibold text-white cursor-pointer"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span>Add Blank Section</span>
@@ -4020,7 +4122,7 @@ export default function AdminTripEditorClient({
                         placement: preset.placement,
                       })
                     }
-                    className="rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-1.5 text-xs font-medium text-[#104b87] hover:border-[#104b87] hover:bg-sky-50 cursor-pointer transition-colors"
+                    className="rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-1.5 text-xs font-medium text-[#3f6e15] hover:border-[#3f6e15] hover:bg-sky-50 cursor-pointer transition-colors"
                   >
                     + {preset.label}
                   </button>
@@ -4036,7 +4138,7 @@ export default function AdminTripEditorClient({
                     className="rounded-xl border border-slate-200 bg-[#f8fafc] p-4 space-y-3"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-[#104b87]">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-[#3f6e15]">
                         Section #{idx + 1}
                       </span>
                       {canWrite && (
@@ -4050,7 +4152,7 @@ export default function AdminTripEditorClient({
                                 otherCustomSections[idx - 1].id
                               )
                             }
-                            className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#104b87] hover:text-[#104b87] disabled:opacity-30 cursor-pointer"
+                            className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#3f6e15] hover:text-[#3f6e15] disabled:opacity-30 cursor-pointer"
                             aria-label="Move section up"
                           >
                             <ArrowUp className="h-3.5 w-3.5" />
@@ -4064,7 +4166,7 @@ export default function AdminTripEditorClient({
                                 otherCustomSections[idx + 1].id
                               )
                             }
-                            className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#104b87] hover:text-[#104b87] disabled:opacity-30 cursor-pointer"
+                            className="grid h-7 w-7 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:border-[#3f6e15] hover:text-[#3f6e15] disabled:opacity-30 cursor-pointer"
                             aria-label="Move section down"
                           >
                             <ArrowDown className="h-3.5 w-3.5" />
@@ -4203,7 +4305,7 @@ export default function AdminTripEditorClient({
                       return { ...prev, faqs: [...prev.faqs, ...additions] };
                     })
                   }
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-[#f8fafc] px-3.5 py-2 text-xs font-semibold text-[#104b87] hover:border-[#104b87] hover:bg-sky-50 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-[#f8fafc] px-3.5 py-2 text-xs font-semibold text-[#3f6e15] hover:border-[#3f6e15] hover:bg-sky-50 cursor-pointer"
                 >
                   <Sparkles className="h-3.5 w-3.5 text-[#f05e25]" />
                   <span>Load Common Trek FAQs</span>
@@ -4233,7 +4335,7 @@ export default function AdminTripEditorClient({
                   className="rounded-xl border border-slate-200 bg-[#f8fafc] p-4 space-y-3"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-[#104b87]">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-[#3f6e15]">
                       FAQ #{idx + 1}
                     </span>
                     {canWrite && (
@@ -4247,7 +4349,7 @@ export default function AdminTripEditorClient({
                             next.splice(idx - 1, 0, picked);
                             setForm((prev) => ({ ...prev, faqs: next }));
                           }}
-                          className="rounded p-1 text-slate-400 hover:text-[#104b87] disabled:opacity-25 cursor-pointer"
+                          className="rounded p-1 text-slate-400 hover:text-[#3f6e15] disabled:opacity-25 cursor-pointer"
                         >
                           <ArrowUp className="h-4 w-4" />
                         </button>
@@ -4260,7 +4362,7 @@ export default function AdminTripEditorClient({
                             next.splice(idx + 1, 0, picked);
                             setForm((prev) => ({ ...prev, faqs: next }));
                           }}
-                          className="rounded p-1 text-slate-400 hover:text-[#104b87] disabled:opacity-25 cursor-pointer"
+                          className="rounded p-1 text-slate-400 hover:text-[#3f6e15] disabled:opacity-25 cursor-pointer"
                         >
                           <ArrowDown className="h-4 w-4" />
                         </button>
@@ -4413,7 +4515,7 @@ export default function AdminTripEditorClient({
                             };
                             setForm((prev) => ({ ...prev, reviews: next }));
                           }}
-                          className="h-4 w-4 accent-[#104b87]"
+                          className="h-4 w-4 accent-[#3f6e15]"
                         />
                         <span>Verified Guest</span>
                       </label>
