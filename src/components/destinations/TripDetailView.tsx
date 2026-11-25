@@ -7,12 +7,15 @@ import {
   ArrowUpRight,
   BedDouble,
   Bus,
+  Calendar,
   Camera,
   Check,
+  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
+  Compass,
   Expand,
   FileText,
   Footprints,
@@ -25,19 +28,23 @@ import {
   MapPin,
   Mountain,
   PlayCircle,
+  Route,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   Star,
   Sun,
   Users,
   Utensils,
   Wallet,
   X,
+  XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { BookingPanel } from "@/components/destinations/BookingPanel";
 import { ElevationProfile } from "@/components/destinations/ElevationProfile";
 import { TripCard } from "@/components/destinations/TripCard";
+import { TripVoiceoverPlayer } from "@/components/destinations/TripVoiceoverPlayer";
 import { TripWeatherWidget } from "@/components/destinations/TripWeatherWidget";
 import { CATEGORIES, REGIONS } from "@/data/trips";
 import type {
@@ -47,6 +54,10 @@ import type {
 } from "@/lib/types";
 import { formatPriceUsd } from "@/lib/booking";
 import { trackViewTrip } from "@/lib/analytics";
+import {
+  matchTravelGuideForDayTitle,
+  type TravelGuideSummaryDTO,
+} from "@/lib/travel-guides";
 import {
   formatPriceTierLabel,
   formatSeasonRange,
@@ -77,6 +88,34 @@ function ServiceGroupIcon({
       return <ShieldCheck className={className} />;
     default:
       return <Info className={className} />;
+  }
+}
+
+function SectionNavIcon({ id }: { id: string }) {
+  const cls = "h-3.5 w-3.5 shrink-0";
+  switch (id) {
+    case "overview":
+      return <Compass className={cls} />;
+    case "highlights":
+      return <Sparkles className={cls} />;
+    case "itinerary":
+      return <Route className={cls} />;
+    case "includes":
+      return <CheckCircle2 className={cls} />;
+    case "excludes":
+      return <XCircle className={cls} />;
+    case "cost":
+      return <Wallet className={cls} />;
+    case "map":
+      return <MapIcon className={cls} />;
+    case "know-before-you-go":
+      return <ShieldAlert className={cls} />;
+    case "reviews":
+      return <Star className={cls} />;
+    case "faqs":
+      return <HelpCircle className={cls} />;
+    default:
+      return <Info className={cls} />;
   }
 }
 
@@ -133,7 +172,7 @@ function departureStatusStyle(status: string): string {
     case "CANCELLED":
       return "bg-slate-100 text-slate-500 border-slate-200";
     default:
-      return "bg-sky-50 text-[#104b87] border-sky-200";
+      return "bg-sky-50 text-[#3f6e15] border-sky-200";
   }
 }
 
@@ -174,7 +213,7 @@ function renderTextBlockLines(lines: string[], key: number | string) {
             key={lIdx}
             className="flex items-start gap-2.5 text-[15px] leading-[1.7] text-[#292524]"
           >
-            <span className="mt-2.5 h-1.5 w-1.5 rounded-full bg-[#104b87] shrink-0" />
+            <span className="mt-2.5 h-1.5 w-1.5 rounded-full bg-[#3f6e15] shrink-0" />
             <span>{renderInlineEmphasis(line.replace(/^[-•]\s+/, ""))}</span>
           </li>
         ))}
@@ -222,7 +261,7 @@ function renderFormattedRichText(content: string) {
           ) : (
             <h4
               key={`${bIdx}-h`}
-              className="font-heading text-xl sm:text-[22px] font-bold text-[#104b87] pt-3 first:pt-0 tracking-tight"
+              className="font-heading text-xl sm:text-[22px] font-bold text-[#3f6e15] pt-3 first:pt-0 tracking-tight"
             >
               {renderInlineEmphasis(headingText)}
             </h4>
@@ -248,10 +287,10 @@ function renderCustomSection(sec: TripCustomSectionDTO) {
     return (
       <div
         key={sec.id}
-        className="rounded-[14px] border border-[#104b87]/15 bg-[#104b87]/[0.05] p-6 sm:p-7 space-y-3"
+        className="rounded-[14px] border border-[#3f6e15]/15 bg-[#3f6e15]/[0.05] p-6 sm:p-7 space-y-3"
       >
         <div className="flex items-center gap-2.5">
-          <Info className="h-5 w-5 text-[#104b87] shrink-0" />
+          <Info className="h-5 w-5 text-[#3f6e15] shrink-0" />
           <h3 className="font-heading text-xl sm:text-2xl font-bold text-[#1c1917]">
             {sec.title}
           </h3>
@@ -309,11 +348,14 @@ export function TripDetailView({
   trip,
   related,
   whatsappNumber,
+  travelGuides = [],
 }: {
   trip: TripDTO;
   related: TripDTO[];
   whatsappNumber?: string;
+  travelGuides?: TravelGuideSummaryDTO[];
 }) {
+  const [activePhotoIndex, setActivePhotoIndex] = useState<number>(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [mapLightboxOpen, setMapLightboxOpen] = useState(false);
   const [activeDayImage, setActiveDayImage] = useState<{
@@ -360,6 +402,33 @@ export function TripDetailView({
       })),
     [trip.itinerary, unit]
   );
+
+  const resolvedDayGuides = useMemo(() => {
+    const map = new Map<number, { label: string; href: string }>();
+    const autoAttachedSlugs = new Set<string>();
+
+    trip.itinerary.forEach((d, idx) => {
+      const explicitLabel = d.guideLabel?.trim();
+      const explicitHref = d.guideUrl?.trim() || "";
+      if (explicitLabel) {
+        map.set(idx, { label: explicitLabel, href: explicitHref });
+        return;
+      }
+
+      if (travelGuides.length > 0) {
+        const matched = matchTravelGuideForDayTitle(d.title, travelGuides);
+        if (matched && !autoAttachedSlugs.has(matched.slug)) {
+          autoAttachedSlugs.add(matched.slug);
+          map.set(idx, {
+            label: matched.title,
+            href: `/guides/${matched.slug}`,
+          });
+        }
+      }
+    });
+
+    return map;
+  }, [trip.itinerary, travelGuides]);
 
   const avgRating = useMemo(() => {
     if (trip.reviews.length === 0) return null;
@@ -519,7 +588,9 @@ export function TripDetailView({
   }, [lightboxIndex, mapLightboxOpen, activeDayImage, allPhotos.length]);
 
   const primaryCategorySlug = trip.categories[0] ?? "trekking";
-  const heroExtraCount = Math.max(allPhotos.length - 4, 0);
+  const safeActivePhotoIndex =
+    allPhotos.length > 0 ? Math.min(activePhotoIndex, allPhotos.length - 1) : 0;
+  const activePhoto = allPhotos[safeActivePhotoIndex] || trip.image;
 
   const countryLabel =
     trip.country.charAt(0).toUpperCase() + trip.country.slice(1);
@@ -599,7 +670,7 @@ export function TripDetailView({
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-[#1c1917] font-sans">
+    <div className="min-h-screen bg-[#faf9f7] text-[#1c1917] font-sans">
       {/* 1. CLEAN HEADER + BENTO PHOTO MOSAIC GALLERY */}
       <section id="gallery-top" className="bg-white pt-24 sm:pt-28 pb-8">
         <div className="mx-auto max-w-7xl px-5 lg:px-8 space-y-6">
@@ -611,14 +682,14 @@ export function TripDetailView({
             >
               <Link
                 href="/"
-                className="hover:text-[#104b87] transition-colors"
+                className="hover:text-[#3f6e15] transition-colors"
               >
                 Home
               </Link>
               <span className="text-slate-300">/</span>
               <Link
                 href="/destinations"
-                className="hover:text-[#104b87] transition-colors"
+                className="hover:text-[#3f6e15] transition-colors"
               >
                 Destinations
               </Link>
@@ -627,7 +698,7 @@ export function TripDetailView({
                 href={`/destinations/country/${encodeURIComponent(
                   trip.country
                 )}`}
-                className="hover:text-[#104b87] transition-colors"
+                className="hover:text-[#3f6e15] transition-colors"
               >
                 {countryLabel}
               </Link>
@@ -637,7 +708,7 @@ export function TripDetailView({
                   href={`/destinations/region/${encodeURIComponent(
                     trip.region
                   )}`}
-                  className="text-[#104b87] font-semibold hover:underline"
+                  className="text-[#3f6e15] font-semibold hover:underline"
                 >
                   {formatSlugLabel(trip.region, "region")}
                 </Link>
@@ -646,7 +717,7 @@ export function TripDetailView({
                   href={`/destinations/category/${encodeURIComponent(
                     primaryCategorySlug
                   )}`}
-                  className="text-[#104b87] font-semibold hover:underline"
+                  className="text-[#3f6e15] font-semibold hover:underline"
                 >
                   {activityLabel}
                 </Link>
@@ -671,9 +742,9 @@ export function TripDetailView({
               <button
                 type="button"
                 onClick={() => setLightboxIndex(0)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-[#1c1917] shadow-xs hover:border-[#104b87] hover:text-[#104b87] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-[#1c1917] shadow-xs hover:border-[#3f6e15] hover:text-[#3f6e15] transition-colors cursor-pointer"
               >
-                <Camera className="h-3.5 w-3.5 text-[#104b87]" />
+                <Camera className="h-3.5 w-3.5 text-[#3f6e15]" />
                 <span>All Photos ({allPhotos.length})</span>
               </button>
             </div>
@@ -682,7 +753,7 @@ export function TripDetailView({
           {/* Title & Tagline Row */}
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#104b87]/[0.08] border border-[#104b87]/15 px-3 py-1 text-xs font-semibold text-[#104b87]">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#3f6e15]/[0.08] border border-[#3f6e15]/15 px-3 py-1 text-xs font-semibold text-[#3f6e15]">
                 <MapPin className="h-3.5 w-3.5 text-[#f05e25]" />
                 {trip.area}
               </span>
@@ -702,237 +773,106 @@ export function TripDetailView({
             </p>
           </div>
 
-          {/* BENTO PHOTO MOSAIC (Desktop) */}
-          <div className="hidden lg:block">
-            {allPhotos.length >= 4 && (
-              <div className="grid grid-cols-12 gap-2.5 h-[460px] rounded-[16px] overflow-hidden shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => setLightboxIndex(0)}
-                  className="col-span-7 relative h-full w-full overflow-hidden group cursor-pointer focus:outline-none"
-                >
-                  <Image
-                    src={allPhotos[0]}
-                    alt={`${trip.name} primary view`}
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 58vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <span className="sr-only">Open full photo gallery</span>
-                </button>
-
-                <div className="col-span-5 grid grid-rows-2 gap-2.5 h-full">
-                  <button
-                    type="button"
-                    onClick={() => setLightboxIndex(1)}
-                    className="relative h-full w-full overflow-hidden group cursor-pointer focus:outline-none"
-                  >
-                    <Image
-                      src={allPhotos[1]}
-                      alt={`${trip.name} gallery photo 2`}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 42vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </button>
-
-                  <div className="grid grid-cols-2 gap-2.5 h-full">
-                    <button
-                      type="button"
-                      onClick={() => setLightboxIndex(2)}
-                      className="relative h-full w-full overflow-hidden group cursor-pointer focus:outline-none"
-                    >
-                      <Image
-                        src={allPhotos[2]}
-                        alt={`${trip.name} gallery photo 3`}
-                        fill
-                        sizes="(max-width: 1024px) 50vw, 22vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setLightboxIndex(3)}
-                      className="relative h-full w-full overflow-hidden group cursor-pointer focus:outline-none"
-                    >
-                      <Image
-                        src={allPhotos[3]}
-                        alt={`${trip.name} gallery photo 4`}
-                        fill
-                        sizes="(max-width: 1024px) 50vw, 22vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <span className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors flex items-center justify-center">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-black/65 backdrop-blur-sm border border-white/25 px-3.5 py-1.5 text-xs font-semibold text-white shadow-md">
-                          <Images className="h-3.5 w-3.5" />
-                          <span>
-                            {heroExtraCount > 0
-                              ? `+${heroExtraCount} photos`
-                              : "View gallery"}
-                          </span>
-                        </span>
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {allPhotos.length === 3 && (
-              <div className="grid grid-cols-12 gap-2.5 h-[460px] rounded-[16px] overflow-hidden shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => setLightboxIndex(0)}
-                  className="col-span-7 relative h-full w-full overflow-hidden group cursor-pointer focus:outline-none"
-                >
-                  <Image
-                    src={allPhotos[0]}
-                    alt={`${trip.name} primary view`}
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 58vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </button>
-                <div className="col-span-5 grid grid-rows-2 gap-2.5 h-full">
-                  <button
-                    type="button"
-                    onClick={() => setLightboxIndex(1)}
-                    className="relative h-full w-full overflow-hidden group cursor-pointer focus:outline-none"
-                  >
-                    <Image
-                      src={allPhotos[1]}
-                      alt={`${trip.name} gallery photo 2`}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 42vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLightboxIndex(2)}
-                    className="relative h-full w-full overflow-hidden group cursor-pointer focus:outline-none"
-                  >
-                    <Image
-                      src={allPhotos[2]}
-                      alt={`${trip.name} gallery photo 3`}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 42vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 backdrop-blur-sm border border-white/25 px-3 py-1.5 text-xs font-semibold text-white">
-                      <Images className="h-3.5 w-3.5" />
-                      <span>View gallery</span>
-                    </span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {allPhotos.length === 2 && (
-              <div className="grid grid-cols-12 gap-2.5 h-[450px] rounded-[16px] overflow-hidden shadow-sm">
-                <button
-                  type="button"
-                  onClick={() => setLightboxIndex(0)}
-                  className="col-span-7 relative h-full w-full overflow-hidden group cursor-pointer focus:outline-none"
-                >
-                  <Image
-                    src={allPhotos[0]}
-                    alt={`${trip.name} primary view`}
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 58vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLightboxIndex(1)}
-                  className="col-span-5 relative h-full w-full overflow-hidden group cursor-pointer focus:outline-none"
-                >
-                  <Image
-                    src={allPhotos[1]}
-                    alt={`${trip.name} gallery photo 2`}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 42vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 backdrop-blur-sm border border-white/25 px-3 py-1.5 text-xs font-semibold text-white">
-                    <Images className="h-3.5 w-3.5" />
-                    <span>View gallery</span>
-                  </span>
-                </button>
-              </div>
-            )}
-
-            {allPhotos.length <= 1 && (
+          {/* INTERACTIVE MAIN PHOTO STAGE + THUMBNAIL STRIP */}
+          <div className="space-y-2.5">
+            <div className="relative h-[240px] sm:h-[320px] lg:h-[390px] w-full overflow-hidden rounded-[22px] bg-stone-900 shadow-lg border border-stone-200/80 group">
               <button
                 type="button"
-                onClick={() => setLightboxIndex(0)}
-                className="relative block aspect-[16/9] max-h-[470px] w-full overflow-hidden rounded-[16px] shadow-sm group cursor-pointer focus:outline-none"
+                onClick={() => setLightboxIndex(safeActivePhotoIndex)}
+                className="relative block h-full w-full cursor-pointer focus:outline-none"
+                aria-label="Open full photo gallery"
               >
                 <Image
-                  src={allPhotos[0] || trip.image}
-                  alt={trip.name}
+                  key={activePhoto}
+                  src={activePhoto}
+                  alt={`${trip.name} photo ${safeActivePhotoIndex + 1}`}
                   fill
                   priority
-                  sizes="100vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 1024px) 100vw, 1280px"
+                  className="animate-rise object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                 />
-                <span className="absolute bottom-4 right-4 inline-flex items-center gap-1.5 rounded-full bg-black/70 backdrop-blur-sm border border-white/25 px-3.5 py-1.5 text-xs font-semibold text-white">
-                  <Camera className="h-3.5 w-3.5" />
-                  <span>View photo</span>
-                </span>
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10" />
               </button>
-            )}
-          </div>
 
-          {/* MOBILE PHOTO STRIP (< lg) */}
-          <div className="lg:hidden space-y-2.5">
-            <button
-              type="button"
-              onClick={() => setLightboxIndex(0)}
-              className="relative block aspect-[16/10] w-full overflow-hidden rounded-[16px] shadow-sm cursor-pointer"
-            >
-              <Image
-                src={allPhotos[0] || trip.image}
-                alt={trip.name}
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover"
-              />
-              <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 backdrop-blur-sm border border-white/25 px-3 py-1 text-xs font-semibold text-white">
-                <Camera className="h-3.5 w-3.5" />
-                <span>{allPhotos.length} Photos</span>
-              </span>
-            </button>
-
-            {allPhotos.length > 1 && (
-              <div className="grid grid-cols-4 gap-2">
-                {allPhotos.slice(0, 4).map((src, idx) => (
+              {allPhotos.length > 1 && (
+                <>
                   <button
-                    key={`${src}-${idx}`}
                     type="button"
-                    onClick={() => setLightboxIndex(idx)}
-                    className="relative aspect-[4/3] w-full overflow-hidden rounded-[8px] border border-slate-200 cursor-pointer"
+                    onClick={() =>
+                      setActivePhotoIndex(
+                        (safeActivePhotoIndex - 1 + allPhotos.length) %
+                          allPhotos.length
+                      )
+                    }
+                    aria-label="Previous photo"
+                    className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white/90 backdrop-blur-md border border-white/60 text-[#1c1917] shadow-lg hover:bg-[#f05e25] hover:text-white hover:border-[#f05e25] active:scale-95 transition-all cursor-pointer"
                   >
-                    <Image
-                      src={src}
-                      alt={`${trip.name} photo ${idx + 1}`}
-                      fill
-                      sizes="25vw"
-                      className="object-cover"
-                    />
-                    {idx === 3 && heroExtraCount > 0 && (
-                      <span className="absolute inset-0 bg-black/55 flex items-center justify-center text-[11px] font-bold text-white">
-                        +{heroExtraCount}
-                      </span>
-                    )}
+                    <ChevronLeft className="h-5 w-5" />
                   </button>
-                ))}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setActivePhotoIndex(
+                        (safeActivePhotoIndex + 1) % allPhotos.length
+                      )
+                    }
+                    aria-label="Next photo"
+                    className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white/90 backdrop-blur-md border border-white/60 text-[#1c1917] shadow-lg hover:bg-[#f05e25] hover:text-white hover:border-[#f05e25] active:scale-95 transition-all cursor-pointer"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </>
+              )}
+
+              {/* Bottom Controls Row inside Main Photo */}
+              <div className="pointer-events-none absolute inset-x-3.5 sm:inset-x-5 bottom-3.5 sm:bottom-5 z-10 flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/65 backdrop-blur-md border border-white/20 px-3 py-1.5 text-xs font-semibold text-white tabular-nums">
+                  <Camera className="h-3.5 w-3.5 text-[#ff8a50]" />
+                  <span>
+                    {safeActivePhotoIndex + 1} / {Math.max(1, allPhotos.length)}
+                  </span>
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setLightboxIndex(safeActivePhotoIndex)}
+                  className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-black/70 hover:bg-[#f05e25] backdrop-blur-md border border-white/25 hover:border-[#f05e25] px-3.5 py-1.5 text-xs font-semibold text-white shadow-md transition-colors cursor-pointer"
+                >
+                  <Images className="h-3.5 w-3.5" />
+                  <span>Full Gallery</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Thumbnail Selector Strip Below Main Image */}
+            {allPhotos.length > 1 && (
+              <div className="flex items-center gap-2.5 sm:gap-3 overflow-x-auto no-scrollbar py-1.5 px-1">
+                {allPhotos.map((src, idx) => {
+                  const isActive = idx === safeActivePhotoIndex;
+                  return (
+                    <button
+                      key={`${src}-${idx}`}
+                      type="button"
+                      onClick={() => setActivePhotoIndex(idx)}
+                      aria-label={`View ${trip.name} photo ${idx + 1}`}
+                      aria-pressed={isActive}
+                      className={`relative shrink-0 w-20 sm:w-28 md:w-32 aspect-[16/10] rounded-xl overflow-hidden transition-all duration-300 cursor-pointer focus:outline-none ${
+                        isActive
+                          ? "ring-2 ring-[#f05e25] ring-offset-2 opacity-100 scale-[1.02] shadow-md"
+                          : "opacity-70 hover:opacity-100 border border-stone-200 hover:border-[#f05e25]/60"
+                      }`}
+                    >
+                      <Image
+                        src={src}
+                        alt={`${trip.name} thumbnail ${idx + 1}`}
+                        fill
+                        sizes="(max-width: 640px) 96px, 144px"
+                        className="object-cover"
+                      />
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -965,7 +905,7 @@ export function TripDetailView({
                     (lightboxIndex - 1 + allPhotos.length) % allPhotos.length
                   );
                 }}
-                className="absolute left-4 sm:left-8 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-[#104b87] hover:border-[#104b87] transition-colors cursor-pointer"
+                className="absolute left-4 sm:left-8 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-[#3f6e15] hover:border-[#3f6e15] transition-colors cursor-pointer"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -976,7 +916,7 @@ export function TripDetailView({
                   e.stopPropagation();
                   setLightboxIndex((lightboxIndex + 1) % allPhotos.length);
                 }}
-                className="absolute right-4 sm:right-8 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-[#104b87] hover:border-[#104b87] transition-colors cursor-pointer"
+                className="absolute right-4 sm:right-8 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white hover:bg-[#3f6e15] hover:border-[#3f6e15] transition-colors cursor-pointer"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -1093,9 +1033,9 @@ export function TripDetailView({
       )}
 
       {/* 2. STICKY SECTION SUB-NAVIGATION */}
-      <div className="sticky top-[64px] sm:top-[72px] z-30 border-y border-slate-200 bg-white/95 backdrop-blur-md shadow-xs">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 lg:px-8">
-          <div className="flex items-center overflow-x-auto divide-x divide-slate-200/70 scrollbar-none">
+      <div className="sticky top-[64px] sm:top-[72px] z-30 border-y border-stone-200/80 bg-white/92 backdrop-blur-xl shadow-[0_4px_20px_-8px_rgba(28,25,23,0.08)]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 sm:px-5 lg:px-8 py-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
             {sections.map((s) => {
               const isActive = activeSection === s.id;
               return (
@@ -1103,13 +1043,14 @@ export function TripDetailView({
                   key={s.id}
                   href={`#${s.id}`}
                   onClick={() => setActiveSection(s.id)}
-                  className={`whitespace-nowrap px-4 py-3.5 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-xs sm:text-[13px] font-semibold transition-all duration-200 ${
                     isActive
-                      ? "border-[#104b87] text-[#104b87] font-semibold"
-                      : "border-transparent text-[#57534d] hover:text-[#104b87]"
+                      ? "bg-[#3f6e15] text-white shadow-sm"
+                      : "text-[#57534d] hover:bg-stone-100 hover:text-[#1c1917]"
                   }`}
                 >
-                  {s.label}
+                  <SectionNavIcon id={s.id} />
+                  <span>{s.label}</span>
                 </a>
               );
             })}
@@ -1117,7 +1058,7 @@ export function TripDetailView({
 
           <a
             href="#book"
-            className="ml-auto shrink-0 whitespace-nowrap rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-4 py-1.5 text-xs font-semibold text-white lg:hidden transition-colors"
+            className="ml-auto shrink-0 whitespace-nowrap rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-4 py-2 text-xs font-bold text-white shadow-sm lg:hidden transition-colors"
           >
             Book Now
           </a>
@@ -1125,37 +1066,69 @@ export function TripDetailView({
       </div>
 
       {/* 3. MAIN CONTENT GRID */}
-      <div className="mx-auto grid max-w-7xl gap-8 lg:gap-10 px-5 py-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-8">
-        <div className="min-w-0 space-y-8">
+      <div className="mx-auto grid max-w-7xl gap-8 lg:gap-10 px-4 sm:px-5 py-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-8">
+        <div className="min-w-0 space-y-7 sm:space-y-8">
           {/* SECTION 1: CLEAN OVERVIEW PROSE */}
           <section id="overview" className="scroll-mt-36">
-            <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
-                  Overview
-                </h2>
-                <span className="rounded-full bg-[#f8fafc] border border-slate-200 px-3 py-1 text-xs font-medium text-[#57534d]">
-                  {trip.area}
+            <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
+                    Expedition Overview
+                  </p>
+                  <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                    Overview
+                  </h2>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#faf9f7] border border-stone-200 px-3 py-1.5 text-xs font-semibold text-[#3f6e15]">
+                  <MapPin className="h-3.5 w-3.5 text-[#f05e25]" />
+                  <span>{trip.area}</span>
                 </span>
               </div>
-              {renderFormattedRichText(trip.overview)}
+
+              <TripVoiceoverPlayer
+                tripName={trip.name}
+                tagline={trip.tagline}
+                area={trip.area}
+                days={trip.days}
+                maxAltitude={trip.maxAltitude}
+                difficulty={trip.difficulty}
+                overview={trip.overview}
+                highlights={trip.highlights}
+              />
+
+              <div className="border-l-2 border-[#f05e25]/35 pl-4 sm:pl-5">
+                {renderFormattedRichText(trip.overview)}
+              </div>
             </div>
           </section>
 
           {/* SECTION 2: TRIP FACTS GRID + LIVE MOUNTAIN WEATHER */}
           <section aria-label="Trip facts and mountain weather">
-            <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
-              <dl className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-6">
+            <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-6">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
+                  At a Glance
+                </p>
+                <h2 className="mt-1 font-heading text-2xl sm:text-[26px] text-[#1c1917] font-bold tracking-tight">
+                  Trip Facts
+                </h2>
+              </div>
+
+              <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5">
                 {tripFacts.map((fact) => (
-                  <div key={fact.label} className="flex items-start gap-3.5 min-w-0">
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#104b87]/[0.07] text-[#104b87]">
-                      <fact.icon className="h-4.5 w-4.5" />
+                  <div
+                    key={fact.label}
+                    className="flex items-start gap-3 rounded-xl border border-stone-200/75 bg-[#faf9f7]/80 p-3.5 sm:p-4 hover:border-[#3f6e15]/25 hover:bg-white transition-all min-w-0"
+                  >
+                    <div className="grid h-9 w-9 sm:h-10 sm:w-10 shrink-0 place-items-center rounded-xl bg-white text-[#3f6e15] shadow-2xs ring-1 ring-stone-200/80">
+                      <fact.icon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
                     </div>
                     <div className="min-w-0">
-                      <dt className="text-xs text-[#64748b] leading-snug">
+                      <dt className="text-[10.5px] font-semibold uppercase tracking-wider text-[#64748b] leading-snug">
                         {fact.label}
                       </dt>
-                      <dd className="mt-0.5 text-[15px] font-semibold text-[#1c1917] leading-snug break-words">
+                      <dd className="mt-0.5 text-[13.5px] sm:text-[15px] font-bold text-[#1c1917] leading-snug break-words">
                         {fact.value}
                       </dd>
                     </div>
@@ -1163,59 +1136,76 @@ export function TripDetailView({
                 ))}
               </dl>
 
-              <TripWeatherWidget
-                locationLabel={weatherLoc.label}
-                maxAltitude={trip.maxAltitude}
-                lat={weatherLoc.lat}
-                lon={weatherLoc.lon}
-                query={weatherLoc.query}
-                country={weatherLoc.country}
-              />
+              <div className="pt-2 border-t border-stone-100">
+                <TripWeatherWidget
+                  locationLabel={weatherLoc.label}
+                  maxAltitude={trip.maxAltitude}
+                  lat={weatherLoc.lat}
+                  lon={weatherLoc.lon}
+                  query={weatherLoc.query}
+                  country={weatherLoc.country}
+                />
+              </div>
             </div>
           </section>
 
           {/* SECTION 3: TRIP HIGHLIGHTS CARD */}
           {trip.highlights.length > 0 && (
             <section id="highlights" className="scroll-mt-36">
-              <div className="relative overflow-hidden rounded-[16px] border border-slate-200 bg-gradient-to-br from-[#f8fafc] via-white to-[#f05e25]/[0.045] p-6 sm:p-8 shadow-xs">
+              <div className="relative overflow-hidden rounded-2xl border border-stone-200/85 bg-gradient-to-br from-[#faf9f7] via-white to-[#f05e25]/[0.05] p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)]">
                 {/* Decorative Alpine Ridge Watermark */}
                 <svg
                   aria-hidden="true"
                   viewBox="0 0 600 180"
-                  className="pointer-events-none absolute -bottom-2 right-0 h-36 sm:h-44 w-auto text-[#104b87]/[0.06]"
+                  className="pointer-events-none absolute -bottom-2 right-0 h-36 sm:h-44 w-auto text-[#3f6e15]/[0.055]"
                   fill="currentColor"
                 >
                   <path d="M0 180 L115 72 L205 136 L345 18 L455 110 L535 58 L600 120 L600 180 Z" />
                 </svg>
 
                 <div className="relative space-y-5">
-                  <h2 className="font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
-                    Trip Highlights
-                  </h2>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
+                        Key Experiences
+                      </p>
+                      <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                        Trip Highlights
+                      </h2>
+                    </div>
+                    <span className="rounded-full bg-[#f05e25]/10 border border-[#f05e25]/20 px-3 py-1 text-xs font-semibold text-[#d94e18] tabular-nums">
+                      {trip.highlights.length}{" "}
+                      {trip.highlights.length === 1 ? "Highlight" : "Highlights"}
+                    </span>
+                  </div>
 
-                  <ul className="space-y-4">
+                  <ul className="grid gap-3.5 sm:grid-cols-2">
                     {trip.highlights.map((h, i) => {
                       const parts = splitHighlight(h);
                       return (
                         <li
                           key={`${h}-${i}`}
-                          className="flex items-start gap-3.5"
+                          className="flex items-start gap-3.5 rounded-xl border border-stone-200/75 bg-white/90 p-4 shadow-2xs hover:border-[#f05e25]/35 hover:shadow-sm transition-all"
                         >
-                          <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center text-[#f05e25]">
-                            <Mountain className="h-4.5 w-4.5" />
+                          <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#f05e25]/10 text-[#f05e25] font-bold text-xs tabular-nums">
+                            {String(i + 1).padStart(2, "0")}
                           </span>
-                          <p className="text-[15px] leading-[1.7] text-[#292524]">
+                          <div className="min-w-0">
                             {parts.title ? (
                               <>
-                                <strong className="font-semibold text-[#1c1917]">
-                                  {parts.title}:
-                                </strong>{" "}
-                                {parts.body}
+                                <strong className="block font-semibold text-[15px] text-[#1c1917] mb-0.5 leading-snug">
+                                  {parts.title}
+                                </strong>
+                                <span className="text-[14px] leading-relaxed text-[#44403c]">
+                                  {parts.body}
+                                </span>
                               </>
                             ) : (
-                              parts.body
+                              <span className="text-[14.5px] leading-relaxed text-[#292524]">
+                                {parts.body}
+                              </span>
                             )}
-                          </p>
+                          </div>
                         </li>
                       );
                     })}
@@ -1232,41 +1222,86 @@ export function TripDetailView({
           {trip.itinerary.length > 0 && (
             <section id="itinerary" className="scroll-mt-36 space-y-6">
               {/* Day-to-Day Short Itinerary */}
-              <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-5">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
-                    Day-to-Day Short Itinerary
-                  </h2>
-                  <span className="text-xs font-medium text-[#64748b] tabular-nums">
+              <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
+                      Route Summary
+                    </p>
+                    <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                      Day-to-Day Short Itinerary
+                    </h2>
+                  </div>
+                  <span className="rounded-full bg-[#3f6e15]/[0.08] border border-[#3f6e15]/15 px-3 py-1 text-xs font-semibold text-[#3f6e15] tabular-nums">
                     {trip.itinerary.length}{" "}
-                    {trip.itinerary.length === 1 ? "stage" : "days"}
+                    {trip.itinerary.length === 1 ? "Stage" : "Days"}
                   </span>
                 </div>
 
-                <div className="space-y-2.5">
-                  {trip.itinerary.map((d, idx) => (
-                    <button
-                      key={`short-${d.day}-${idx}`}
-                      type="button"
-                      onClick={() => jumpToDetailedDay(idx)}
-                      className="w-full text-left rounded-[10px] bg-[#104b87]/[0.045] hover:bg-[#104b87]/[0.08] transition-colors px-4 py-3 grid grid-cols-1 sm:grid-cols-[88px_minmax(0,1fr)_90px_86px] items-center gap-2 sm:gap-0 cursor-pointer"
-                    >
-                      <span className="text-sm font-semibold text-[#104b87] sm:pr-3 sm:border-r sm:border-dashed sm:border-[#104b87]/25 tabular-nums">
-                        {formatPaddedStageLabel(d.day, unit)}
-                      </span>
-                      <span className="text-sm font-medium text-[#1c1917] sm:px-4 leading-snug">
-                        {d.title}
-                      </span>
-                      <span className="text-sm text-[#57534d] sm:px-3 sm:border-l sm:border-dashed sm:border-[#104b87]/25 tabular-nums">
-                        {d.altitude > 0
-                          ? `${d.altitude.toLocaleString("en-US")}m`
-                          : "—"}
-                      </span>
-                      <span className="text-sm text-[#57534d] sm:pl-3 sm:border-l sm:border-dashed sm:border-[#104b87]/25 tabular-nums">
-                        {d.durationHrs?.trim() || "—"}
-                      </span>
-                    </button>
-                  ))}
+                <div>
+                  <div className="hidden sm:grid sm:grid-cols-[96px_minmax(0,1fr)_104px_92px_28px] px-4 pb-2.5 text-[11px] font-bold uppercase tracking-wider text-[#64748b] border-b border-stone-100">
+                    <span>Stage</span>
+                    <span>Route Overview</span>
+                    <span>Altitude</span>
+                    <span>Duration</span>
+                    <span className="sr-only">Jump</span>
+                  </div>
+
+                  <div className="mt-2.5 space-y-2">
+                    {trip.itinerary.map((d, idx) => {
+                      const isPeak =
+                        d.altitude === trip.maxAltitude && d.altitude > 0;
+                      return (
+                        <button
+                          key={`short-${d.day}-${idx}`}
+                          type="button"
+                          onClick={() => jumpToDetailedDay(idx)}
+                          className="group w-full text-left rounded-xl border border-stone-200/80 bg-[#faf9f7]/75 hover:border-[#3f6e15]/35 hover:bg-[#3f6e15]/[0.035] transition-all px-3.5 sm:px-4 py-3 flex flex-col sm:grid sm:grid-cols-[96px_minmax(0,1fr)_104px_92px_28px] sm:items-center gap-2 sm:gap-0 cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between gap-2 sm:block sm:pr-3">
+                            <span
+                              className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-bold tabular-nums ${
+                                isPeak
+                                  ? "bg-[#f05e25] text-white"
+                                  : "bg-[#3f6e15]/10 text-[#3f6e15]"
+                              }`}
+                            >
+                              {formatPaddedStageLabel(d.day, unit)}
+                            </span>
+
+                            <div className="flex items-center gap-2 sm:hidden text-xs font-medium text-[#57534d] tabular-nums">
+                              {d.altitude > 0 && (
+                                <span className="rounded-md bg-white border border-stone-200 px-2 py-0.5">
+                                  {d.altitude.toLocaleString("en-US")}m
+                                </span>
+                              )}
+                              {d.durationHrs?.trim() && (
+                                <span className="rounded-md bg-white border border-stone-200 px-2 py-0.5">
+                                  {d.durationHrs.trim()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <span className="text-[14.5px] font-semibold text-[#1c1917] sm:pr-4 leading-snug group-hover:text-[#3f6e15] transition-colors">
+                            {d.title}
+                          </span>
+
+                          <span className="hidden sm:inline-block text-sm font-medium text-[#44403c] tabular-nums">
+                            {d.altitude > 0
+                              ? `${d.altitude.toLocaleString("en-US")} m`
+                              : "—"}
+                          </span>
+
+                          <span className="hidden sm:inline-block text-sm text-[#57534d] tabular-nums">
+                            {d.durationHrs?.trim() || "—"}
+                          </span>
+
+                          <ChevronRight className="hidden sm:block h-4 w-4 text-stone-400 group-hover:text-[#3f6e15] group-hover:translate-x-0.5 transition-all justify-self-end" />
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -1274,27 +1309,37 @@ export function TripDetailView({
               {itineraryCustomSections.map(renderCustomSection)}
 
               {/* Detailed Itinerary Accordions */}
-              <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
-                  <h2 className="font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
-                    Detailed Itinerary
-                  </h2>
+              <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-5">
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-100">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
+                      Stage-by-Stage Breakdown
+                    </p>
+                    <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                      Detailed Itinerary
+                    </h2>
+                  </div>
                   <button
                     type="button"
                     onClick={toggleAllDays}
-                    className="rounded-full border border-slate-200 bg-[#f8fafc] hover:border-[#104b87] hover:text-[#104b87] px-3.5 py-1.5 text-xs font-semibold text-[#57534d] transition-colors cursor-pointer"
+                    className="rounded-full border border-stone-200 bg-[#faf9f7] hover:border-[#3f6e15] hover:bg-[#3f6e15] hover:text-white px-4 py-2 text-xs font-semibold text-[#1c1917] transition-all cursor-pointer"
                   >
                     {allDaysExpanded ? "Collapse All" : "Expand All"}
                   </button>
                 </div>
 
                 {trip.itineraryIntro && (
-                  <div className="rounded-[12px] border border-slate-200/80 bg-[#f8fafc] p-5 sm:p-6">
+                  <div className="rounded-xl border border-stone-200/80 bg-[#faf9f7] p-4 sm:p-6">
                     {renderFormattedRichText(trip.itineraryIntro)}
                   </div>
                 )}
 
-                <div className="space-y-4">
+                <div className="relative space-y-3.5 sm:pl-6">
+                  <div
+                    aria-hidden="true"
+                    className="hidden sm:block absolute left-2 top-5 bottom-5 w-px bg-stone-200"
+                  />
+
                   {trip.itinerary.map((d, idx) => {
                     const isOpen = openDays.has(idx);
                     const isPeak =
@@ -1355,8 +1400,9 @@ export function TripDetailView({
                       });
                     }
 
-                    const guideLabelText = d.guideLabel?.trim();
-                    const guideHref = d.guideUrl?.trim();
+                    const resolvedGuide = resolvedDayGuides.get(idx);
+                    const guideLabelText = resolvedGuide?.label;
+                    const guideHref = resolvedGuide?.href || "";
                     const isExternalGuide = Boolean(
                       guideHref && /^https?:\/\//i.test(guideHref)
                     );
@@ -1365,42 +1411,86 @@ export function TripDetailView({
                       <div
                         key={`detail-${d.day}-${idx}`}
                         id={`detailed-day-${idx}`}
-                        className={`scroll-mt-36 rounded-[14px] border transition-colors ${
+                        className={`relative scroll-mt-36 rounded-xl border transition-all ${
                           isOpen
-                            ? "border-[#104b87]/25 bg-white shadow-2xs"
-                            : "border-slate-200 bg-[#f8fafc]/70 hover:bg-white"
+                            ? "border-[#3f6e15]/30 bg-white shadow-md shadow-stone-900/[0.04]"
+                            : "border-stone-200/85 bg-[#faf9f7]/65 hover:bg-white hover:border-stone-300"
                         }`}
                       >
+                        <span
+                          aria-hidden="true"
+                          className={`hidden sm:block absolute -left-[22px] top-6 h-3 w-3 rounded-full ring-4 ring-white transition-colors ${
+                            isPeak
+                              ? "bg-[#f05e25]"
+                              : isOpen
+                              ? "bg-[#3f6e15]"
+                              : "bg-stone-300"
+                          }`}
+                        />
+
                         <button
                           type="button"
                           aria-expanded={isOpen}
                           onClick={() => toggleDayOpen(idx)}
-                          className="w-full px-5 py-4 flex items-center justify-between gap-3 text-left cursor-pointer"
+                          className="w-full px-4 sm:px-5 py-4 flex items-center justify-between gap-3 text-left cursor-pointer"
                         >
-                          <div className="flex flex-wrap items-center gap-3 min-w-0">
-                            <span
-                              className={`rounded-[8px] px-2.5 py-1 text-xs font-semibold shrink-0 tabular-nums ${
-                                isPeak
-                                  ? "bg-[#f05e25] text-white"
-                                  : "bg-[#104b87]/10 text-[#104b87]"
-                              }`}
-                            >
-                              {formatPaddedStageLabel(d.day, unit)}
-                            </span>
-                            <h3 className="font-heading text-xl sm:text-[22px] font-bold text-[#1c1917] leading-snug">
+                          <div className="min-w-0 flex-1 space-y-1.5 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span
+                                className={`rounded-lg px-2.5 py-1 text-xs font-bold shrink-0 tabular-nums ${
+                                  isPeak
+                                    ? "bg-[#f05e25] text-white"
+                                    : "bg-[#3f6e15]/10 text-[#3f6e15]"
+                                }`}
+                              >
+                                {formatPaddedStageLabel(d.day, unit)}
+                              </span>
+                              {isPeak && (
+                                <span className="rounded-md bg-orange-50 border border-[#f05e25]/25 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#d94e18]">
+                                  High Point
+                                </span>
+                              )}
+                            </div>
+
+                            <h3 className="font-heading text-lg sm:text-[21px] font-bold text-[#1c1917] leading-snug">
                               {d.title}
                             </h3>
                           </div>
 
-                          <ChevronDown
-                            className={`h-4 w-4 shrink-0 text-[#57534d] transition-transform duration-200 ${
-                              isOpen ? "rotate-180 text-[#104b87]" : ""
-                            }`}
-                          />
+                          <div className="flex items-center gap-2.5 shrink-0">
+                            {!isOpen && (d.altitude > 0 || d.durationHrs?.trim()) && (
+                              <div className="hidden md:flex items-center gap-1.5 text-xs font-medium text-[#64748b] tabular-nums">
+                                {d.altitude > 0 && (
+                                  <span className="rounded-md bg-stone-100 px-2 py-1">
+                                    {d.altitude.toLocaleString("en-US")}m
+                                  </span>
+                                )}
+                                {d.durationHrs?.trim() && (
+                                  <span className="rounded-md bg-stone-100 px-2 py-1">
+                                    {d.durationHrs.trim()}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            <span
+                              className={`grid h-8 w-8 place-items-center rounded-full border transition-all ${
+                                isOpen
+                                  ? "border-[#3f6e15]/25 bg-[#3f6e15]/[0.07] text-[#3f6e15]"
+                                  : "border-stone-200 bg-white text-[#57534d]"
+                              }`}
+                            >
+                              <ChevronDown
+                                className={`h-4 w-4 transition-transform duration-200 ${
+                                  isOpen ? "rotate-180" : ""
+                                }`}
+                              />
+                            </span>
+                          </div>
                         </button>
 
                         {isOpen && (
-                          <div className="px-5 pb-6 pt-2 border-t border-slate-100 space-y-4">
+                          <div className="px-4 sm:px-5 pb-5 sm:pb-6 pt-3 border-t border-stone-100 space-y-4">
                             {guideLabelText &&
                               (guideHref ? (
                                 isExternalGuide ? (
@@ -1408,7 +1498,7 @@ export function TripDetailView({
                                     href={guideHref}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-full border border-[#104b87]/20 bg-[#104b87]/[0.05] px-4 py-1.5 text-xs sm:text-[13px] font-medium text-[#104b87] hover:bg-[#104b87]/10 transition-colors"
+                                    className="inline-flex items-center gap-2 rounded-full border border-[#3f6e15]/20 bg-[#3f6e15]/[0.05] px-4 py-1.5 text-xs sm:text-[13px] font-medium text-[#3f6e15] hover:bg-[#3f6e15]/10 transition-colors"
                                   >
                                     <Info className="h-3.5 w-3.5 shrink-0" />
                                     <span>{guideLabelText}</span>
@@ -1417,7 +1507,7 @@ export function TripDetailView({
                                 ) : (
                                   <Link
                                     href={guideHref}
-                                    className="inline-flex items-center gap-2 rounded-full border border-[#104b87]/20 bg-[#104b87]/[0.05] px-4 py-1.5 text-xs sm:text-[13px] font-medium text-[#104b87] hover:bg-[#104b87]/10 transition-colors"
+                                    className="inline-flex items-center gap-2 rounded-full border border-[#3f6e15]/20 bg-[#3f6e15]/[0.05] px-4 py-1.5 text-xs sm:text-[13px] font-medium text-[#3f6e15] hover:bg-[#3f6e15]/10 transition-colors"
                                   >
                                     <Info className="h-3.5 w-3.5 shrink-0" />
                                     <span>{guideLabelText}</span>
@@ -1425,27 +1515,27 @@ export function TripDetailView({
                                   </Link>
                                 )
                               ) : (
-                                <div className="inline-flex items-center gap-2 rounded-full border border-[#104b87]/20 bg-[#104b87]/[0.05] px-4 py-1.5 text-xs sm:text-[13px] font-medium text-[#104b87]">
+                                <div className="inline-flex items-center gap-2 rounded-full border border-[#3f6e15]/20 bg-[#3f6e15]/[0.05] px-4 py-1.5 text-xs sm:text-[13px] font-medium text-[#3f6e15]">
                                   <Info className="h-3.5 w-3.5 shrink-0" />
                                   <span>{guideLabelText}</span>
                                 </div>
                               ))}
 
                             {daySpecs.length > 0 && (
-                              <div className="border-y border-slate-100 py-3.5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3">
                                 {daySpecs.map((spec) => (
                                   <div
                                     key={spec.label}
-                                    className="flex items-center gap-3 min-w-0"
+                                    className="flex items-center gap-2.5 rounded-xl border border-stone-200/75 bg-[#faf9f7] p-3 min-w-0"
                                   >
-                                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#104b87]/[0.07] text-[#104b87]">
+                                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-[#3f6e15] ring-1 ring-stone-200/70">
                                       <spec.icon className="h-4 w-4" />
                                     </div>
                                     <div className="min-w-0">
-                                      <p className="text-[11px] font-semibold text-[#f05e25] leading-tight">
+                                      <p className="text-[10px] font-bold uppercase tracking-wider text-[#f05e25] leading-tight">
                                         {spec.label}
                                       </p>
-                                      <p className="text-[13px] sm:text-sm font-semibold text-[#1c1917] leading-snug tabular-nums mt-0.5 break-words">
+                                      <p className="text-[13px] font-semibold text-[#1c1917] leading-snug tabular-nums mt-0.5 break-words">
                                         {spec.value}
                                       </p>
                                     </div>
@@ -1475,7 +1565,7 @@ export function TripDetailView({
                                     )} — ${d.title}`,
                                   })
                                 }
-                                className="block rounded-[12px] overflow-hidden border border-slate-200 max-w-[340px] w-full aspect-[16/10] relative group cursor-pointer focus:outline-none shadow-2xs"
+                                className="block rounded-xl overflow-hidden border border-stone-200 max-w-[340px] w-full aspect-[16/10] relative group cursor-pointer focus:outline-none shadow-2xs"
                               >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
@@ -1486,6 +1576,10 @@ export function TripDetailView({
                                   )} — ${d.title}`}
                                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 />
+                                <span className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1 rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+                                  <Expand className="h-3 w-3" />
+                                  <span>View</span>
+                                </span>
                               </button>
                             )}
                           </div>
@@ -1501,68 +1595,85 @@ export function TripDetailView({
           {/* SECTION 5: INCLUDES */}
           {(trip.includeGroups.length > 0 || trip.includes.length > 0) && (
             <section id="includes" className="scroll-mt-36">
-              <div className="rounded-[16px] border border-emerald-200/80 bg-white p-6 sm:p-8 shadow-xs space-y-6">
-                <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-600 text-white shadow-xs shrink-0">
-                    <Check className="h-4 w-4" />
+              <div className="overflow-hidden rounded-2xl border border-emerald-200/80 bg-white shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)]">
+                <div className="bg-gradient-to-r from-emerald-50/90 via-emerald-50/40 to-white px-5 sm:px-8 py-5 border-b border-emerald-100 flex items-center gap-3.5">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-600 text-white shadow-xs shrink-0">
+                    <Check className="h-5 w-5" />
                   </span>
-                  <h2 className="font-heading text-2xl sm:text-[28px] text-[#1c1917] font-bold">
-                    What&apos;s Included
-                  </h2>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
+                      Included in Your Package
+                    </p>
+                    <h2 className="font-heading text-2xl sm:text-[28px] text-[#1c1917] font-bold tracking-tight">
+                      What&apos;s Included
+                    </h2>
+                  </div>
                 </div>
 
-                {trip.includeGroups.length > 0 ? (
-                  <div className="space-y-4">
-                    {trip.includeGroups.map((grp) => (
-                      <div
-                        key={grp.id}
-                        className="rounded-[12px] border border-slate-200/90 bg-[#f8fafc]/70 p-5 sm:p-6 space-y-3.5"
-                      >
-                        <div className="flex items-center gap-3 border-b border-slate-200/80 pb-3">
-                          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#104b87]/[0.08] text-[#104b87]">
-                            <ServiceGroupIcon
-                              icon={grp.icon}
-                              className="h-4 w-4"
-                            />
-                          </span>
-                          <h3 className="text-[17px] font-semibold text-[#1c1917]">
-                            {grp.title}
-                          </h3>
+                <div className="p-5 sm:p-8">
+                  {trip.includeGroups.length > 0 ? (
+                    <div
+                      className={`grid gap-4 ${
+                        trip.includeGroups.length > 1
+                          ? "md:grid-cols-2"
+                          : "grid-cols-1"
+                      }`}
+                    >
+                      {trip.includeGroups.map((grp) => (
+                        <div
+                          key={grp.id}
+                          className="rounded-xl border border-stone-200/80 bg-[#faf9f7]/70 p-4 sm:p-5 space-y-3"
+                        >
+                          <div className="flex items-center gap-3 border-b border-stone-200/80 pb-3">
+                            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#3f6e15]/[0.08] text-[#3f6e15]">
+                              <ServiceGroupIcon
+                                icon={grp.icon}
+                                className="h-4 w-4"
+                              />
+                            </span>
+                            <h3 className="text-[16px] font-bold text-[#1c1917]">
+                              {grp.title}
+                            </h3>
+                          </div>
+
+                          {grp.subtitle && (
+                            <p className="text-xs sm:text-sm font-medium text-[#57534d]">
+                              {grp.subtitle}
+                            </p>
+                          )}
+
+                          <ul className="space-y-2.5">
+                            {grp.items.map((item, idx) => (
+                              <li
+                                key={`${grp.id}-${idx}`}
+                                className="flex items-start gap-2.5 text-[14.5px] text-[#292524] leading-relaxed"
+                              >
+                                <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+                                  <Check className="h-3 w-3" />
+                                </span>
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-
-                        {grp.subtitle && (
-                          <p className="text-sm font-medium text-[#57534d]">
-                            {grp.subtitle}
-                          </p>
-                        )}
-
-                        <ul className="space-y-2.5">
-                          {grp.items.map((item, idx) => (
-                            <li
-                              key={`${grp.id}-${idx}`}
-                              className="flex items-start gap-2.5 text-[15px] text-[#292524] leading-relaxed"
-                            >
-                              <Check className="mt-1 h-4 w-4 shrink-0 text-emerald-600" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <ul className="grid gap-3.5 sm:grid-cols-2">
-                    {trip.includes.map((x, idx) => (
-                      <li
-                        key={`${x}-${idx}`}
-                        className="flex items-start gap-2.5 text-[15px] text-[#1c1917] leading-relaxed"
-                      >
-                        <Check className="mt-1 h-4 w-4 shrink-0 text-emerald-600" />
-                        <span>{x}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                      ))}
+                    </div>
+                  ) : (
+                    <ul className="grid gap-3 sm:grid-cols-2">
+                      {trip.includes.map((x, idx) => (
+                        <li
+                          key={`${x}-${idx}`}
+                          className="flex items-start gap-3 rounded-xl border border-stone-100 bg-[#faf9f7]/75 px-4 py-3 text-[14.5px] text-[#1c1917] leading-relaxed"
+                        >
+                          <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+                            <Check className="h-3 w-3" />
+                          </span>
+                          <span>{x}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             </section>
           )}
@@ -1570,146 +1681,202 @@ export function TripDetailView({
           {/* SECTION 6: EXCLUDES */}
           {(trip.excludeGroups.length > 0 || trip.excludes.length > 0) && (
             <section id="excludes" className="scroll-mt-36">
-              <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
-                <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-200 text-slate-700 shrink-0">
-                    <X className="h-4 w-4" />
+              <div className="overflow-hidden rounded-2xl border border-stone-200/85 bg-white shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)]">
+                <div className="bg-gradient-to-r from-rose-50/80 via-rose-50/30 to-white px-5 sm:px-8 py-5 border-b border-rose-100/80 flex items-center gap-3.5">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-rose-500 text-white shadow-xs shrink-0">
+                    <X className="h-5 w-5" />
                   </span>
-                  <h2 className="font-heading text-2xl sm:text-[28px] text-[#1c1917] font-bold">
-                    What&apos;s Excluded
-                  </h2>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-rose-600">
+                      Not Included
+                    </p>
+                    <h2 className="font-heading text-2xl sm:text-[28px] text-[#1c1917] font-bold tracking-tight">
+                      What&apos;s Excluded
+                    </h2>
+                  </div>
                 </div>
 
-                {trip.excludeGroups.length > 0 ? (
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    {trip.excludeGroups.map((grp) => (
-                      <div
-                        key={grp.id}
-                        className="border-l-2 border-slate-200 pl-4 space-y-2.5"
-                      >
-                        <h3 className="text-[16px] font-semibold text-[#1c1917]">
-                          {grp.title}
-                        </h3>
-                        {grp.subtitle && (
-                          <p className="text-xs font-medium text-[#64748b]">
-                            {grp.subtitle}
-                          </p>
-                        )}
-                        <ul className="space-y-2">
-                          {grp.items.map((item, idx) => (
-                            <li
-                              key={`${grp.id}-${idx}`}
-                              className="flex items-start gap-2.5 text-[15px] text-[#57534d] leading-relaxed"
-                            >
-                              <X className="mt-1 h-4 w-4 shrink-0 text-rose-500" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <ul className="grid gap-3.5 sm:grid-cols-2">
-                    {trip.excludes.map((x, idx) => (
-                      <li
-                        key={`${x}-${idx}`}
-                        className="flex items-start gap-2.5 text-[15px] text-[#57534d] leading-relaxed"
-                      >
-                        <X className="mt-1 h-4 w-4 shrink-0 text-rose-500" />
-                        <span>{x}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <div className="p-5 sm:p-8">
+                  {trip.excludeGroups.length > 0 ? (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {trip.excludeGroups.map((grp) => (
+                        <div
+                          key={grp.id}
+                          className="rounded-xl border border-stone-200/80 bg-[#faf9f7]/60 p-4 sm:p-5 space-y-2.5"
+                        >
+                          <h3 className="text-[16px] font-bold text-[#1c1917] border-b border-stone-200/70 pb-2.5">
+                            {grp.title}
+                          </h3>
+                          {grp.subtitle && (
+                            <p className="text-xs font-medium text-[#64748b]">
+                              {grp.subtitle}
+                            </p>
+                          )}
+                          <ul className="space-y-2.5 pt-1">
+                            {grp.items.map((item, idx) => (
+                              <li
+                                key={`${grp.id}-${idx}`}
+                                className="flex items-start gap-2.5 text-[14.5px] text-[#57534d] leading-relaxed"
+                              >
+                                <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600">
+                                  <X className="h-3 w-3" />
+                                </span>
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <ul className="grid gap-3 sm:grid-cols-2">
+                      {trip.excludes.map((x, idx) => (
+                        <li
+                          key={`${x}-${idx}`}
+                          className="flex items-start gap-3 rounded-xl border border-stone-100 bg-[#faf9f7]/65 px-4 py-3 text-[14.5px] text-[#57534d] leading-relaxed"
+                        >
+                          <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600">
+                            <X className="h-3 w-3" />
+                          </span>
+                          <span>{x}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             </section>
           )}
 
           {/* SECTION 7: TRIP COST & GROUP DATES */}
           <section id="cost" className="scroll-mt-36">
-            <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
-              <div className="flex flex-wrap items-end justify-between gap-4 pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-2.5">
-                  <Wallet className="h-5 w-5 text-[#f05e25] shrink-0" />
-                  <h2 className="font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
-                    Cost &amp; Group Departures
+            <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
+                    Transparent Pricing
+                  </p>
+                  <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                    Cost
                   </h2>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-[#64748b]">Price per person</p>
-                  <div className="flex items-baseline gap-2 justify-end">
-                    <span className="text-2xl sm:text-3xl font-bold text-[#104b87] tabular-nums">
-                      {formatPriceUsd(trip.price, trip.priceUsd)}
-                    </span>
-                    <span className="text-xs font-medium text-[#57534d] uppercase tracking-wider">
-                      USD
-                    </span>
-                  </div>
+
+                <div className="inline-flex items-baseline gap-1.5 rounded-full border border-[#f05e25]/25 bg-[#f05e25]/[0.08] px-4 py-2">
+                  <span className="text-xs font-medium text-[#57534d]">From</span>
+                  <span className="text-lg font-bold text-[#1c1917] tabular-nums">
+                    {formatPriceUsd(trip.price, trip.priceUsd)}
+                  </span>
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#f05e25]">
+                    USD
+                  </span>
                 </div>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3 rounded-[12px] border border-slate-200/80 bg-[#f8fafc] p-4">
+              {/* Dynamic Group Price Breakdown Table */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-[#f05e25] shrink-0" />
+                  <h3 className="text-sm font-bold text-[#f05e25]">
+                    Group Price Breakdown
+                  </h3>
+                </div>
+
+                {(() => {
+                  const lowestTierPrice =
+                    trip.priceTiers.length > 1
+                      ? Math.min(...trip.priceTiers.map((t) => t.price))
+                      : null;
+
+                  return (
+                    <div className="rounded-2xl border border-[#f05e25]/30 overflow-hidden bg-white shadow-2xs">
+                      <div className="bg-gradient-to-r from-[#f05e25]/18 via-[#f05e25]/12 to-[#f05e25]/16 border-b border-[#f05e25]/25 px-4 sm:px-6 py-3.5 grid grid-cols-2 text-xs sm:text-sm font-bold text-[#1c1917]">
+                        <span>Group Size</span>
+                        <span>Price Per Person</span>
+                      </div>
+
+                      <div className="divide-y divide-[#f05e25]/15">
+                        {trip.priceTiers.length > 0 ? (
+                          trip.priceTiers.map((tier) => {
+                            const isBestRate =
+                              lowestTierPrice !== null &&
+                              tier.price === lowestTierPrice;
+
+                            return (
+                              <div
+                                key={tier.id}
+                                className="px-4 sm:px-6 py-4 grid grid-cols-2 items-center gap-3 hover:bg-[#faf9f7] transition-colors"
+                              >
+                                <span className="text-sm sm:text-[15px] font-medium text-[#1c1917]">
+                                  {formatPriceTierLabel(tier)}
+                                </span>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-sm sm:text-[15px] font-bold text-[#1c1917] tabular-nums">
+                                    {formatPriceUsd(tier.price, tier.priceUsd)}
+                                  </span>
+                                  <span className="text-[11px] font-medium uppercase tracking-wider text-[#64748b]">
+                                    USD
+                                  </span>
+                                  {isBestRate && (
+                                    <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-700">
+                                      Best Rate
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="px-4 sm:px-6 py-4 grid grid-cols-2 items-center gap-3 hover:bg-[#faf9f7] transition-colors">
+                            <span className="text-sm sm:text-[15px] font-medium text-[#1c1917]">
+                              1 – {trip.groupMax}{" "}
+                              {trip.groupMax === 1 ? "person" : "people"}
+                            </span>
+                            <span className="text-sm sm:text-[15px] font-bold text-[#1c1917] tabular-nums">
+                              {formatPriceUsd(trip.price, trip.priceUsd)} USD
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Compact Value Strip */}
+              <div className="grid gap-3 sm:grid-cols-3 rounded-xl border border-stone-200/80 bg-[#faf9f7] p-4">
                 <div>
-                  <p className="text-xs text-[#64748b]">Group Size</p>
-                  <p className="mt-0.5 text-[15px] font-semibold text-[#1c1917]">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748b]">
+                    Group Size
+                  </p>
+                  <p className="mt-0.5 text-sm font-bold text-[#1c1917]">
                     Up to {trip.groupMax} travellers
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#64748b]">Private Trips</p>
-                  <p className="mt-0.5 text-[15px] font-semibold text-[#1c1917]">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748b]">
+                    Private Trips
+                  </p>
+                  <p className="mt-0.5 text-sm font-bold text-[#1c1917]">
                     Available any date
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#64748b]">Price Transparency</p>
-                  <p className="mt-0.5 text-[15px] font-semibold text-emerald-700">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748b]">
+                    Price Transparency
+                  </p>
+                  <p className="mt-0.5 text-sm font-bold text-emerald-700">
                     All permits &amp; fees incl.
                   </p>
                 </div>
               </div>
 
-              {trip.priceTiers.length > 0 && (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-[#f05e25] shrink-0" />
-                    <h3 className="text-sm font-semibold text-[#104b87]">
-                      Group Price Breakdown
-                    </h3>
-                  </div>
-
-                  <div className="rounded-[12px] border border-slate-200 overflow-hidden bg-white">
-                    <div className="bg-[#104b87]/[0.06] border-b border-slate-200 px-5 py-3 grid grid-cols-2 text-xs sm:text-sm font-semibold text-[#104b87]">
-                      <span>Group Size</span>
-                      <span>Price Per Person</span>
-                    </div>
-                    <div className="divide-y divide-slate-100">
-                      {trip.priceTiers.map((tier) => (
-                        <div
-                          key={tier.id}
-                          className="px-5 py-3.5 grid grid-cols-2 items-center text-[15px] hover:bg-[#f8fafc] transition-colors"
-                        >
-                          <span className="font-medium text-[#1c1917]">
-                            {formatPriceTierLabel(tier)}
-                          </span>
-                          <span className="font-bold text-[#104b87] tabular-nums">
-                            {formatPriceUsd(tier.price, tier.priceUsd)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {trip.departures.length > 0 ? (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-[#104b87]">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#3f6e15]">
                     Scheduled Group Dates ({trip.departures.length})
                   </h3>
 
-                  <div className="divide-y divide-slate-200/80 rounded-[12px] border border-slate-200 overflow-hidden">
+                  <div className="divide-y divide-stone-200/80 rounded-xl border border-stone-200 overflow-hidden bg-white">
                     {trip.departures.map((dep) => {
                       const seatsLeft = Math.max(
                         dep.seatsTotal - dep.seatsBooked,
@@ -1724,11 +1891,12 @@ export function TripDetailView({
                       return (
                         <div
                           key={dep.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 hover:bg-[#f8fafc] transition-colors"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:px-5 hover:bg-[#faf9f7] transition-colors"
                         >
-                          <div className="space-y-1">
+                          <div className="space-y-1.5">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="text-[15px] font-semibold text-[#1c1917]">
+                              <Calendar className="h-4 w-4 text-[#f05e25] shrink-0" />
+                              <span className="text-[15px] font-bold text-[#1c1917]">
                                 {formatShortDate(dep.startDate)}
                                 {dep.endDate
                                   ? ` → ${formatShortDate(dep.endDate)}`
@@ -1750,12 +1918,12 @@ export function TripDetailView({
                             </p>
                           </div>
 
-                          <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
+                          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-4 shrink-0">
                             <div className="text-left sm:text-right">
                               <span className="block text-[11px] text-[#64748b]">
                                 Per person
                               </span>
-                              <span className="text-lg font-bold text-[#104b87] tabular-nums">
+                              <span className="text-lg font-bold text-[#3f6e15] tabular-nums">
                                 {formatPriceUsd(
                                   effectivePrice,
                                   dep.priceOverride ? null : trip.priceUsd
@@ -1764,13 +1932,13 @@ export function TripDetailView({
                             </div>
 
                             {isClosed ? (
-                              <span className="rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-xs font-medium text-slate-400">
+                              <span className="rounded-full border border-stone-200 bg-stone-100 px-4 py-2 text-xs font-medium text-stone-400">
                                 Full
                               </span>
                             ) : (
                               <a
                                 href="#book"
-                                className="rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-4 py-2 text-xs font-semibold text-white transition-colors shadow-xs"
+                                className="rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-5 py-2 text-xs font-bold text-white transition-colors shadow-xs"
                               >
                                 Book Now
                               </a>
@@ -1782,19 +1950,19 @@ export function TripDetailView({
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-[12px] border border-dashed border-slate-300 bg-[#f8fafc] p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-dashed border-stone-300 bg-[#faf9f7] p-5">
                   <div>
-                    <p className="text-[15px] font-semibold text-[#1c1917]">
+                    <p className="text-[15px] font-bold text-[#1c1917]">
                       Flexible Private &amp; Custom Departures
                     </p>
-                    <p className="text-xs text-[#57534d] mt-0.5">
+                    <p className="text-xs text-[#57534d] mt-1">
                       Pick any preferred start date directly in the booking
-                      calendar on the right.
+                      calendar.
                     </p>
                   </div>
                   <a
                     href="#book"
-                    className="shrink-0 rounded-full bg-[#104b87] hover:bg-[#0a355f] px-5 py-2 text-xs font-semibold text-white transition-colors"
+                    className="shrink-0 text-center rounded-full bg-[#3f6e15] hover:bg-[#315710] px-5 py-2.5 text-xs font-bold text-white transition-colors"
                   >
                     Select Date →
                   </a>
@@ -1806,11 +1974,13 @@ export function TripDetailView({
           {/* SECTION 8: ROUTE MAP, VIDEO & ELEVATION PROFILE */}
           {(Boolean(trip.mapImage) || profile.length > 1) && (
             <section id="map" className="scroll-mt-36">
-              <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
-                <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                  <div className="flex items-center gap-2.5">
-                    <MapIcon className="h-5 w-5 text-[#104b87] shrink-0" />
-                    <h2 className="font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+              <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-stone-100">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
+                      Trail Topography
+                    </p>
+                    <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
                       Route Map &amp; Elevation Profile
                     </h2>
                   </div>
@@ -1828,7 +1998,7 @@ export function TripDetailView({
                         <ArrowUpRight className="h-3.5 w-3.5" />
                       </a>
                     )}
-                    <div className="rounded-full bg-[#104b87]/[0.08] border border-[#104b87]/15 px-3.5 py-1.5 text-xs font-semibold text-[#104b87] tabular-nums">
+                    <div className="rounded-full bg-[#3f6e15]/[0.08] border border-[#3f6e15]/15 px-3.5 py-1.5 text-xs font-semibold text-[#3f6e15] tabular-nums">
                       Max Elevation:{" "}
                       <span className="text-[#f05e25]">
                         {trip.maxAltitude.toLocaleString("en-US")} m
@@ -1838,36 +2008,38 @@ export function TripDetailView({
                 </div>
 
                 {trip.mapImage && (
-                  <div className="relative overflow-hidden rounded-[12px] border border-slate-200 bg-[#f8fafc]">
+                  <div className="relative group overflow-hidden rounded-2xl border border-stone-200 bg-[#faf9f7]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={trip.mapImage}
                       alt={`${trip.name} route map`}
-                      className="w-full max-h-[460px] object-contain mx-auto cursor-pointer"
+                      className="w-full max-h-[460px] object-contain mx-auto cursor-pointer transition-transform duration-300 group-hover:scale-[1.01]"
                       onClick={() => setMapLightboxOpen(true)}
                     />
                     <button
                       type="button"
                       onClick={() => setMapLightboxOpen(true)}
-                      className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 hover:bg-[#104b87] px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur-sm transition-colors cursor-pointer shadow-md"
+                      className="absolute bottom-3.5 right-3.5 inline-flex items-center gap-1.5 rounded-full bg-slate-900/85 hover:bg-[#3f6e15] px-4 py-2 text-xs font-semibold text-white backdrop-blur-md transition-colors cursor-pointer shadow-lg"
                     >
                       <Expand className="h-3.5 w-3.5" />
-                      <span>Expand Map</span>
+                      <span>Expand Full Map</span>
                     </button>
                   </div>
                 )}
 
                 {profile.length > 1 && (
-                  <div className="pt-2">
-                    <ElevationProfile
-                      points={profile}
-                      height={240}
-                      showLabels={profile.length <= 8}
-                      animateKey={trip.slug}
-                    />
-                    <p className="mt-4 text-xs text-[#64748b] text-center border-t border-slate-100 pt-3">
-                      Hover or tap along the route profile to inspect daily camp
-                      elevations
+                  <div className="rounded-2xl border border-stone-200/80 bg-[#faf9f7]/70 p-4 sm:p-6">
+                    <div className="w-full pt-1">
+                      <ElevationProfile
+                        points={profile}
+                        height={240}
+                        showLabels={profile.length <= 8}
+                        animateKey={trip.slug}
+                      />
+                    </div>
+                    <p className="mt-4 text-xs text-[#64748b] text-center border-t border-stone-200/70 pt-3">
+                      Hover or tap along the elevation chart to inspect daily camp
+                      altitudes
                     </p>
                   </div>
                 )}
@@ -1889,7 +2061,7 @@ export function TripDetailView({
                     <button
                       type="button"
                       onClick={toggleAllGuides}
-                      className="text-sm font-semibold text-[#104b87] hover:text-[#f05e25] transition-colors cursor-pointer"
+                      className="text-sm font-semibold text-[#3f6e15] hover:text-[#f05e25] transition-colors cursor-pointer"
                     >
                       {allGuidesOpen ? "Collapse all" : "Expand all"}
                     </button>
@@ -1903,7 +2075,7 @@ export function TripDetailView({
                           key={sec.id}
                           className={`rounded-[14px] border bg-white transition-all shadow-xs overflow-hidden ${
                             isOpen
-                              ? "border-[#104b87]/35 ring-1 ring-[#104b87]/10"
+                              ? "border-[#3f6e15]/35 ring-1 ring-[#3f6e15]/10"
                               : "border-slate-200 hover:border-slate-300"
                           }`}
                         >
@@ -1916,7 +2088,7 @@ export function TripDetailView({
                             <div className="flex items-center gap-3 min-w-0">
                               <span
                                 className={`h-2.5 w-2.5 rounded-full shrink-0 transition-colors ${
-                                  isOpen ? "bg-[#f05e25]" : "bg-[#104b87]/40"
+                                  isOpen ? "bg-[#f05e25]" : "bg-[#3f6e15]/40"
                                 }`}
                               />
                               <h3 className="font-heading text-lg sm:text-[21px] font-bold text-[#1c1917] tracking-tight">
@@ -1926,7 +2098,7 @@ export function TripDetailView({
                             <span
                               className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border transition-all ${
                                 isOpen
-                                  ? "border-[#104b87]/20 bg-[#104b87]/[0.07] text-[#104b87] rotate-180"
+                                  ? "border-[#3f6e15]/20 bg-[#3f6e15]/[0.07] text-[#3f6e15] rotate-180"
                                   : "border-slate-200 bg-white text-[#57534d]"
                               }`}
                             >
@@ -1949,7 +2121,7 @@ export function TripDetailView({
               {trip.gearList.length > 0 && (
                 <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
                   <div className="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100">
-                    <span className="grid h-8 w-8 place-items-center rounded-full bg-[#104b87] text-white shadow-xs shrink-0">
+                    <span className="grid h-8 w-8 place-items-center rounded-full bg-[#3f6e15] text-white shadow-xs shrink-0">
                       <ShieldAlert className="h-4 w-4" />
                     </span>
                     <h2 className="font-heading text-2xl sm:text-[28px] text-[#1c1917] font-bold">
@@ -1964,7 +2136,7 @@ export function TripDetailView({
                         key={`${item}-${idx}`}
                         className="flex items-start gap-3 rounded-[12px] border border-slate-200/80 bg-[#f8fafc] p-4"
                       >
-                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[8px] bg-[#104b87]/10 text-xs font-bold text-[#104b87] tabular-nums">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[8px] bg-[#3f6e15]/10 text-xs font-bold text-[#3f6e15] tabular-nums">
                           {idx + 1}
                         </span>
                         <p className="text-sm text-[#1c1917] leading-relaxed">
@@ -2058,7 +2230,7 @@ export function TripDetailView({
             <section id="faqs" className="scroll-mt-36">
               <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
                 <div className="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-[#104b87]/10 text-[#104b87] shrink-0">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-[#3f6e15]/10 text-[#3f6e15] shrink-0">
                     <HelpCircle className="h-4 w-4" />
                   </span>
                   <h2 className="font-heading text-2xl sm:text-[28px] text-[#1c1917] font-bold">
@@ -2069,11 +2241,11 @@ export function TripDetailView({
                   {trip.faqs.map((faq) => (
                     <details
                       key={faq.id}
-                      className="group rounded-[12px] border border-slate-200 bg-[#f8fafc] p-5 transition-colors open:bg-white open:border-[#104b87]/35"
+                      className="group rounded-[12px] border border-slate-200 bg-[#f8fafc] p-5 transition-colors open:bg-white open:border-[#3f6e15]/35"
                     >
                       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] sm:text-base font-semibold text-[#1c1917]">
                         <span>{faq.question}</span>
-                        <span className="text-lg font-semibold text-[#104b87] transition-transform duration-200 group-open:rotate-45 shrink-0">
+                        <span className="text-lg font-semibold text-[#3f6e15] transition-transform duration-200 group-open:rotate-45 shrink-0">
                           +
                         </span>
                       </summary>
@@ -2108,7 +2280,7 @@ export function TripDetailView({
             </div>
             <Link
               href="/destinations"
-              className="text-xs sm:text-sm font-semibold text-[#104b87] hover:underline"
+              className="text-xs sm:text-sm font-semibold text-[#3f6e15] hover:underline"
             >
               View All Trips ↗
             </Link>
