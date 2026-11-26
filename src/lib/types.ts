@@ -286,6 +286,7 @@ export interface JournalPostDTO {
   isFeatured: boolean;
   publishedAt: string;
   updatedAt: string;
+  focusKeyword?: string | null;
   metaTitle?: string | null;
   metaDescription?: string | null;
   metaKeywords: string[];

@@ -409,26 +409,26 @@ model ArchiveEntry {
 model JournalPost {
   id               String     @id @default(cuid())
   slug             String     @unique
-  dispatchNo       String
+  dispatchNo       String     @default("DISPATCH")
   title            String
-  subtitle         String
-  excerpt          String     @db.Text
-  content          String     @db.Text
-  image            String
+  subtitle         String     @default("")
+  excerpt          String     @db.Text @default("")
+  content          String     @db.Text @default("")
+  image            String     @default("")
   authorId         String?
   authorName       String     @default("Brothers Field Team")
   authorRole       String     @default("Senior Alpine Lead")
   category         String     @default("Field Dispatch")
   tags             String[]   @default([])
-  badge            String
-  badgeType        String
+  badge            String     @default("Field Note")
+  badgeType        String     @default("editorial")
   rating           String     @default("5.0")
   ratingCount      String     @default("0 logged")
-  duration         String
-  metricLabel      String
-  metricValue      String
-  tariff           String
-  logisticsBadge   String
+  duration         String     @default("5 min read")
+  metricLabel      String     @default("Region")
+  metricValue      String     @default("Nepal Himalaya")
+  tariff           String     @default("Free Guide")
+  logisticsBadge   String     @default("Editorial")
   telemetryWarning String?
   telemetryIcon    String?
   telemetryColor   String?
@@ -442,6 +442,7 @@ model JournalPost {
   metaTitle       String?
   metaDescription String?    @db.Text
   metaKeywords    String[]   @default([])
+  focusKeyword    String?
   ogImage         String?
   canonicalUrl    String?
 

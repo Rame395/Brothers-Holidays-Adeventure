@@ -34,3 +34,20 @@ export function revalidateSeoAndSettings(extraPaths: string[] = []): void {
     }
   }
 }
+
+export function revalidateJournalPosts(slugs: string[] = []): void {
+  revalidateTag("journal", { expire: 0 });
+  for (const s of slugs) {
+    if (s) {
+      revalidateTag(`journal-${s}`, { expire: 0 });
+    }
+  }
+  revalidatePath("/journal");
+  revalidatePath("/");
+  revalidatePath("/sitemap.xml");
+  for (const s of slugs) {
+    if (s) {
+      revalidatePath(`/journal/${s}`);
+    }
+  }
+}

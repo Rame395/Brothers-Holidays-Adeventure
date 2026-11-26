@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowUpRight,
   BookOpen,
+  FileText,
   Globe2,
   Layers,
   LayoutDashboard,
@@ -81,6 +82,13 @@ export default function AdminShell({
       href: "/admin/guides",
       label: "Travel Guides",
       icon: BookOpen,
+      visible: canReadTrips,
+      exact: false,
+    },
+    {
+      href: "/admin/blog",
+      label: "Blog / Journal",
+      icon: FileText,
       visible: canReadTrips,
       exact: false,
     },

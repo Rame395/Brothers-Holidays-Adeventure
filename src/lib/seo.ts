@@ -204,14 +204,18 @@ export function buildJournalMetadata(
     post.metaTitle || `${post.title} | Alpine Field Journal — ${settings.siteName}`;
   const description = post.metaDescription || post.excerpt;
   const canonical = post.canonicalUrl || absoluteUrl(`/journal/${post.slug}`);
-  const ogImage = absoluteUrl(post.ogImage || post.image);
+  const ogImage = absoluteUrl(
+    post.ogImage || post.image || settings.defaultOgImage
+  );
 
   return {
     title: formatNextTitle(title, settings.siteName),
     description,
     keywords: post.metaKeywords?.length
       ? post.metaKeywords
-      : [post.title, post.category, ...post.tags],
+      : [post.focusKeyword || "", post.title, post.category, ...post.tags].filter(
+          Boolean
+        ),
     alternates: { canonical },
     openGraph: {
       type: "article",
@@ -444,12 +448,13 @@ export function buildArticleJsonLd(
   post: JournalPostDTO,
   settings: SiteSettingDTO
 ) {
+  const resolvedImage = post.image || post.ogImage || settings.defaultOgImage;
   return {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
     description: post.excerpt,
-    image: absoluteUrl(post.image),
+    image: absoluteUrl(resolvedImage),
     datePublished: post.publishedAt,
     dateModified: post.updatedAt,
     mainEntityOfPage: absoluteUrl(`/journal/${post.slug}`),
