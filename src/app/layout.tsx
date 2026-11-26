@@ -115,7 +115,11 @@ export default async function RootLayout({
           <RouteLoadingIndicator />
         </Suspense>
         <Suspense fallback={null}>
-          <Header navTrips={navTrips} taxonomy={taxonomy} />
+          <Header
+            navTrips={navTrips}
+            taxonomy={taxonomy}
+            contactPhone={settings.contactPhone}
+          />
         </Suspense>
         <main className="w-full flex-1">{children}</main>
         <Suspense fallback={null}>

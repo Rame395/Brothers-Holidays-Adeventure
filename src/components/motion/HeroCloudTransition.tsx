@@ -49,15 +49,26 @@ export function HeroCloudTransition() {
 
     let inView = false;
     let rafId = 0;
+    let cachedTop = 0;
+    let cachedHeight = 0;
+    let cachedWinH = window.innerHeight;
+    let lastWidth = window.innerWidth;
+
+    const measure = () => {
+      const rect = container.getBoundingClientRect();
+      cachedTop = rect.top + window.scrollY;
+      cachedHeight = container.offsetHeight;
+      cachedWinH = window.innerHeight;
+    };
 
     const updateClouds = () => {
-      const rect = container.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      if (rect.bottom < -100 || rect.top > windowH + 100) return;
+      const top = cachedTop - window.scrollY;
+      const bottom = top + cachedHeight;
+      if (bottom < -100 || top > cachedWinH + 100) return;
 
-      const raw = (windowH - rect.top) / (windowH + rect.height);
+      const raw = (cachedWinH - top) / (cachedWinH + cachedHeight);
       const p = Math.max(0, Math.min(1, raw));
-      const spread = window.innerWidth >= 768 ? 90 : 42;
+      const spread = lastWidth >= 768 ? 90 : 42;
       const yShift = (0.5 - p) * 24;
       const scale = 1 + p * 0.08;
 
@@ -81,24 +92,36 @@ export function HeroCloudTransition() {
       });
     };
 
+    const onResize = () => {
+      const widthChanged = window.innerWidth !== lastWidth;
+      lastWidth = window.innerWidth;
+      if (!widthChanged && window.innerWidth < 1024) return;
+      measure();
+      if (inView) updateClouds();
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         inView = entry?.isIntersecting ?? false;
         setIsVisible(inView);
         if (inView) {
+          measure();
           updateClouds();
         }
       },
       { rootMargin: "120px 0px 120px 0px", threshold: 0 }
     );
 
+    measure();
     observer.observe(container);
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
     updateClouds();
 
     return () => {
       observer.disconnect();
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
       if (rafId) window.cancelAnimationFrame(rafId);
     };
   }, [reducedMotion]);
@@ -119,8 +142,8 @@ export function HeroCloudTransition() {
         }}
       />
 
-      {/* Layer 2: Far drifting cloud veil ribbon */}
-      <div className="absolute inset-x-0 top-4 sm:top-6 h-28 sm:h-40 lg:h-52 w-[200%] flex opacity-70 animate-cloud-drift-left">
+      {/* Layer 2: Far drifting cloud veil ribbon (desktop/tablet) */}
+      <div className="hidden md:flex absolute inset-x-0 top-4 sm:top-6 h-28 sm:h-40 lg:h-52 w-[200%] opacity-70 animate-cloud-drift-left">
         <div
           className="w-1/2 h-full shrink-0"
           style={{
@@ -148,7 +171,7 @@ export function HeroCloudTransition() {
       {/* Layer 3a: Center billowing mist veil */}
       <div
         ref={centerVeilRef}
-        className="absolute inset-x-0 bottom-4 sm:bottom-6 h-32 sm:h-44 lg:h-56 will-change-transform"
+        className="absolute inset-x-0 bottom-4 sm:bottom-6 h-32 sm:h-44 lg:h-56 md:will-change-transform"
         style={{
           backgroundImage: [
             "radial-gradient(ellipse 36% 70% at 50% 62%, rgba(255,255,255,0.92) 0%, rgba(241,245,249,0.62) 48%, transparent 78%)",
@@ -161,103 +184,37 @@ export function HeroCloudTransition() {
       {/* Layer 3b: Left parting volumetric cumulus cloud bank */}
       <div
         ref={leftBankRef}
-        className="absolute inset-y-0 -left-[10%] w-[68%] will-change-transform"
-      >
-        <div
-          className="absolute -bottom-6 left-[2%] w-[52%] h-[92%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 62%, rgba(255,255,255,0.96) 0%, rgba(241,245,249,0.75) 45%, transparent 75%)",
-          }}
-        />
-        <div
-          className="absolute -bottom-4 left-[18%] w-[46%] h-[88%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 56%, rgba(255,255,255,0.96) 0%, rgba(241,245,249,0.72) 46%, transparent 76%)",
-          }}
-        />
-        <div
-          className="absolute -bottom-2 left-[34%] w-[44%] h-[82%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 58%, rgba(255,255,255,0.94) 0%, rgba(241,245,249,0.7) 44%, transparent 74%)",
-          }}
-        />
-        <div
-          className="absolute bottom-0 left-[52%] w-[42%] h-[74%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 64%, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.62) 46%, transparent 75%)",
-          }}
-        />
-        <div
-          className="absolute top-[10%] left-[8%] w-[38%] h-[68%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 58%, rgba(255,255,255,0.88) 0%, rgba(237,242,247,0.48) 46%, transparent 74%)",
-          }}
-        />
-        <div
-          className="absolute top-[16%] left-[28%] w-[36%] h-[64%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 60%, rgba(255,255,255,0.84) 0%, rgba(237,242,247,0.44) 48%, transparent 74%)",
-          }}
-        />
-      </div>
+        className="absolute inset-y-0 -left-[10%] w-[68%] md:will-change-transform"
+        style={{
+          backgroundImage: [
+            "radial-gradient(ellipse 26% 46% at 28% 72%, rgba(255,255,255,0.96) 0%, rgba(241,245,249,0.75) 45%, transparent 75%)",
+            "radial-gradient(ellipse 23% 44% at 41% 69%, rgba(255,255,255,0.96) 0%, rgba(241,245,249,0.72) 46%, transparent 76%)",
+            "radial-gradient(ellipse 22% 41% at 56% 70%, rgba(255,255,255,0.94) 0%, rgba(241,245,249,0.7) 44%, transparent 74%)",
+            "radial-gradient(ellipse 21% 37% at 73% 73%, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.62) 46%, transparent 75%)",
+            "radial-gradient(ellipse 19% 34% at 27% 49%, rgba(255,255,255,0.88) 0%, rgba(237,242,247,0.48) 46%, transparent 74%)",
+            "radial-gradient(ellipse 18% 32% at 46% 54%, rgba(255,255,255,0.84) 0%, rgba(237,242,247,0.44) 48%, transparent 74%)",
+          ].join(","),
+        }}
+      />
 
       {/* Layer 3c: Right parting volumetric cumulus cloud bank */}
       <div
         ref={rightBankRef}
-        className="absolute inset-y-0 -right-[10%] w-[68%] will-change-transform"
-      >
-        <div
-          className="absolute -bottom-6 right-[2%] w-[52%] h-[92%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 62%, rgba(255,255,255,0.96) 0%, rgba(241,245,249,0.75) 45%, transparent 75%)",
-          }}
-        />
-        <div
-          className="absolute -bottom-4 right-[18%] w-[46%] h-[88%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 56%, rgba(255,255,255,0.96) 0%, rgba(241,245,249,0.72) 46%, transparent 76%)",
-          }}
-        />
-        <div
-          className="absolute -bottom-2 right-[34%] w-[44%] h-[82%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 58%, rgba(255,255,255,0.94) 0%, rgba(241,245,249,0.7) 44%, transparent 74%)",
-          }}
-        />
-        <div
-          className="absolute bottom-0 right-[52%] w-[42%] h-[74%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 64%, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.62) 46%, transparent 75%)",
-          }}
-        />
-        <div
-          className="absolute top-[10%] right-[8%] w-[38%] h-[68%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 58%, rgba(255,255,255,0.88) 0%, rgba(237,242,247,0.48) 46%, transparent 74%)",
-          }}
-        />
-        <div
-          className="absolute top-[16%] right-[28%] w-[36%] h-[64%]"
-          style={{
-            background:
-              "radial-gradient(ellipse 50% 50% at 50% 60%, rgba(255,255,255,0.84) 0%, rgba(237,242,247,0.44) 48%, transparent 74%)",
-          }}
-        />
-      </div>
+        className="absolute inset-y-0 -right-[10%] w-[68%] md:will-change-transform"
+        style={{
+          backgroundImage: [
+            "radial-gradient(ellipse 26% 46% at 72% 72%, rgba(255,255,255,0.96) 0%, rgba(241,245,249,0.75) 45%, transparent 75%)",
+            "radial-gradient(ellipse 23% 44% at 59% 69%, rgba(255,255,255,0.96) 0%, rgba(241,245,249,0.72) 46%, transparent 76%)",
+            "radial-gradient(ellipse 22% 41% at 44% 70%, rgba(255,255,255,0.94) 0%, rgba(241,245,249,0.7) 44%, transparent 74%)",
+            "radial-gradient(ellipse 21% 37% at 27% 73%, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.62) 46%, transparent 75%)",
+            "radial-gradient(ellipse 19% 34% at 73% 49%, rgba(255,255,255,0.88) 0%, rgba(237,242,247,0.48) 46%, transparent 74%)",
+            "radial-gradient(ellipse 18% 32% at 54% 54%, rgba(255,255,255,0.84) 0%, rgba(237,242,247,0.44) 48%, transparent 74%)",
+          ].join(","),
+        }}
+      />
 
-      {/* Layer 4: Foreground drifting low mist + seamless #edf2f7 floor */}
-      <div className="absolute inset-x-0 bottom-0 h-20 sm:h-28 lg:h-36 w-[200%] flex opacity-80 animate-cloud-drift-right">
+      {/* Layer 4: Foreground drifting low mist + seamless #edf2f7 floor (desktop/tablet) */}
+      <div className="hidden md:flex absolute inset-x-0 bottom-0 h-20 sm:h-28 lg:h-36 w-[200%] opacity-80 animate-cloud-drift-right">
         <div
           className="w-1/2 h-full shrink-0"
           style={{

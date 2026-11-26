@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 function subscribeReducedMotion(callback: () => void) {
   const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -22,6 +22,7 @@ export function AboutHeroParallax({ children }: { children: React.ReactNode }) {
   const bgRef = useRef<HTMLDivElement | null>(null);
   const ridgeRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const [isVisible, setIsVisible] = useState(true);
 
   const reducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
@@ -43,14 +44,26 @@ export function AboutHeroParallax({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    let inView = true;
     let rafId = 0;
+    let cachedTop = 0;
+    let cachedHeight = 0;
+    let cachedWinH = window.innerHeight;
+    let lastWidth = window.innerWidth;
+
+    const measure = () => {
+      const rect = container.getBoundingClientRect();
+      cachedTop = rect.top + window.scrollY;
+      cachedHeight = container.offsetHeight;
+      cachedWinH = window.innerHeight;
+    };
 
     const updateParallax = () => {
-      const rect = container.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      if (rect.bottom < -120 || rect.top > windowH + 120) return;
+      const top = cachedTop - window.scrollY;
+      const bottom = top + cachedHeight;
+      if (bottom < -120 || top > cachedWinH + 120) return;
 
-      const progress = (windowH - rect.top) / (windowH + rect.height);
+      const progress = (cachedWinH - top) / (cachedWinH + cachedHeight);
       const clamped = Math.max(0, Math.min(1, progress));
 
       const bgShift = (clamped - 0.5) * 90;
@@ -63,18 +76,43 @@ export function AboutHeroParallax({ children }: { children: React.ReactNode }) {
     };
 
     const onScroll = () => {
-      if (rafId) return;
+      if (!inView || rafId) return;
       rafId = window.requestAnimationFrame(() => {
         rafId = 0;
         updateParallax();
       });
     };
 
+    const onResize = () => {
+      const widthChanged = window.innerWidth !== lastWidth;
+      lastWidth = window.innerWidth;
+      if (!widthChanged && window.innerWidth < 1024) return;
+      measure();
+      if (inView) updateParallax();
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry?.isIntersecting ?? false;
+        setIsVisible(inView);
+        if (inView) {
+          measure();
+          updateParallax();
+        }
+      },
+      { rootMargin: "120px 0px 120px 0px", threshold: 0 }
+    );
+
+    measure();
+    observer.observe(container);
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
     updateParallax();
 
     return () => {
+      observer.disconnect();
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
       if (rafId) window.cancelAnimationFrame(rafId);
     };
   }, [reducedMotion]);
@@ -82,13 +120,14 @@ export function AboutHeroParallax({ children }: { children: React.ReactNode }) {
   return (
     <div
       ref={containerRef}
+      data-paused={isVisible && !reducedMotion ? "false" : "true"}
       className="relative w-full min-h-[78vh] sm:min-h-[84vh] flex items-center overflow-hidden bg-[#071116]"
     >
       {/* Layer 1: Distant Mountain Photography with Ken Burns + Slow Parallax */}
       <div
         ref={bgRef}
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 -top-[15%] h-[130%] z-0 will-change-transform"
+        className="pointer-events-none absolute inset-x-0 -top-[15%] h-[130%] z-0 md:will-change-transform"
       >
         <Image
           src="/images/about-hero-himalaya.jpg"
@@ -97,7 +136,7 @@ export function AboutHeroParallax({ children }: { children: React.ReactNode }) {
           priority
           sizes="100vw"
           className={`object-cover object-center ${
-            !reducedMotion ? "animate-ken-burns" : ""
+            !reducedMotion ? "md:animate-ken-burns" : ""
           }`}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#071116]/60 via-[#071116]/35 to-transparent" />

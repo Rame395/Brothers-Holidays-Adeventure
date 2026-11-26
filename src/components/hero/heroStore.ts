@@ -9,6 +9,8 @@ export const heroState = {
   reducedMotion: false,
   /** True when the hero section is near or inside the viewport. */
   inView: true,
+  /** Timestamp (performance.now()) of most recent scroll or pointer input. */
+  lastActivityAt: 0,
 };
 
 /** Display altitude (metres) for a given scroll progress: valley floor to Everest summit. */

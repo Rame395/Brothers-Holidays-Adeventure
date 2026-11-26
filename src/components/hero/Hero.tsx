@@ -27,7 +27,6 @@ export function Hero() {
   const meterRef = useRef<HTMLSpanElement>(null);
 
   const bgWrapRef = useRef<HTMLDivElement>(null);
-  const topScrimRef = useRef<HTMLDivElement>(null);
   const bottomScrimRef = useRef<HTMLDivElement>(null);
   const heroTextRef = useRef<HTMLDivElement>(null);
   const brandRef = useRef<HTMLDivElement>(null);
@@ -47,31 +46,76 @@ export function Hero() {
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    const checkViewport = () => {
+    let idleHandle = 0;
+    let timerHandle = 0;
+    let sceneScheduled = false;
+
+    const cancelDeferredScene = () => {
+      if (idleHandle && typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(idleHandle);
+        idleHandle = 0;
+      }
+      if (timerHandle) {
+        window.clearTimeout(timerHandle);
+        timerHandle = 0;
+      }
+    };
+
+    const checkViewport = (immediateScene = false) => {
       const reduced = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
       ).matches;
       const isDesktop = window.innerWidth >= 1024;
-      setIsCompact(window.innerWidth < 768);
+      const compactNow = window.innerWidth < 768;
+      setIsCompact(compactNow);
       const webglAvailable = !reduced && hasWebGL();
-      setScene(webglAvailable);
-      // Avoid running a 13.7 MB HD video underneath the active 3D WebGL scene; fall back to video only if WebGL is unavailable
       setVideoAllowed(isDesktop && !reduced && !webglAvailable);
+
+      if (!webglAvailable) {
+        cancelDeferredScene();
+        sceneScheduled = false;
+        setScene(false);
+        return;
+      }
+
+      if (immediateScene || sceneScheduled) {
+        setScene(true);
+        return;
+      }
+
+      sceneScheduled = true;
+      const delay = isDesktop ? 120 : 220;
+      if (typeof window.requestIdleCallback === "function") {
+        idleHandle = window.requestIdleCallback(
+          () => {
+            idleHandle = 0;
+            setScene(true);
+          },
+          { timeout: delay }
+        );
+      } else {
+        timerHandle = window.setTimeout(() => {
+          timerHandle = 0;
+          setScene(true);
+        }, delay);
+      }
     };
 
-    checkViewport();
+    checkViewport(false);
 
     const el = sectionRef.current;
-    if (!el) return;
+    if (!el) return cancelDeferredScene;
 
     let raf = 0;
     let running = false;
     let lastWidth = window.innerWidth;
     let cachedTotal = 0;
     let cachedOffsetTop = 0;
+    let cachedViewportH = window.innerHeight;
     let isCompactViewport = window.innerWidth < 768;
     const sm = { x: 0, y: 0, p: 0 };
     let lastDrawnP = -1;
+    let lastAlt = -1;
 
     const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 
@@ -79,22 +123,35 @@ export function Hero() {
       if (bgWrapRef.current && !isCompactViewport) {
         bgWrapRef.current.style.transform = `translate3d(${(mx * -14).toFixed(2)}px, ${(my * 10).toFixed(2)}px, 0) scale(${(1.06 + p * 0.35).toFixed(4)})`;
       }
-      if (topScrimRef.current) {
-        topScrimRef.current.style.opacity = clamp01(0.85 + p * 0.15).toFixed(4);
-      }
       if (bottomScrimRef.current) {
-        bottomScrimRef.current.style.opacity = clamp01(1 - p * 1.45).toFixed(4);
+        const op = clamp01(1 - p * 1.45);
+        bottomScrimRef.current.style.opacity = op.toFixed(4);
+        bottomScrimRef.current.style.visibility = op <= 0.005 ? "hidden" : "visible";
       }
       if (heroTextRef.current) {
-        heroTextRef.current.style.transform = `translate3d(${(mx * 5).toFixed(2)}px, ${(p * -20).toFixed(3)}vh, 0)`;
-        heroTextRef.current.style.opacity = clamp01(1 - p * 3).toFixed(4);
+        const textOpacity = clamp01(1 - p * 3);
+        const hidden = textOpacity <= 0.005;
+        heroTextRef.current.style.opacity = textOpacity.toFixed(4);
+        heroTextRef.current.style.visibility = hidden ? "hidden" : "visible";
+        heroTextRef.current.style.willChange = hidden ? "auto" : "transform";
+        if (!hidden) {
+          heroTextRef.current.style.transform = `translate3d(${(mx * 5).toFixed(2)}px, ${(p * -0.2 * cachedViewportH).toFixed(2)}px, 0)`;
+        }
       }
       if (brandRef.current) {
-        brandRef.current.style.opacity = clamp01((p - 0.22) * 3.5).toFixed(4);
-        brandRef.current.style.transform = `scale(${(0.92 + p * 0.16).toFixed(4)})`;
+        const brandOpacity = clamp01((p - 0.22) * 3.5);
+        const hidden = brandOpacity <= 0.005;
+        brandRef.current.style.opacity = brandOpacity.toFixed(4);
+        brandRef.current.style.visibility = hidden ? "hidden" : "visible";
+        brandRef.current.style.willChange = hidden ? "auto" : "transform";
+        if (!hidden) {
+          brandRef.current.style.transform = `scale(${(0.92 + p * 0.16).toFixed(4)})`;
+        }
       }
       if (telemetryRef.current) {
-        telemetryRef.current.style.opacity = clamp01(1 - p * 1.45).toFixed(4);
+        const op = clamp01(1 - p * 1.45);
+        telemetryRef.current.style.opacity = op.toFixed(4);
+        telemetryRef.current.style.visibility = op <= 0.005 ? "hidden" : "visible";
       }
     };
 
@@ -118,10 +175,16 @@ export function Hero() {
       if (Math.abs(sm.p - lastDrawnP) > 0.0005) {
         lastDrawnP = sm.p;
         if (altRef.current) {
-          altRef.current.textContent = altitudeFor(sm.p).toLocaleString("en-US");
+          const rawAlt = altitudeFor(sm.p);
+          const nextAlt =
+            sm.p > 0 && sm.p < 0.99 ? Math.round(rawAlt / 10) * 10 : rawAlt;
+          if (nextAlt !== lastAlt) {
+            lastAlt = nextAlt;
+            altRef.current.textContent = nextAlt.toLocaleString("en-US");
+          }
         }
         if (meterRef.current) {
-          meterRef.current.style.transform = `scaleX(${0.08 + sm.p * 0.92})`;
+          meterRef.current.style.transform = `scaleX(${(0.08 + sm.p * 0.92).toFixed(4)})`;
         }
       }
 
@@ -148,13 +211,15 @@ export function Hero() {
 
     const syncMetrics = () => {
       isCompactViewport = window.innerWidth < 768;
-      cachedTotal = Math.max(0, el.offsetHeight - window.innerHeight);
+      cachedViewportH = window.innerHeight;
+      cachedTotal = Math.max(0, el.offsetHeight - cachedViewportH);
       cachedOffsetTop = el.offsetTop;
       const top = window.scrollY - cachedOffsetTop;
       heroState.progress = Math.min(
         1,
         Math.max(0, cachedTotal > 0 ? top / cachedTotal : 0)
       );
+      heroState.lastActivityAt = performance.now();
       applyVisuals(sm.x, sm.y, sm.p);
       wake();
     };
@@ -165,6 +230,7 @@ export function Hero() {
         1,
         Math.max(0, cachedTotal > 0 ? top / cachedTotal : 0)
       );
+      heroState.lastActivityAt = performance.now();
       wake();
     };
 
@@ -172,6 +238,7 @@ export function Hero() {
       if (e.pointerType === "touch") return;
       heroState.mouseX = (e.clientX / window.innerWidth) * 2 - 1;
       heroState.mouseY = -((e.clientY / window.innerHeight) * 2 - 1);
+      heroState.lastActivityAt = performance.now();
       wake();
     };
 
@@ -182,7 +249,7 @@ export function Hero() {
       if (!widthChanged && window.innerWidth < 1024) return;
       syncMetrics();
       if (widthChanged) {
-        checkViewport();
+        checkViewport(true);
       }
     };
 
@@ -191,23 +258,32 @@ export function Hero() {
         const visible = entry.isIntersecting;
         heroState.inView = visible;
         setInView(visible);
-        if (visible) wake();
+        if (visible) {
+          heroState.lastActivityAt = performance.now();
+          wake();
+        }
       },
       { rootMargin: "0px" }
     );
     observer.observe(el);
 
     syncMetrics();
+    const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
-    window.addEventListener("pointermove", onMove, { passive: true });
+    if (!isCoarsePointer) {
+      window.addEventListener("pointermove", onMove, { passive: true });
+    }
 
     return () => {
+      cancelDeferredScene();
       observer.disconnect();
       if (raf) cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("pointermove", onMove);
+      if (!isCoarsePointer) {
+        window.removeEventListener("pointermove", onMove);
+      }
     };
   }, []);
 
@@ -229,7 +305,7 @@ export function Hero() {
     >
       <div
         id="top"
-        className="sticky top-0 h-svh w-full overflow-hidden"
+        className="sticky top-0 h-svh w-full overflow-hidden [contain:layout_paint]"
       >
         {/* 1 — Crisp High-Priority Himalayan Mountains Behind Transparent 3D Scene */}
         <div
@@ -267,11 +343,10 @@ export function Hero() {
 
         {/* Consolidated background gradient + bottom-left scrim behind 3D scene */}
         <div
-          ref={topScrimRef}
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
           style={{
-            opacity: 0.85,
+            opacity: 0.88,
             backgroundImage:
               "radial-gradient(ellipse 60% 55% at 22% 72%, rgba(8, 19, 24, 0.72), transparent 72%), linear-gradient(to bottom, rgba(8, 19, 24, 0.7), rgba(8, 19, 24, 0.15) 50%, rgba(8, 19, 24, 0.85))",
           }}
@@ -313,9 +388,9 @@ export function Hero() {
         <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-end px-6 sm:px-8 md:px-12 pb-[108px] sm:pb-28 lg:pb-[14vh]">
           <div
             ref={heroTextRef}
-            className="pointer-events-auto mx-auto w-full max-w-[1440px] will-change-transform"
+            className="pointer-events-auto mx-auto w-full max-w-[1440px]"
             style={{
-              transform: "translate3d(0px, 0vh, 0)",
+              transform: "translate3d(0px, 0px, 0)",
               opacity: 1,
             }}
           >
@@ -351,7 +426,7 @@ export function Hero() {
                 </Link>
                 <Link
                   href="/destinations"
-                  className="group inline-flex h-11 sm:h-12 w-full sm:w-auto items-center justify-center gap-1.5 sm:gap-2 rounded-[6px] border border-white/35 bg-[#081318]/72 lg:bg-[#081318]/45 lg:backdrop-blur-md px-3 sm:px-6 text-[10.5px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white shadow-md transition-colors hover:border-[#e5b96b] hover:bg-[#081318]/65 hover:text-[#e5b96b] cursor-pointer whitespace-nowrap"
+                  className="group inline-flex h-11 sm:h-12 w-full sm:w-auto items-center justify-center gap-1.5 sm:gap-2 rounded-[6px] border border-white/35 bg-[#081318]/65 hover:bg-[#081318]/80 px-3 sm:px-6 text-[10.5px] sm:text-xs font-medium uppercase tracking-[0.12em] sm:tracking-[0.18em] text-white shadow-md transition-colors hover:border-[#e5b96b] hover:text-[#e5b96b] cursor-pointer whitespace-nowrap"
                 >
                   <span>Browse Routes</span>
                   <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
@@ -364,15 +439,16 @@ export function Hero() {
         {/* Mid-flight scroll brand showcase (replaces "Above the treeline...") */}
         <div
           ref={brandRef}
-          className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center select-none will-change-transform"
+          className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center select-none"
           style={{
             opacity: 0,
+            visibility: "hidden",
             transform: "scale(0.92)",
           }}
         >
-          <div className="relative mb-3 h-20 w-20 sm:h-28 sm:w-28 md:h-32 md:w-32 drop-shadow-[0_12px_40px_rgba(0,0,0,0.85)]">
+          <div className="relative mb-3 h-20 w-20 sm:h-28 sm:w-28 md:h-32 md:w-32">
             <Image
-              src="/images/brothers_holidays_adventure_logo_8k.png"
+              src="/images/brothers_logo_navbar.png"
               alt="Brothers Holidays Adventure Logo"
               fill
               sizes="(max-width: 768px) 112px, 128px"
@@ -405,7 +481,7 @@ export function Hero() {
           <div className="mx-auto grid max-w-[1440px] grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-3 border-t border-white/15 pt-3.5 text-[10px] uppercase tracking-[0.2em] text-white/70">
             <div className="hidden md:block" aria-hidden="true" />
 
-            <div className="flex items-center justify-center gap-4 sm:gap-5 tabular-nums">
+            <div className="flex items-center justify-center gap-4 sm:gap-5 tabular-nums [contain:layout_style]">
               <span>Elevation</span>
               <span className="relative block h-px w-24 sm:w-36 bg-white/20">
                 <span
