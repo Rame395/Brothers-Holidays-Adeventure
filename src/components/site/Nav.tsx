@@ -3,12 +3,18 @@
 import {
   ArrowRight,
   ArrowUpRight,
+  Bell,
   ChevronDown,
   ChevronRight,
   ChevronsRight,
+  Compass,
+  FileCheck2,
   MapPin,
   Menu,
+  Mountain,
+  Phone,
   Send,
+  ShieldCheck,
   User,
   X,
 } from "lucide-react";
@@ -16,6 +22,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES, COUNTRIES, REGIONS } from "@/data/trips";
+import {
+  PEAK_BRACKETS,
+  buildPeakBracketHref,
+  matchesPeakBracket,
+} from "@/lib/peak-brackets";
 import type {
   DestinationCountryDTO,
   DestinationRegionDTO,
@@ -23,6 +34,22 @@ import type {
   NavTripDTO,
   TripCategoryDTO,
 } from "@/lib/types";
+
+type ActiveDesktopMenu =
+  | "destinations"
+  | "activities"
+  | "peaks"
+  | "guides"
+  | "about"
+  | null;
+
+type MobileSection =
+  | "destinations"
+  | "activities"
+  | "peaks"
+  | "guides"
+  | "about"
+  | null;
 
 const FALLBACK_COUNTRIES: DestinationCountryDTO[] = COUNTRIES.map((c, i) => ({
   id: c.id,
@@ -57,6 +84,41 @@ const FALLBACK_REGIONS: DestinationRegionDTO[] = REGIONS.map((r, i) => ({
   isActive: true,
 }));
 
+const ABOUT_SUB_LINKS = [
+  { label: "About Us", href: "/about" },
+  { label: "Our Blog", href: "/journal" },
+  { label: "Our Team", href: "/about#our-team" },
+  { label: "Responsible Travel", href: "/about#responsible-travel" },
+  { label: "Why Travel with Us?", href: "/about#why-travel-with-us" },
+  {
+    label: "Legal Documents – Brothers Holidays Adventure Pvt. Ltd.",
+    href: "/legal-documents",
+  },
+];
+
+const GUIDE_SUB_LINKS = [
+  {
+    label: "All Travel Guides",
+    href: "/guides",
+    desc: "Destination notes, altitude prep & trail advisories",
+  },
+  {
+    label: "Field Journal & Blog",
+    href: "/journal",
+    desc: "Dispatches from Khumbu, Manaslu & Dolpo",
+  },
+  {
+    label: "Himalayan Trekking Routes",
+    href: "/treks",
+    desc: "Classic & high-pass trail directory",
+  },
+  {
+    label: "Risk-Free Booking Policy",
+    href: "/booking-policy",
+    desc: "Flexible dates, low deposit & weather protection",
+  },
+];
+
 export function BrothersMark({ className }: { className?: string }) {
   return (
     <svg
@@ -83,214 +145,14 @@ export function BrothersMark({ className }: { className?: string }) {
 }
 export const KharkaMark = BrothersMark;
 
-const NAV_LINKS: Array<{
-  href: string;
-  label: string;
-  match: (pathname: string) => boolean;
-}> = [
-  {
-    href: "/destinations?view=all",
-    label: "All Trips",
-    match: (p) => p === "/destinations",
-  },
-  { href: "/treks", label: "Treks", match: (p) => p.startsWith("/treks") },
-  {
-    href: "/expeditions",
-    label: "Expeditions",
-    match: (p) => p.startsWith("/expeditions"),
-  },
-  { href: "/journal", label: "Journal", match: (p) => p.startsWith("/journal") },
-  { href: "/guides", label: "Guides", match: (p) => p.startsWith("/guides") },
-  { href: "/about", label: "About", match: (p) => p === "/about" },
-];
-
-export function MegaPanel({
-  activeCountry,
-  activeCategory,
-  regionsForCountry,
-  tripsSource,
-  onHoverTrip,
-  onClose,
-}: {
-  activeCountry: DestinationCountryDTO;
-  activeCategory: TripCategoryDTO | undefined;
-  regionsForCountry: DestinationRegionDTO[];
-  tripsSource: NavTripDTO[];
-  onHoverTrip: (img: string | null) => void;
-  onClose?: () => void;
-}) {
-  const categorySlug = activeCategory?.slug;
-  const countryTrips = tripsSource.filter(
-    (t) =>
-      t.country === activeCountry.slug &&
-      (!categorySlug || t.categories.includes(categorySlug))
-  );
-
-  const viewAllHref = categorySlug
-    ? `/destinations?country=${encodeURIComponent(activeCountry.slug)}&category=${encodeURIComponent(categorySlug)}`
-    : `/destinations?country=${encodeURIComponent(activeCountry.slug)}`;
-
-  const headingLabel = activeCategory
-    ? `${activeCategory.name} in ${activeCountry.name}`
-    : `Journeys in ${activeCountry.name}`;
-
-  if (activeCategory?.groupByRegion && regionsForCountry.length > 0) {
-    const regionSlugs = new Set(regionsForCountry.map((r) => r.slug));
-    const unassignedTrips = countryTrips
-      .filter((t) => !t.region || !regionSlugs.has(t.region))
-      .slice(0, 6);
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f05e25]">
-            {headingLabel}
-          </p>
-          <Link
-            href={viewAllHref}
-            onClick={onClose}
-            className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#f05e25] hover:underline"
-          >
-            View all <ArrowUpRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-          {regionsForCountry.map((region) => {
-            const list = countryTrips
-              .filter((t) => t.region === region.slug)
-              .slice(0, 8);
-            return (
-              <div key={region.slug} className="space-y-1.5">
-                <Link
-                  href={`/destinations/region/${encodeURIComponent(region.slug)}`}
-                  onClick={onClose}
-                  className="block text-[11px] font-semibold uppercase tracking-wider text-[#1c1917] hover:text-[#f05e25] transition-colors"
-                >
-                  {region.name}
-                </Link>
-                {list.length > 0 ? (
-                  <ul className="space-y-1">
-                    {list.map((trip) => (
-                      <li key={trip.slug}>
-                        <Link
-                          href={`/destinations/${trip.slug}`}
-                          onClick={onClose}
-                          onMouseEnter={() => onHoverTrip(trip.image)}
-                          onMouseLeave={() => onHoverTrip(null)}
-                          className="group flex items-center justify-between text-xs text-stone-600 transition-colors hover:text-[#1c1917]"
-                        >
-                          <span className="truncate transition-transform group-hover:translate-x-0.5">
-                            {trip.name}
-                          </span>
-                          <span className="ml-2 text-[11px] text-stone-400 tabular-nums group-hover:text-[#f05e25]">
-                            {trip.days}d
-                          </span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-[11px] text-stone-400 italic">
-                    Routes opening soon
-                  </p>
-                )}
-              </div>
-            );
-          })}
-
-          {unassignedTrips.length > 0 && (
-            <div className="space-y-1.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#1c1917]">
-                Other {activeCountry.name} Routes
-              </p>
-              <ul className="space-y-1">
-                {unassignedTrips.map((trip) => (
-                  <li key={trip.slug}>
-                    <Link
-                      href={`/destinations/${trip.slug}`}
-                      onClick={onClose}
-                      onMouseEnter={() => onHoverTrip(trip.image)}
-                      onMouseLeave={() => onHoverTrip(null)}
-                      className="group flex items-center justify-between text-xs text-stone-600 transition-colors hover:text-[#1c1917]"
-                    >
-                      <span className="truncate transition-transform group-hover:translate-x-0.5">
-                        {trip.name}
-                      </span>
-                      <span className="ml-2 text-[11px] text-stone-400 tabular-nums group-hover:text-[#f05e25]">
-                        {trip.days}d
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f05e25]">
-          {headingLabel}
-        </p>
-        <Link
-          href={viewAllHref}
-          onClick={onClose}
-          className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#f05e25] hover:underline"
-        >
-          View all <ArrowUpRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
-
-      {countryTrips.length > 0 ? (
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-          {countryTrips.slice(0, 12).map((trip) => (
-            <Link
-              key={trip.slug}
-              href={`/destinations/${trip.slug}`}
-              onClick={onClose}
-              onMouseEnter={() => onHoverTrip(trip.image)}
-              onMouseLeave={() => onHoverTrip(null)}
-              className="group flex items-center justify-between rounded-[6px] px-2 py-1 text-xs text-stone-600 transition-colors hover:bg-stone-100 hover:text-[#1c1917]"
-            >
-              <span className="truncate transition-transform group-hover:translate-x-0.5">
-                {trip.name}
-              </span>
-              <span className="ml-2 text-[11px] text-stone-400 tabular-nums group-hover:text-[#f05e25]">
-                {trip.days}d
-              </span>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-[10px] border border-stone-200 bg-stone-50 p-5 space-y-2">
-          <p className="text-xs text-stone-600 leading-relaxed">
-            No published routes in {headingLabel} yet. Our Kathmandu team builds bespoke private departures on request.
-          </p>
-          <Link
-            href="/contact"
-            onClick={onClose}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#f05e25] hover:underline"
-          >
-            <span>Plan a custom route in {activeCountry.name}</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function Nav({
   navTrips,
   taxonomy,
+  contactPhone = "+977-1-4700000",
 }: {
   navTrips?: NavTripDTO[];
   taxonomy?: DestinationTaxonomyDTO;
+  contactPhone?: string;
 }) {
   const countries =
     taxonomy && taxonomy.countries.length > 0
@@ -308,19 +170,25 @@ export function Nav({
   }, [navTrips]);
 
   const [open, setOpen] = useState(false);
-  const [megaOpen, setMegaOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<ActiveDesktopMenu>(null);
   const [selectedCountrySlug, setSelectedCountrySlug] = useState<string | null>(
     null
   );
-  const [selectedCategorySlug, setSelectedCategorySlug] = useState<string | null>(
+  const [selectedActivitySlug, setSelectedActivitySlug] = useState<string | null>(
     null
   );
   const [hoverImg, setHoverImg] = useState<string | null>(null);
-  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+  const [mobileSection, setMobileSection] =
+    useState<MobileSection>("destinations");
+  const [mobileCountrySlug, setMobileCountrySlug] = useState<string | null>(
+    "nepal"
+  );
   const [scrolled, setScrolled] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [customerName, setCustomerName] = useState<string | null>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const maxScrollRef = useRef(0);
   const closeTimer = useRef<number | null>(null);
+
   const pathname = usePathname();
   const hasDarkHero =
     pathname === "/" ||
@@ -329,37 +197,85 @@ export function Nav({
     pathname.startsWith("/destinations/country/") ||
     pathname.startsWith("/destinations/category/") ||
     pathname.startsWith("/destinations/region/");
-  const isSolid = !hasDarkHero || scrolled || megaOpen || open;
+  const isSolid = !hasDarkHero || scrolled || activeMenu !== null || open;
 
-  const desktopLinkClass = (active: boolean) =>
-    `relative whitespace-nowrap rounded-full px-3.5 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.12em] transition-all duration-200 ${
-      active
-        ? isSolid
-          ? "bg-white text-[#3f6e15] shadow-sm ring-1 ring-stone-200"
-          : "bg-white/25 text-white"
-        : isSolid
-        ? "text-[#1c1917]/80 hover:bg-white hover:text-[#3f6e15]"
-        : "text-white/90 hover:bg-white/15 hover:text-white"
-    }`;
+  const openMenu = (menu: ActiveDesktopMenu) => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    setActiveMenu(menu);
+  };
+
+  const scheduleCloseMenu = () => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setActiveMenu(null), 180);
+  };
+
+  const closeAllMenus = () => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    setActiveMenu(null);
+    setOpen(false);
+  };
 
   useEffect(() => {
     let raf = 0;
+
+    const measureMaxScroll = () => {
+      maxScrollRef.current = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+    };
+
+    const updateBar = () => {
+      const y = window.scrollY;
+      const next = y > 40;
+      setScrolled((prev) => (prev === next ? prev : next));
+      const max = maxScrollRef.current;
+      const ratio = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
+      if (progressBarRef.current) {
+        progressBarRef.current.style.transform = `scaleX(${ratio.toFixed(4)})`;
+      }
+    };
+
     const onScroll = () => {
       if (raf) return;
       raf = window.requestAnimationFrame(() => {
         raf = 0;
-        const y = window.scrollY;
-        const next = y > 40;
-        setScrolled((prev) => (prev === next ? prev : next));
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        const pct = max > 0 ? Math.min(100, Math.max(0, (y / max) * 100)) : 0;
-        setScrollProgress(Math.round(pct * 2) / 2);
+        updateBar();
       });
     };
-    onScroll();
+
+    const onResize = () => {
+      measureMaxScroll();
+      updateBar();
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActiveMenu(null);
+        setOpen(false);
+      }
+    };
+
+    measureMaxScroll();
+    updateBar();
+
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            measureMaxScroll();
+            updateBar();
+          })
+        : null;
+    ro?.observe(document.body);
+
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
+    window.addEventListener("keydown", onKeyDown);
     return () => {
+      ro?.disconnect();
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("keydown", onKeyDown);
       if (raf) window.cancelAnimationFrame(raf);
     };
   }, []);
@@ -398,90 +314,144 @@ export function Nav({
     };
   }, []);
 
-  const openMega = () => {
-    if (closeTimer.current) window.clearTimeout(closeTimer.current);
-    setMegaOpen(true);
-  };
-
-  const scheduleCloseMega = () => {
-    closeTimer.current = window.setTimeout(() => setMegaOpen(false), 180);
-  };
-
   const activeCountry =
     countries.find((c) => c.slug === selectedCountrySlug) ?? countries[0];
-
   const regionsForActiveCountry = regions.filter(
     (r) => r.countrySlug === activeCountry?.slug
   );
+  const countryTrips = useMemo(() => {
+    if (!activeCountry) return [];
+    return tripsSource.filter((t) => t.country === activeCountry.slug);
+  }, [activeCountry, tripsSource]);
 
-  const matchingCategories = activeCountry
-    ? categories.filter(
-        (cat) =>
-          tripsSource.some(
-            (t) =>
-              t.country === activeCountry.slug &&
-              t.categories.includes(cat.slug)
-          ) ||
-          (cat.groupByRegion && regionsForActiveCountry.length > 0) ||
-          !tripsSource.some((t) => t.categories.includes(cat.slug))
-      )
-    : [];
+  const activeActivity =
+    categories.find((c) => c.slug === selectedActivitySlug) ?? categories[0];
+  const activityTrips = useMemo(() => {
+    if (!activeActivity) return [];
+    return tripsSource.filter((t) =>
+      t.categories.includes(activeActivity.slug)
+    );
+  }, [activeActivity, tripsSource]);
 
-  const categoriesForCountry =
-    matchingCategories.length > 0 ? matchingCategories : categories;
+  const peakGroups = useMemo(
+    () =>
+      PEAK_BRACKETS.map((bracket) => ({
+        bracket,
+        trips: tripsSource
+          .filter((t) => matchesPeakBracket(t, bracket.id))
+          .slice(0, 8),
+      })),
+    [tripsSource]
+  );
 
-  const activeCategory =
-    categoriesForCountry.find((c) => c.slug === selectedCategorySlug) ??
-    categoriesForCountry[0];
-
-  const featureImg =
+  const featureCountryImg =
     hoverImg ??
-    tripsSource.find(
-      (t) =>
-        t.country === activeCountry?.slug &&
-        (!activeCategory || t.categories.includes(activeCategory.slug))
-    )?.image ??
-    activeCategory?.heroImage ??
+    countryTrips[0]?.image ??
     activeCountry?.heroImage ??
     "/images/trips/everest.jpg";
 
+  const triggerBtnClass = (isOpen: boolean, isRouteActive = false) =>
+    `inline-flex items-center gap-1.5 rounded-none px-3.5 xl:px-4 h-full text-[11.5px] xl:text-[12px] font-semibold uppercase tracking-[0.09em] xl:tracking-[0.11em] whitespace-nowrap transition-colors cursor-pointer ${
+      isOpen
+        ? "bg-[#f05e25] text-white"
+        : isRouteActive
+        ? isSolid
+          ? "text-[#3f6e15] border-b-2 border-[#f05e25]"
+          : "text-white border-b-2 border-[#f05e25]"
+        : isSolid
+        ? "text-[#1c1917] hover:text-[#f05e25]"
+        : "text-white/95 hover:text-[#ff8a50]"
+    }`;
+
+  const isDestinationsActive = pathname.startsWith("/destinations");
+  const isPeaksActive =
+    pathname.startsWith("/expeditions") ||
+    pathname === "/destinations/category/peak-climbing";
+  const isGuidesActive =
+    pathname.startsWith("/guides") ||
+    pathname.startsWith("/journal") ||
+    pathname.startsWith("/treks") ||
+    pathname === "/booking-policy";
+  const isAboutActive =
+    pathname === "/about" || pathname === "/legal-documents";
+
+  const telHref = `tel:${contactPhone.replace(/[^+\d]/g, "")}`;
+
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 w-full transition-all duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 w-full transition-colors duration-300 ${
         isSolid
-          ? "bg-white/90 backdrop-blur-xl border-b border-stone-200/70 shadow-[0_8px_30px_-14px_rgba(28,25,23,0.18)]"
-          : "bg-gradient-to-b from-black/55 via-black/20 to-transparent border-b border-transparent"
+          ? "bg-white border-b border-stone-200 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.14)]"
+          : "bg-gradient-to-b from-black/70 via-black/30 to-transparent border-b border-transparent"
       }`}
-      onMouseLeave={scheduleCloseMega}
+      onMouseLeave={scheduleCloseMenu}
     >
+      {/* Top Risk-Free Booking Policy Bar (collapses smoothly once scrolled) */}
+      <div
+        className={`w-full bg-[#162b0c] text-white transition-all duration-300 overflow-hidden ${
+          scrolled || activeMenu !== null || open
+            ? "max-h-0 opacity-0"
+            : "max-h-12 opacity-100 border-b border-white/10"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-9 flex items-center justify-between gap-3 text-[11px] sm:text-xs">
+          <div className="flex items-center justify-center sm:justify-start gap-2 min-w-0 flex-1">
+            <Bell className="w-3.5 h-3.5 text-[#ff8a50] shrink-0" />
+            <span className="truncate font-medium text-white/95">
+              Check Our Risk-Free Booking Policy
+            </span>
+            <Link
+              href="/booking-policy"
+              onClick={closeAllMenus}
+              className="inline-flex items-center gap-1 rounded-[3px] bg-white text-[#162b0c] hover:bg-[#ff8a50] hover:text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shrink-0 transition-colors"
+            >
+              <span>View Details</span>
+              <ChevronsRight className="w-3 h-3" />
+            </Link>
+          </div>
+
+          <div className="hidden md:flex items-center gap-4 shrink-0 text-[11px] text-white/85">
+            <a
+              href={telHref}
+              className="inline-flex items-center gap-1.5 hover:text-[#ff8a50] transition-colors font-medium"
+            >
+              <Phone className="w-3 h-3 text-[#8bc34a]" />
+              <span>{contactPhone}</span>
+            </a>
+            <Link
+              href="/legal-documents"
+              onClick={closeAllMenus}
+              className="inline-flex items-center gap-1 hover:text-[#ff8a50] transition-colors"
+            >
+              <ShieldCheck className="w-3 h-3 text-[#8bc34a]" />
+              <span>Govt. Licensed · NTB 1509</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
       {/* Scroll progress line */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden"
       >
         <div
-          className="h-full bg-gradient-to-r from-[#3f6e15] via-[#8bc34a] to-[#f05e25] transition-[width,opacity] duration-150"
+          ref={progressBarRef}
+          className="h-full w-full origin-left bg-gradient-to-r from-[#3f6e15] via-[#8bc34a] to-[#f05e25] transition-opacity duration-150"
           style={{
-            width: `${scrollProgress}%`,
-            opacity: scrolled && !megaOpen && !open ? 1 : 0,
+            transform: "scaleX(0)",
+            opacity: scrolled && activeMenu === null && !open ? 1 : 0,
           }}
         />
       </div>
 
       <div className="max-w-7xl mx-auto relative">
-        <nav
-          className={`w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 transition-all duration-300 ${
-            scrolled || !hasDarkHero ? "py-2.5" : "py-3.5 sm:py-4"
-          }`}
-        >
+        <nav className="w-full px-4 sm:px-6 lg:px-8 py-2.5 lg:py-0 lg:h-[64px] flex items-center justify-between gap-4">
           {/* Left: Brand Logo */}
           <Link
             href="/"
-            onClick={() => {
-              setOpen(false);
-              setMegaOpen(false);
-            }}
-            onMouseEnter={scheduleCloseMega}
+            onClick={closeAllMenus}
+            onMouseEnter={scheduleCloseMenu}
             className="group flex items-center shrink-0 cursor-pointer"
             aria-label="BROTHERS Holidays Adventure Home"
           >
@@ -489,63 +459,177 @@ export function Nav({
             <img
               src="/images/brothers_logo_navbar.png"
               alt="BROTHERS Holidays Adventure"
-              className={`h-9 sm:h-11 w-auto max-w-[150px] sm:max-w-[190px] object-contain transition-all duration-300 group-hover:scale-[1.03] ${
-                isSolid ? "brightness-0" : "drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]"
+              className={`h-9 sm:h-10 w-auto max-w-[140px] sm:max-w-[175px] object-contain transition-all duration-300 group-hover:scale-[1.03] ${
+                isSolid
+                  ? "brightness-0"
+                  : "drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]"
               }`}
             />
           </Link>
 
-          {/* Center: Pill Navigation */}
-          <div
-            className={`hidden lg:flex items-center gap-1 rounded-full border p-1 transition-colors duration-300 ${
-              isSolid
-                ? "bg-stone-100/80 border-stone-200/80"
-                : "bg-white/10 border-white/20 backdrop-blur-md"
-            }`}
-          >
+          {/* Center: Clean Architectural Rectangular Navigation Tabs */}
+          <div className="hidden lg:flex items-stretch h-full gap-0.5 xl:gap-1">
+            {/* 1. Destinations */}
             <button
               type="button"
-              onMouseEnter={openMega}
-              onFocus={openMega}
-              onClick={() => setMegaOpen((v) => !v)}
-              aria-expanded={megaOpen}
-              className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[11.5px] font-bold uppercase tracking-[0.12em] text-white shadow-sm transition-all cursor-pointer ${
-                megaOpen
-                  ? "bg-[#d94e18]"
-                  : "bg-[#f05e25] hover:bg-[#d94e18]"
-              }`}
+              onMouseEnter={() => openMenu("destinations")}
+              onFocus={() => openMenu("destinations")}
+              onClick={() =>
+                setActiveMenu((m) =>
+                  m === "destinations" ? null : "destinations"
+                )
+              }
+              aria-expanded={activeMenu === "destinations"}
+              className={triggerBtnClass(
+                activeMenu === "destinations",
+                isDestinationsActive && !isPeaksActive
+              )}
             >
-              <MapPin className="w-3.5 h-3.5 shrink-0" />
               <span>Destinations</span>
               <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${
-                  megaOpen ? "rotate-180" : ""
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  activeMenu === "destinations" ? "rotate-180" : ""
                 }`}
               />
             </button>
 
-            {NAV_LINKS.map((link) => {
-              const active = link.match(pathname);
-              return (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  onMouseEnter={scheduleCloseMega}
-                  aria-current={active ? "page" : undefined}
-                  className={desktopLinkClass(active)}
+            {/* 2. Activities */}
+            <button
+              type="button"
+              onMouseEnter={() => openMenu("activities")}
+              onFocus={() => openMenu("activities")}
+              onClick={() =>
+                setActiveMenu((m) => (m === "activities" ? null : "activities"))
+              }
+              aria-expanded={activeMenu === "activities"}
+              className={triggerBtnClass(activeMenu === "activities")}
+            >
+              <span>Activities</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  activeMenu === "activities" ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* 3. Peak Climbing */}
+            <button
+              type="button"
+              onMouseEnter={() => openMenu("peaks")}
+              onFocus={() => openMenu("peaks")}
+              onClick={() =>
+                setActiveMenu((m) => (m === "peaks" ? null : "peaks"))
+              }
+              aria-expanded={activeMenu === "peaks"}
+              className={triggerBtnClass(activeMenu === "peaks", isPeaksActive)}
+            >
+              <span>Peak Climbing</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  activeMenu === "peaks" ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* 4. Travel Guide */}
+            <div className="relative flex items-stretch">
+              <button
+                type="button"
+                onMouseEnter={() => openMenu("guides")}
+                onFocus={() => openMenu("guides")}
+                onClick={() =>
+                  setActiveMenu((m) => (m === "guides" ? null : "guides"))
+                }
+                aria-expanded={activeMenu === "guides"}
+                className={triggerBtnClass(
+                  activeMenu === "guides",
+                  isGuidesActive
+                )}
+              >
+                <span>Travel Guide</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    activeMenu === "guides" ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {activeMenu === "guides" && (
+                <div
+                  onMouseEnter={() => openMenu("guides")}
+                  className="absolute left-0 top-full mt-0 w-72 rounded-none border border-t-2 border-stone-200 border-t-[#f05e25] bg-white shadow-[0_20px_48px_-16px_rgba(15,23,42,0.22)] overflow-hidden z-50"
                 >
-                  {link.label}
-                </Link>
-              );
-            })}
+                  <div className="divide-y divide-stone-100">
+                    {GUIDE_SUB_LINKS.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={closeAllMenus}
+                        className="group block px-5 py-3 hover:bg-[#f8fafc] transition-colors"
+                      >
+                        <div className="text-[13px] font-semibold text-[#1c1917] group-hover:text-[#f05e25] transition-colors">
+                          {item.label}
+                        </div>
+                        <div className="text-[11px] text-stone-500 mt-0.5">
+                          {item.desc}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 5. About Us */}
+            <div className="relative flex items-stretch">
+              <button
+                type="button"
+                onMouseEnter={() => openMenu("about")}
+                onFocus={() => openMenu("about")}
+                onClick={() =>
+                  setActiveMenu((m) => (m === "about" ? null : "about"))
+                }
+                aria-expanded={activeMenu === "about"}
+                className={triggerBtnClass(activeMenu === "about", isAboutActive)}
+              >
+                <span>About Us</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    activeMenu === "about" ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {activeMenu === "about" && (
+                <div
+                  onMouseEnter={() => openMenu("about")}
+                  className="absolute right-0 xl:left-0 xl:right-auto top-full mt-0 w-80 rounded-none border border-t-2 border-stone-200 border-t-[#f05e25] bg-[#f8fafc] shadow-[0_20px_48px_-16px_rgba(15,23,42,0.22)] overflow-hidden z-50"
+                >
+                  <div className="divide-y divide-stone-200/70">
+                    {ABOUT_SUB_LINKS.map((item) => (
+                      <Link
+                        key={item.href + item.label}
+                        href={item.href}
+                        onClick={closeAllMenus}
+                        className="flex items-center justify-between gap-2 px-5 py-3 text-[13.5px] font-medium text-[#334155] hover:bg-white hover:text-[#f05e25] transition-colors"
+                      >
+                        <span>{item.label}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-stone-300 shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right Desktop Actions */}
-          <div className="hidden lg:flex items-center gap-2.5 shrink-0">
+          <div className="hidden lg:flex items-center gap-2 shrink-0">
             <Link
               href="/contact"
-              onMouseEnter={scheduleCloseMega}
-              className="group inline-flex items-center gap-1.5 rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-4 py-2 text-[11.5px] font-bold uppercase tracking-[0.12em] text-white shadow-[0_6px_16px_-6px_rgba(240,94,37,0.7)] transition-all hover:-translate-y-0.5 whitespace-nowrap"
+              onClick={closeAllMenus}
+              onMouseEnter={scheduleCloseMenu}
+              className="group inline-flex items-center gap-1.5 rounded-[4px] bg-[#f05e25] hover:bg-[#d94e18] px-3.5 xl:px-4 py-2 text-[11px] xl:text-[11.5px] font-bold uppercase tracking-[0.1em] text-white shadow-sm transition-colors whitespace-nowrap"
             >
               <Send className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               <span>Contact</span>
@@ -553,15 +637,16 @@ export function Nav({
 
             <Link
               href={customerName ? "/account" : "/login"}
-              onMouseEnter={scheduleCloseMega}
-              className={`inline-flex items-center gap-2 rounded-full border pl-1.5 pr-3.5 py-1 text-xs font-semibold transition-all whitespace-nowrap ${
+              onClick={closeAllMenus}
+              onMouseEnter={scheduleCloseMenu}
+              className={`inline-flex items-center gap-2 rounded-[4px] border pl-1.5 pr-3 py-1 text-xs font-semibold transition-colors whitespace-nowrap ${
                 isSolid
-                  ? "border-stone-200 bg-white hover:border-[#3f6e15]/40 text-[#1c1917]"
-                  : "border-white/30 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md"
+                  ? "border-stone-200 bg-white hover:border-[#3f6e15]/50 text-[#1c1917]"
+                  : "border-white/35 bg-[#081318]/55 hover:bg-[#081318]/75 text-white"
               }`}
             >
               <span
-                className={`grid h-7 w-7 place-items-center rounded-full text-[11px] font-bold ${
+                className={`grid h-6 w-6 place-items-center rounded-[3px] text-[11px] font-bold ${
                   customerName
                     ? "bg-[#3f6e15] text-white"
                     : isSolid
@@ -580,20 +665,33 @@ export function Nav({
           </div>
 
           {/* Mobile Actions */}
-          <div className="flex lg:hidden items-center gap-2.5">
+          <div className="flex lg:hidden items-center gap-2">
+            <a
+              href={telHref}
+              aria-label="Call Brothers Holidays Adventure"
+              className={`w-9 h-9 rounded-[4px] border flex items-center justify-center transition-colors ${
+                isSolid
+                  ? "bg-white border-stone-200 text-[#3f6e15] hover:border-[#3f6e15]/50"
+                  : "bg-[#081318]/55 border-white/30 text-white hover:bg-[#081318]/75"
+              }`}
+            >
+              <Phone className="h-3.5 w-3.5" />
+            </a>
+
             <Link
               href="/contact"
-              className="flex items-center gap-1.5 rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm transition-colors"
+              onClick={closeAllMenus}
+              className="flex items-center gap-1.5 rounded-[4px] bg-[#f05e25] hover:bg-[#d94e18] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white shadow-sm transition-colors"
             >
               <span>Contact</span>
             </Link>
 
             <button
               type="button"
-              className={`w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer transition-colors ${
+              className={`w-9 h-9 rounded-[4px] border flex items-center justify-center cursor-pointer transition-colors ${
                 isSolid
-                  ? "bg-white border-stone-200 text-[#1c1917] hover:border-[#3f6e15]/40"
-                  : "bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-md"
+                  ? "bg-white border-stone-200 text-[#1c1917] hover:border-[#3f6e15]/50"
+                  : "bg-[#081318]/55 border-white/30 text-white hover:bg-[#081318]/75"
               }`}
               onClick={() => setOpen((v) => !v)}
               aria-label={open ? "Close navigation menu" : "Open navigation menu"}
@@ -611,261 +709,697 @@ export function Nav({
           </div>
         </nav>
 
-        {/* Desktop 3-Column Destinations Mega Menu (Country -> Category -> Regions & Trips) */}
-        <div
-          onMouseEnter={openMega}
-          aria-hidden={!megaOpen}
-          className={
-            megaOpen
-              ? "hidden lg:block mx-4 sm:mx-6 lg:mx-8 mt-1 rounded-2xl border border-stone-200/80 bg-white shadow-[0_24px_60px_-20px_rgba(28,25,23,0.3)] overflow-hidden"
-              : "hidden"
-          }
-        >
+        {/* MEGA PANEL 1: DESTINATIONS (Flush Rectangular Mega-Menu) */}
+        {activeMenu === "destinations" && (
           <div
-            aria-hidden="true"
-            className="h-[3px] w-full bg-gradient-to-r from-[#3f6e15] via-[#f05e25] to-[#3f6e15]"
-          />
-          <div className="grid grid-cols-[155px_195px_1fr] xl:grid-cols-[155px_195px_1fr_210px] gap-6 p-6 xl:p-7">
-            {/* Column 1: Countries */}
-            <div className="border-r border-stone-200 pr-4 space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] px-2.5 text-stone-400 mb-2">
-                Countries
-              </p>
-              {countries.map((c) => {
-                const isSelected = activeCountry?.slug === c.slug;
-                return (
-                  <button
-                    key={c.slug}
-                    type="button"
-                    onMouseEnter={() => {
-                      setSelectedCountrySlug(c.slug);
-                      setSelectedCategorySlug(null);
-                      setHoverImg(null);
-                    }}
-                    onFocus={() => {
-                      setSelectedCountrySlug(c.slug);
-                      setSelectedCategorySlug(null);
-                    }}
-                    onClick={() => {
-                      setSelectedCountrySlug(c.slug);
-                      setSelectedCategorySlug(null);
-                    }}
-                    className={`flex w-full items-center justify-between rounded-[8px] px-2.5 py-2 text-left text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
-                      isSelected
-                        ? "bg-[#3f6e15] text-white shadow-sm"
-                        : "text-stone-700 hover:bg-stone-100 hover:text-[#1c1917]"
-                    }`}
-                  >
-                    <span className="truncate">{c.name}</span>
-                    {isSelected ? (
-                      <ChevronsRight className="h-3.5 w-3.5 shrink-0 text-[#f05e25]" />
+            onMouseEnter={() => openMenu("destinations")}
+            className="hidden lg:block mx-4 sm:mx-6 lg:mx-8 mt-0 rounded-none border border-t-2 border-stone-200 border-t-[#f05e25] bg-white shadow-[0_20px_48px_-16px_rgba(15,23,42,0.22)] overflow-hidden"
+          >
+            <div className="grid grid-cols-[190px_1fr_240px]">
+              {/* Left: Countries */}
+              <div className="border-r border-stone-200 bg-[#f8fafc] py-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] px-4 text-stone-400 mb-2">
+                  Destinations
+                </p>
+                <div className="divide-y divide-stone-200/70">
+                  {countries.map((c) => {
+                    const isSelected = activeCountry?.slug === c.slug;
+                    return (
+                      <button
+                        key={c.slug}
+                        type="button"
+                        onMouseEnter={() => {
+                          setSelectedCountrySlug(c.slug);
+                          setHoverImg(null);
+                        }}
+                        onFocus={() => setSelectedCountrySlug(c.slug)}
+                        onClick={() => setSelectedCountrySlug(c.slug)}
+                        className={`flex w-full items-center justify-between rounded-none px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wider transition-colors cursor-pointer ${
+                          isSelected
+                            ? "bg-[#3f6e15] text-white"
+                            : "text-stone-700 hover:bg-white hover:text-[#1c1917]"
+                        }`}
+                      >
+                        <span className="truncate">{c.name}</span>
+                        {isSelected ? (
+                          <ChevronsRight className="h-3.5 w-3.5 shrink-0 text-[#ff8a50]" />
+                        ) : (
+                          <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Center: Regions + Popular Journeys in Active Country */}
+              <div className="p-6 space-y-4">
+                {activeCountry && (
+                  <>
+                    <div className="flex items-center justify-between border-b border-stone-200 pb-2.5">
+                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#f05e25]">
+                        {activeCountry.name} Expeditions &amp; Treks
+                      </p>
+                      <Link
+                        href={`/destinations/country/${encodeURIComponent(
+                          activeCountry.slug
+                        )}`}
+                        onClick={closeAllMenus}
+                        className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-[#3f6e15] hover:text-[#f05e25]"
+                      >
+                        Explore {activeCountry.name}
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+
+                    {regionsForActiveCountry.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                        {regionsForActiveCountry.map((region) => {
+                          const regionTrips = countryTrips
+                            .filter((t) => t.region === region.slug)
+                            .slice(0, 6);
+                          return (
+                            <div key={region.slug} className="space-y-1.5">
+                              <Link
+                                href={`/destinations/region/${encodeURIComponent(
+                                  region.slug
+                                )}`}
+                                onClick={closeAllMenus}
+                                className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-[#3f6e15] hover:text-[#f05e25]"
+                              >
+                                <span>{region.name}</span>
+                                <ChevronRight className="w-3 h-3" />
+                              </Link>
+                              {regionTrips.length > 0 ? (
+                                <ul className="space-y-1">
+                                  {regionTrips.map((trip) => (
+                                    <li key={trip.slug}>
+                                      <Link
+                                        href={`/destinations/${trip.slug}`}
+                                        onClick={closeAllMenus}
+                                        onMouseEnter={() =>
+                                          setHoverImg(trip.image)
+                                        }
+                                        onMouseLeave={() => setHoverImg(null)}
+                                        className="group flex items-center justify-between text-xs text-stone-600 hover:text-[#1c1917]"
+                                      >
+                                        <span className="truncate transition-transform group-hover:translate-x-0.5">
+                                          {trip.name}
+                                        </span>
+                                        <span className="ml-2 text-[11px] text-stone-400 tabular-nums group-hover:text-[#f05e25]">
+                                          {trip.days}d
+                                        </span>
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-[11px] text-stone-400 italic">
+                                  Custom routes available
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : countryTrips.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+                        {countryTrips.slice(0, 12).map((trip) => (
+                          <Link
+                            key={trip.slug}
+                            href={`/destinations/${trip.slug}`}
+                            onClick={closeAllMenus}
+                            onMouseEnter={() => setHoverImg(trip.image)}
+                            onMouseLeave={() => setHoverImg(null)}
+                            className="group flex items-center justify-between rounded-none px-2 py-1.5 text-xs text-stone-600 hover:bg-stone-50 hover:text-[#1c1917]"
+                          >
+                            <span className="truncate group-hover:translate-x-0.5 transition-transform">
+                              {trip.name}
+                            </span>
+                            <span className="ml-2 text-[11px] text-stone-400 tabular-nums group-hover:text-[#f05e25]">
+                              {trip.days}d
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
                     ) : (
-                      <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-40" />
+                      <div className="rounded-none border border-stone-200 bg-stone-50 p-5 space-y-2">
+                        <p className="text-xs text-stone-600 leading-relaxed">
+                          Private customized journeys in {activeCountry.name}{" "}
+                          arranged with licensed regional guides and full permit
+                          handling.
+                        </p>
+                        <Link
+                          href="/contact"
+                          onClick={closeAllMenus}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#f05e25] hover:underline"
+                        >
+                          <span>Request a {activeCountry.name} itinerary</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
                     )}
-                  </button>
-                );
-              })}
-            </div>
+                  </>
+                )}
+              </div>
 
-            {/* Column 2: Categories for Active Country */}
-            <div className="border-r border-stone-200 pr-4 space-y-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] px-2.5 text-stone-400 mb-2">
-                Categories
-              </p>
-              {categoriesForCountry.map((cat) => {
-                const isSelected = activeCategory?.slug === cat.slug;
-                return (
-                  <button
-                    key={cat.slug}
-                    type="button"
-                    onMouseEnter={() => {
-                      setSelectedCategorySlug(cat.slug);
-                      setHoverImg(null);
-                    }}
-                    onFocus={() => setSelectedCategorySlug(cat.slug)}
-                    onClick={() => setSelectedCategorySlug(cat.slug)}
-                    className={`block w-full rounded-[8px] px-2.5 py-2 text-left text-xs font-medium transition-colors cursor-pointer ${
-                      isSelected
-                        ? "bg-[#f05e25]/10 text-[#c2410c] font-semibold border border-[#f05e25]/30"
-                        : "text-stone-600 hover:bg-stone-100 hover:text-[#1c1917]"
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Column 3: Regions & Trips */}
-            <div className="min-h-[260px]">
-              {activeCountry && (
-                <MegaPanel
-                  activeCountry={activeCountry}
-                  activeCategory={activeCategory}
-                  regionsForCountry={regionsForActiveCountry}
-                  tripsSource={tripsSource}
-                  onHoverTrip={setHoverImg}
-                  onClose={() => setMegaOpen(false)}
-                />
-              )}
-            </div>
-
-            {/* Column 4: Contextual Feature Image (xl screens) */}
-            <div className="hidden xl:block relative overflow-hidden rounded-[12px] border border-stone-200 bg-stone-900">
-              {megaOpen && (
-                // eslint-disable-next-line @next/next/no-img-element
+              {/* Right: Featured Photo Block */}
+              <div className="relative overflow-hidden rounded-none border-l border-stone-200 bg-stone-900 min-h-[240px]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={featureImg}
+                  src={featureCountryImg}
                   alt=""
                   className="absolute inset-0 h-full w-full object-cover transition-all duration-300"
                 />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              <div className="relative z-10 flex h-full flex-col justify-end p-4">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-[#ff8a50] font-semibold">
-                  {activeCountry?.name ?? "Himalaya"} Dispatch
-                </p>
-                <p className="mt-1 font-serif text-sm leading-snug text-white">
-                  {activeCountry?.blurb ||
-                    "Small groups, certified Sherpa guides, transparent tariffs."}
-                </p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="relative z-10 flex h-full flex-col justify-end p-5">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-[#ff8a50] font-semibold">
+                    {activeCountry?.name ?? "Himalaya"} Dispatch
+                  </p>
+                  <p className="mt-1 font-serif text-sm leading-snug text-white">
+                    {activeCountry?.blurb ||
+                      "Small groups, certified Sherpa guides, transparent tariffs."}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
+        )}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-200/80 bg-[#faf9f7] px-6 xl:px-7 py-3">
-            <p className="text-xs text-[#57534d]">
-              Can&apos;t find your route? Our Kathmandu team builds private
-              departures on request.
-            </p>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/destinations?view=all"
-                onClick={() => setMegaOpen(false)}
-                className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[#3f6e15] hover:text-[#f05e25] transition-colors"
-              >
-                <span>Browse All Trips</span>
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </Link>
-              <Link
-                href="/contact"
-                onClick={() => setMegaOpen(false)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white transition-colors"
-              >
-                <Send className="h-3 w-3" />
-                <span>Plan a Custom Trip</span>
-              </Link>
+        {/* MEGA PANEL 2: ACTIVITIES (Flush Rectangular Mega-Menu) */}
+        {activeMenu === "activities" && (
+          <div
+            onMouseEnter={() => openMenu("activities")}
+            className="hidden lg:block mx-4 sm:mx-6 lg:mx-8 mt-0 rounded-none border border-t-2 border-stone-200 border-t-[#f05e25] bg-white shadow-[0_20px_48px_-16px_rgba(15,23,42,0.22)] overflow-hidden"
+          >
+            <div className="grid grid-cols-[230px_1fr] xl:grid-cols-[250px_1fr]">
+              {/* Left Vertical Activity Categories */}
+              <div className="border-r border-stone-200 bg-[#f8fafc] py-3">
+                <p className="px-4 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">
+                  Activities
+                </p>
+                <div className="divide-y divide-stone-200/70">
+                  {categories.map((cat) => {
+                    const isSelected = activeActivity?.slug === cat.slug;
+                    return (
+                      <button
+                        key={cat.slug}
+                        type="button"
+                        onMouseEnter={() => setSelectedActivitySlug(cat.slug)}
+                        onFocus={() => setSelectedActivitySlug(cat.slug)}
+                        onClick={() => setSelectedActivitySlug(cat.slug)}
+                        className={`flex w-full items-center justify-between rounded-none px-4 py-2.5 text-left text-[12.5px] transition-colors cursor-pointer ${
+                          isSelected
+                            ? "bg-white text-[#f05e25] font-semibold border-l-[3px] border-[#f05e25]"
+                            : "text-[#334155] font-medium hover:bg-white hover:text-[#3f6e15]"
+                        }`}
+                      >
+                        <span className="truncate">{cat.name}</span>
+                        <ChevronRight
+                          className={`w-3.5 h-3.5 shrink-0 ${
+                            isSelected ? "text-[#f05e25]" : "text-stone-300"
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right 2-Column Trips Directory */}
+              <div className="p-6 xl:p-7 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between border-b border-stone-200 pb-3 mb-4">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#3f6e15]">
+                        {activeActivity?.name ?? "Activities"}
+                      </p>
+                      {activeActivity?.blurb && (
+                        <p className="text-[11px] text-stone-500 mt-0.5">
+                          {activeActivity.blurb}
+                        </p>
+                      )}
+                    </div>
+                    {activeActivity && (
+                      <Link
+                        href={`/destinations/category/${encodeURIComponent(
+                          activeActivity.slug
+                        )}`}
+                        onClick={closeAllMenus}
+                        className="inline-flex items-center gap-1 rounded-[3px] bg-[#3f6e15]/10 hover:bg-[#3f6e15] text-[#3f6e15] hover:text-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors shrink-0"
+                      >
+                        <span>View all</span>
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </Link>
+                    )}
+                  </div>
+
+                  {activityTrips.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-1 max-h-[340px] overflow-y-auto pr-1">
+                      {activityTrips.map((trip) => (
+                        <Link
+                          key={trip.slug}
+                          href={`/destinations/${trip.slug}`}
+                          onClick={closeAllMenus}
+                          className="group flex items-center justify-between rounded-none px-2.5 py-1.5 text-[12.5px] text-[#334155] hover:bg-stone-50 hover:text-[#f05e25] transition-colors"
+                        >
+                          <span className="truncate font-medium">
+                            {trip.name}
+                          </span>
+                          <span className="ml-2 text-[11px] text-stone-400 tabular-nums shrink-0 group-hover:text-[#f05e25]">
+                            {trip.days}d
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-none border border-stone-200 bg-stone-50 p-6 space-y-2">
+                      <p className="text-xs text-stone-600">
+                        Custom departures for {activeActivity?.name} are arranged
+                        daily from our Thamel, Kathmandu head office.
+                      </p>
+                      <Link
+                        href="/contact"
+                        onClick={closeAllMenus}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#f05e25] hover:underline"
+                      >
+                        <span>Customize {activeActivity?.name}</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-5 pt-3 border-t border-stone-200/70 flex items-center justify-between text-xs text-stone-500">
+                  <span>
+                    Showing {activityTrips.length}{" "}
+                    {activityTrips.length === 1 ? "route" : "routes"} in{" "}
+                    {activeActivity?.name}
+                  </span>
+                  <Link
+                    href="/destinations?view=all"
+                    onClick={closeAllMenus}
+                    className="font-semibold text-[#3f6e15] hover:text-[#f05e25] inline-flex items-center gap-1"
+                  >
+                    <span>All Trips &amp; Filters</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Mobile Drawer */}
-        {open && (
-          <div className="border-t border-stone-200 bg-white text-[#1c1917] px-5 py-6 lg:hidden shadow-2xl max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[#f05e25] mb-2 font-semibold">
-              <MapPin className="w-3 h-3" />
-              <span>Explore by Country</span>
-            </div>
+        {/* MEGA PANEL 3: PEAK CLIMBING (Flush 4-Column Divided Rectangular Layout) */}
+        {activeMenu === "peaks" && (
+          <div
+            onMouseEnter={() => openMenu("peaks")}
+            className="hidden lg:block mx-4 sm:mx-6 lg:mx-8 mt-0 rounded-none border border-t-2 border-stone-200 border-t-[#f05e25] bg-white shadow-[0_20px_48px_-16px_rgba(15,23,42,0.22)] overflow-hidden"
+          >
+            <div className="grid grid-cols-4 divide-x divide-stone-200">
+              {peakGroups.map(({ bracket, trips }) => (
+                <div
+                  key={bracket.id}
+                  className="p-5 flex flex-col justify-between space-y-3 hover:bg-[#faf9f7]/50 transition-colors"
+                >
+                  <div className="space-y-2.5">
+                    <Link
+                      href={buildPeakBracketHref(bracket.id)}
+                      onClick={closeAllMenus}
+                      className="group flex items-center justify-between text-[13px] font-bold text-[#1c1917] hover:text-[#f05e25] transition-colors border-b border-stone-200 pb-2"
+                    >
+                      <span className="inline-flex items-center gap-1.5">
+                        <Mountain className="w-3.5 h-3.5 text-[#f05e25]" />
+                        <span>{bracket.label}</span>
+                      </span>
+                      <ChevronRight className="w-3.5 h-3.5 text-stone-400 group-hover:text-[#f05e25]" />
+                    </Link>
+                    <p className="text-[11px] text-stone-500 leading-relaxed">
+                      {bracket.description}
+                    </p>
 
-            {countries.map((country) => {
-              const countryTrips = tripsSource.filter(
-                (t) => t.country === country.slug
-              );
-              const isExpanded = mobileExpanded === country.slug;
-              return (
-                <div key={country.slug} className="border-b border-stone-200">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setMobileExpanded((prev) =>
-                        prev === country.slug ? null : country.slug
-                      )
-                    }
-                    className="flex w-full items-center justify-between py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-[#1c1917] hover:text-[#f05e25]"
-                  >
-                    <span>{country.name}</span>
-                    <ChevronDown
-                      className={`h-3.5 w-3.5 transition-transform ${
-                        isExpanded ? "rotate-180 text-[#f05e25]" : ""
-                      }`}
-                    />
-                  </button>
-                  {isExpanded && (
-                    <div className="space-y-2 pb-3 pl-3">
-                      <Link
-                        href={`/destinations?country=${encodeURIComponent(country.slug)}`}
-                        onClick={() => setOpen(false)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-[#f05e25]"
-                      >
-                        <span>All {country.name} journeys</span>
-                        <ArrowUpRight className="h-3 w-3" />
-                      </Link>
-                      <ul className="space-y-1.5">
-                        {countryTrips.map((t) => (
-                          <li key={t.slug}>
+                    {trips.length > 0 ? (
+                      <ul className="space-y-1 pt-1">
+                        {trips.map((trip) => (
+                          <li key={trip.slug}>
                             <Link
-                              href={`/destinations/${t.slug}`}
-                              onClick={() => setOpen(false)}
-                              className="flex items-center justify-between text-[11px] text-stone-600 hover:text-[#f05e25]"
+                              href={`/destinations/${trip.slug}`}
+                              onClick={closeAllMenus}
+                              className="group flex items-center justify-between text-xs text-stone-700 hover:text-[#f05e25] py-0.5"
                             >
-                              <span className="truncate">{t.name}</span>
-                              <span className="ml-2 text-[10px] text-stone-400 tabular-nums">
-                                {t.days}d
+                              <span className="truncate font-medium">
+                                {trip.name}
+                              </span>
+                              <span className="ml-2 text-[10px] text-stone-400 tabular-nums shrink-0">
+                                {trip.maxAltitude.toLocaleString()}m
                               </span>
                             </Link>
                           </li>
                         ))}
                       </ul>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                    ) : (
+                      <p className="text-[11px] text-stone-400 italic pt-1">
+                        Custom climbing permits available
+                      </p>
+                    )}
+                  </div>
 
-            <div className="mt-4 pt-2 space-y-1">
-              {NAV_LINKS.map((link) => {
-                const active = link.match(pathname);
-                return (
                   <Link
-                    key={link.label}
-                    href={link.href}
-                    onClick={() => setOpen(false)}
-                    aria-current={active ? "page" : undefined}
-                    className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm transition-colors ${
-                      active
-                        ? "bg-[#3f6e15]/10 text-[#3f6e15] font-semibold"
-                        : "text-[#1c1917] font-medium hover:bg-stone-100 hover:text-[#3f6e15]"
-                    }`}
+                    href={buildPeakBracketHref(bracket.id)}
+                    onClick={closeAllMenus}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-[#3f6e15] hover:text-[#f05e25] pt-2"
                   >
-                    <span>{link.label}</span>
-                    <ChevronRight
-                      className={`h-4 w-4 ${
-                        active ? "text-[#3f6e15]" : "text-stone-300"
-                      }`}
-                    />
+                    <span>View {bracket.shortLabel}</span>
+                    <ArrowRight className="w-3 h-3" />
                   </Link>
-                );
-              })}
-              <div className="pt-2 space-y-2.5">
+                </div>
+              ))}
+            </div>
+
+            <div className="px-5 py-3 border-t border-stone-200 bg-[#f8fafc] flex items-center justify-between text-xs">
+              <div className="flex items-center gap-5">
                 <Link
-                  href="/contact"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center justify-center gap-2 w-full border border-[#f05e25] bg-[#f05e25] hover:bg-[#ff7a45] text-white py-2.5 rounded-[8px] text-xs font-bold uppercase tracking-wider"
+                  href="/destinations/category/peak-climbing"
+                  onClick={closeAllMenus}
+                  className="font-semibold text-[#3f6e15] hover:text-[#f05e25] inline-flex items-center gap-1"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Contact Us</span>
+                  <span>All Peak Climbing Packages</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
                 </Link>
                 <Link
-                  href={customerName ? "/account" : "/login"}
-                  onClick={() => setOpen(false)}
-                  className="flex items-center justify-center gap-2 w-full border border-stone-200 bg-stone-50 text-[#1c1917] py-2.5 rounded-[8px] text-xs font-semibold uppercase tracking-wider hover:border-[#f05e25] hover:text-[#f05e25]"
+                  href="/expeditions"
+                  onClick={closeAllMenus}
+                  className="font-semibold text-[#334155] hover:text-[#f05e25] inline-flex items-center gap-1"
                 >
-                  <User className="w-3.5 h-3.5 text-[#f05e25]" />
-                  <span>
-                    {customerName ? `My Account (${customerName})` : "Traveler Sign In"}
-                  </span>
+                  <span>High-Altitude Expeditions</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
+              <Link
+                href="/contact"
+                onClick={closeAllMenus}
+                className="font-semibold text-[#f05e25] hover:underline"
+              >
+                Need NMA Permit Advice? Talk to a Guide →
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* MOBILE-FRIENDLY ACCORDION DRAWER (Clean Rectangular Architecture) */}
+        {open && (
+          <div className="border-t border-stone-200 bg-white text-[#1c1917] px-4 sm:px-6 py-4 lg:hidden shadow-2xl max-h-[82vh] overflow-y-auto">
+            {/* Quick Booking Policy Banner inside mobile drawer */}
+            <Link
+              href="/booking-policy"
+              onClick={closeAllMenus}
+              className="mb-3 flex items-center justify-between rounded-none bg-[#162b0c] px-3.5 py-2.5 text-white"
+            >
+              <span className="inline-flex items-center gap-2 text-xs font-medium">
+                <ShieldCheck className="w-4 h-4 text-[#8bc34a] shrink-0" />
+                <span>Risk-Free Booking Policy</span>
+              </span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#ff8a50]">
+                View Details »
+              </span>
+            </Link>
+
+            <div className="divide-y divide-stone-200">
+              {/* Mobile Accordion 1: Destinations (Nepal, Tibet, Bhutan) */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMobileSection((s) =>
+                      s === "destinations" ? null : "destinations"
+                    )
+                  }
+                  className="flex w-full min-h-[44px] items-center justify-between py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#1c1917]"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#f05e25]" />
+                    <span>Destinations (Nepal · Tibet · Bhutan)</span>
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${
+                      mobileSection === "destinations"
+                        ? "rotate-180 text-[#f05e25]"
+                        : ""
+                    }`}
+                  />
+                </button>
+                {mobileSection === "destinations" && (
+                  <div className="pb-3 pl-2 space-y-1.5">
+                    {countries.map((country) => {
+                      const cTrips = tripsSource.filter(
+                        (t) => t.country === country.slug
+                      );
+                      const isCountryOpen = mobileCountrySlug === country.slug;
+                      return (
+                        <div
+                          key={country.slug}
+                          className="rounded-none border border-stone-200 bg-stone-50/70"
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setMobileCountrySlug((prev) =>
+                                prev === country.slug ? null : country.slug
+                              )
+                            }
+                            className="flex w-full min-h-[40px] items-center justify-between px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-[#3f6e15]"
+                          >
+                            <span>{country.name}</span>
+                            <ChevronDown
+                              className={`w-3.5 h-3.5 transition-transform ${
+                                isCountryOpen ? "rotate-180" : ""
+                              }`}
+                            />
+                          </button>
+                          {isCountryOpen && (
+                            <div className="px-3 pb-2.5 space-y-1.5 border-t border-stone-200/70 pt-2">
+                              <Link
+                                href={`/destinations/country/${encodeURIComponent(
+                                  country.slug
+                                )}`}
+                                onClick={closeAllMenus}
+                                className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-[#f05e25]"
+                              >
+                                <span>All {country.name} Packages</span>
+                                <ArrowUpRight className="w-3 h-3" />
+                              </Link>
+                              <ul className="space-y-1">
+                                {cTrips.slice(0, 8).map((t) => (
+                                  <li key={t.slug}>
+                                    <Link
+                                      href={`/destinations/${t.slug}`}
+                                      onClick={closeAllMenus}
+                                      className="flex items-center justify-between py-1 text-xs text-stone-700 hover:text-[#f05e25]"
+                                    >
+                                      <span className="truncate">{t.name}</span>
+                                      <span className="ml-2 text-[10px] text-stone-400 tabular-nums">
+                                        {t.days}d
+                                      </span>
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Accordion 2: Activities */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMobileSection((s) =>
+                      s === "activities" ? null : "activities"
+                    )
+                  }
+                  className="flex w-full min-h-[44px] items-center justify-between py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#1c1917]"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Compass className="w-4 h-4 text-[#3f6e15]" />
+                    <span>Activities</span>
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${
+                      mobileSection === "activities"
+                        ? "rotate-180 text-[#f05e25]"
+                        : ""
+                    }`}
+                  />
+                </button>
+                {mobileSection === "activities" && (
+                  <div className="pb-3 pl-2 grid grid-cols-1 divide-y divide-stone-100">
+                    {categories.map((cat) => (
+                      <Link
+                        key={cat.slug}
+                        href={`/destinations/category/${encodeURIComponent(
+                          cat.slug
+                        )}`}
+                        onClick={closeAllMenus}
+                        className="flex items-center justify-between rounded-none px-3 py-2 text-xs font-medium text-[#334155] hover:bg-stone-50 hover:text-[#f05e25]"
+                      >
+                        <span>{cat.name}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
+                      </Link>
+                    ))}
+                    <Link
+                      href="/destinations?view=all"
+                      onClick={closeAllMenus}
+                      className="mt-1 inline-flex items-center gap-1 px-3 py-2 text-xs font-bold text-[#3f6e15]"
+                    >
+                      <span>Browse All Trips</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Accordion 3: Peak Climbing (Altitude Brackets) */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMobileSection((s) => (s === "peaks" ? null : "peaks"))
+                  }
+                  className="flex w-full min-h-[44px] items-center justify-between py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#1c1917]"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Mountain className="w-4 h-4 text-[#f05e25]" />
+                    <span>Peak Climbing</span>
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${
+                      mobileSection === "peaks"
+                        ? "rotate-180 text-[#f05e25]"
+                        : ""
+                    }`}
+                  />
+                </button>
+                {mobileSection === "peaks" && (
+                  <div className="pb-3 pl-2 divide-y divide-stone-100">
+                    {PEAK_BRACKETS.map((b) => (
+                      <Link
+                        key={b.id}
+                        href={buildPeakBracketHref(b.id)}
+                        onClick={closeAllMenus}
+                        className="flex items-center justify-between rounded-none px-3 py-2 text-xs font-medium text-[#334155] hover:bg-stone-50 hover:text-[#f05e25]"
+                      >
+                        <span>{b.label}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
+                      </Link>
+                    ))}
+                    <Link
+                      href="/expeditions"
+                      onClick={closeAllMenus}
+                      className="flex items-center justify-between rounded-none px-3 py-2 text-xs font-bold text-[#3f6e15]"
+                    >
+                      <span>8,000m &amp; Technical Expeditions</span>
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Accordion 4: Travel Guide */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMobileSection((s) => (s === "guides" ? null : "guides"))
+                  }
+                  className="flex w-full min-h-[44px] items-center justify-between py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#1c1917]"
+                >
+                  <span>Travel Guide &amp; Journal</span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${
+                      mobileSection === "guides"
+                        ? "rotate-180 text-[#f05e25]"
+                        : ""
+                    }`}
+                  />
+                </button>
+                {mobileSection === "guides" && (
+                  <div className="pb-3 pl-2 divide-y divide-stone-100">
+                    {GUIDE_SUB_LINKS.map((g) => (
+                      <Link
+                        key={g.href}
+                        href={g.href}
+                        onClick={closeAllMenus}
+                        className="flex items-center justify-between rounded-none px-3 py-2 text-xs font-medium text-[#334155] hover:bg-stone-50 hover:text-[#f05e25]"
+                      >
+                        <span>{g.label}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Accordion 5: About Us (all 6 sub-items) */}
+              <div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMobileSection((s) => (s === "about" ? null : "about"))
+                  }
+                  className="flex w-full min-h-[44px] items-center justify-between py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#1c1917]"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <FileCheck2 className="w-4 h-4 text-[#3f6e15]" />
+                    <span>About Us</span>
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${
+                      mobileSection === "about"
+                        ? "rotate-180 text-[#f05e25]"
+                        : ""
+                    }`}
+                  />
+                </button>
+                {mobileSection === "about" && (
+                  <div className="pb-3 pl-2 divide-y divide-stone-100">
+                    {ABOUT_SUB_LINKS.map((item) => (
+                      <Link
+                        key={item.href + item.label}
+                        href={item.href}
+                        onClick={closeAllMenus}
+                        className="flex items-center justify-between rounded-none px-3 py-2 text-xs font-medium text-[#334155] hover:bg-stone-50 hover:text-[#f05e25]"
+                      >
+                        <span>{item.label}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-stone-200 grid grid-cols-2 gap-2.5">
+              <Link
+                href="/contact"
+                onClick={closeAllMenus}
+                className="flex items-center justify-center gap-1.5 bg-[#f05e25] hover:bg-[#d94e18] text-white py-2.5 rounded-[4px] text-xs font-bold uppercase tracking-wider"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Contact Us</span>
+              </Link>
+              <Link
+                href={customerName ? "/account" : "/login"}
+                onClick={closeAllMenus}
+                className="flex items-center justify-center gap-1.5 border border-stone-200 bg-stone-50 text-[#1c1917] py-2.5 rounded-[4px] text-xs font-semibold uppercase tracking-wider hover:border-[#3f6e15]"
+              >
+                <User className="w-3.5 h-3.5 text-[#3f6e15]" />
+                <span>{customerName ?? "Sign In"}</span>
+              </Link>
             </div>
           </div>
         )}

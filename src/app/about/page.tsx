@@ -210,7 +210,10 @@ export default function AboutPage() {
         </section>
 
         {/* 3. ASYMMETRICAL MISSION & VISION EDITORIAL SPLIT */}
-        <section className="relative w-full overflow-hidden bg-[#faf9f7] py-20 sm:py-28 lg:py-32 px-5 sm:px-6 lg:px-12 border-y border-stone-200/70">
+        <section
+          id="responsible-travel"
+          className="scroll-mt-28 relative w-full overflow-hidden bg-[#faf9f7] py-20 sm:py-28 lg:py-32 px-5 sm:px-6 lg:px-12 border-y border-stone-200/70"
+        >
           {/* Subtle Mountain Silhouette Watermark */}
           <svg
             aria-hidden="true"
@@ -335,7 +338,10 @@ export default function AboutPage() {
         </section>
 
         {/* 4. WHY CHOOSE US (STAGGERED FEATURE GRID) */}
-        <section className="relative w-full bg-white py-20 sm:py-28 px-5 sm:px-6 lg:px-12">
+        <section
+          id="why-travel-with-us"
+          className="scroll-mt-28 relative w-full bg-white py-20 sm:py-28 px-5 sm:px-6 lg:px-12"
+        >
           <div className="max-w-7xl mx-auto space-y-14">
             <ScrollReveal
               delay={0}
@@ -426,7 +432,10 @@ export default function AboutPage() {
         </section>
 
         {/* 6. LEADERSHIP & FIELD CREW (IMAGE-BASED CARDS) */}
-        <section className="relative w-full bg-white py-20 sm:py-28 px-5 sm:px-6 lg:px-12">
+        <section
+          id="our-team"
+          className="scroll-mt-28 relative w-full bg-white py-20 sm:py-28 px-5 sm:px-6 lg:px-12"
+        >
           <div className="max-w-7xl mx-auto space-y-14">
             <ScrollReveal
               delay={0}
@@ -529,6 +538,16 @@ export default function AboutPage() {
                   </div>
                 </ScrollReveal>
               ))}
+            </div>
+
+            <div className="text-center pt-2">
+              <Link
+                href="/legal-documents"
+                className="inline-flex items-center gap-2 rounded-full border border-[#3f6e15]/30 bg-white hover:bg-[#3f6e15] px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-[#3f6e15] hover:text-white transition-colors shadow-xs"
+              >
+                <span>View Official Legal Documents</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
           </div>
         </section>

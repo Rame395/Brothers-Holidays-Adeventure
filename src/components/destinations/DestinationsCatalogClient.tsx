@@ -23,6 +23,12 @@ import {
 import { TripCard } from "@/components/destinations/TripCard";
 import { RegionSeoContentSection } from "@/components/destinations/RegionSeoContentSection";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
+import {
+  PEAK_BRACKETS,
+  isPeakBracketId,
+  matchesPeakBracket,
+  type PeakBracketId,
+} from "@/lib/peak-brackets";
 import type { DestinationTaxonomyDTO, TripDTO } from "@/lib/types";
 
 function subscribeReducedMotion(callback: () => void) {
@@ -97,7 +103,9 @@ export function DestinationsCatalogClient({
 }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const showFilters = searchParams.get("view") === "all";
+  const rawPeakBand = searchParams.get("peakBand");
+  const peakBand = isPeakBracketId(rawPeakBand) ? rawPeakBand : undefined;
+  const showFilters = searchParams.get("view") === "all" || Boolean(peakBand);
   const [q, setQ] = useState(() => searchParams.get("q") || "");
   const [showAtlasIndex, setShowAtlasIndex] = useState(false);
 
@@ -197,12 +205,19 @@ export function DestinationsCatalogClient({
     country?: string | undefined;
     category?: string | undefined;
     region?: string | undefined;
+    peakBand?: PeakBracketId | undefined;
   }) => {
     const next = new URLSearchParams(searchParams.toString());
     const merged = {
       country: "country" in patch ? patch.country : country,
       category: "category" in patch ? patch.category : category,
       region: "region" in patch ? patch.region : region,
+      peakBand:
+        "peakBand" in patch
+          ? patch.peakBand
+          : "category" in patch && patch.category !== "peak-climbing"
+          ? undefined
+          : peakBand,
     };
     if (merged.country) next.set("country", merged.country);
     else next.delete("country");
@@ -210,6 +225,8 @@ export function DestinationsCatalogClient({
     else next.delete("category");
     if (merged.region) next.set("region", merged.region);
     else next.delete("region");
+    if (merged.peakBand) next.set("peakBand", merged.peakBand);
+    else next.delete("peakBand");
 
     const qs = next.toString();
     router.replace(qs ? `/destinations?${qs}` : "/destinations", {
@@ -225,10 +242,26 @@ export function DestinationsCatalogClient({
         (!country || t.country === country) &&
         (!category || t.categories.includes(category)) &&
         (!region || t.region === region) &&
+        (!peakBand || matchesPeakBracket(t, peakBand)) &&
         (!query ||
           `${t.name} ${t.area} ${t.tagline}`.toLowerCase().includes(query))
     );
-  }, [trips, country, category, region, q]);
+  }, [trips, country, category, region, peakBand, q]);
+
+  const peakBracketCounts = useMemo(() => {
+    const map = new Map<PeakBracketId, number>();
+    for (const bracket of PEAK_BRACKETS) {
+      map.set(
+        bracket.id,
+        trips.filter(
+          (t) =>
+            (!country || t.country === country) &&
+            matchesPeakBracket(t, bracket.id)
+        ).length
+      );
+    }
+    return map;
+  }, [trips, country]);
 
   // Trip counts per country
   const countryCounts = useMemo(() => {
@@ -295,13 +328,19 @@ export function DestinationsCatalogClient({
     activeCountryObj?.heroImage ||
     "/images/trips/everest.jpg";
 
+  const activePeakBracketObj = peakBand
+    ? PEAK_BRACKETS.find((b) => b.id === peakBand)
+    : undefined;
+
   const title =
+    activePeakBracketObj?.label ||
     activeRegionObj?.name ||
     activeCategoryObj?.name ||
     activeCountryObj?.name ||
     "All Destinations & Trips";
 
   const blurb =
+    activePeakBracketObj?.description ||
     activeRegionObj?.blurb?.trim() ||
     activeCategoryObj?.blurb?.trim() ||
     activeCountryObj?.blurb?.trim() ||
@@ -317,7 +356,9 @@ export function DestinationsCatalogClient({
     return max;
   }, [results]);
 
-  const hasActiveFilters = Boolean(country || category || region || q.trim());
+  const hasActiveFilters = Boolean(
+    country || category || region || peakBand || q.trim()
+  );
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-[#1c1917]">
@@ -759,6 +800,20 @@ export function DestinationsCatalogClient({
                   </span>
                 )}
 
+                {peakBand && activePeakBracketObj && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f05e25]/8 border border-[#f05e25]/25 text-[#1c1917] font-sans font-medium text-xs">
+                    <span>{activePeakBracketObj.label}</span>
+                    <button
+                      type="button"
+                      onClick={() => setFilter({ peakBand: undefined })}
+                      className="text-stone-400 hover:text-[#f05e25] transition-colors cursor-pointer"
+                      aria-label="Remove peak bracket filter"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </span>
+                )}
+
                 {q && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#f05e25]/8 border border-[#f05e25]/25 text-[#1c1917] font-sans font-medium text-xs">
                     <span>&ldquo;{q}&rdquo;</span>
@@ -789,6 +844,42 @@ export function DestinationsCatalogClient({
           )}
         </div>
       </section>
+      )}
+
+      {/* Peak Climbing Altitude Brackets Bar */}
+      {(category === "peak-climbing" || Boolean(peakBand)) && (
+        <section className="border-b border-stone-200/80 bg-white">
+          <div className="mx-auto max-w-7xl px-5 lg:px-8 py-4 flex items-center gap-2 sm:gap-3 overflow-x-auto no-scrollbar">
+            <span className="hidden sm:inline-flex items-center gap-1.5 shrink-0 font-sans text-[11px] font-bold uppercase tracking-[0.14em] text-[#3f6e15]">
+              <Mountain className="w-3.5 h-3.5 text-[#f05e25]" />
+              <span>Peak Elevation</span>
+            </span>
+            <FilterChip
+              variant="region"
+              active={!peakBand}
+              onClick={() => setFilter({ peakBand: undefined })}
+              count={categoryCounts.get("peak-climbing") ?? 0}
+            >
+              All Peaks
+            </FilterChip>
+            {PEAK_BRACKETS.map((bracket) => (
+              <FilterChip
+                key={bracket.id}
+                variant="region"
+                active={peakBand === bracket.id}
+                onClick={() =>
+                  setFilter({
+                    category: "peak-climbing",
+                    peakBand: bracket.id,
+                  })
+                }
+                count={peakBracketCounts.get(bracket.id) ?? 0}
+              >
+                {bracket.label}
+              </FilterChip>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Trips Grid */}

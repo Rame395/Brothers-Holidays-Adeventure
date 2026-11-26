@@ -54,6 +54,8 @@ async function getSitemapEntries(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/expeditions`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/journal`, changeFrequency: "weekly", priority: 0.85 },
     { url: `${base}/about`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/legal-documents`, changeFrequency: "monthly", priority: 0.65 },
+    { url: `${base}/booking-policy`, changeFrequency: "monthly", priority: 0.65 },
     { url: `${base}/process`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/archive`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/contact`, changeFrequency: "monthly", priority: 0.75 },

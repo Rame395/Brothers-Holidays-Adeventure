@@ -8,9 +8,11 @@ import type { DestinationTaxonomyDTO, NavTripDTO } from "@/lib/types";
 export default function Header({
   navTrips,
   taxonomy,
+  contactPhone,
 }: {
   navTrips?: NavTripDTO[];
   taxonomy?: DestinationTaxonomyDTO;
+  contactPhone?: string;
 }) {
   const pathname = usePathname();
 
@@ -28,11 +30,15 @@ export default function Header({
   return (
     <>
       <Suspense fallback={null}>
-        <Nav navTrips={navTrips} taxonomy={taxonomy} />
+        <Nav
+          navTrips={navTrips}
+          taxonomy={taxonomy}
+          contactPhone={contactPhone}
+        />
       </Suspense>
-      {/* Spacer for non-hero content pages so the floating pill doesn't overlap top headings */}
+      {/* Spacer for non-hero content pages so top bar + navbar never overlap top headings */}
       {!isHeroPage && (
-        <div className="h-20 sm:h-24 w-full shrink-0" aria-hidden="true" />
+        <div className="h-[104px] sm:h-[116px] w-full shrink-0" aria-hidden="true" />
       )}
     </>
   );
