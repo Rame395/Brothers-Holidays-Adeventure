@@ -261,7 +261,8 @@
   .animate-ken-burns,
   .animate-blog-fade-up,
   .animate-blog-scale-in,
-  .blog-reveal {
+  .blog-reveal,
+  .animate-cta-aura {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;
@@ -326,6 +327,22 @@
 .blog-reveal-visible {
   opacity: 1;
   transform: translate3d(0, 0, 0);
+}
+
+@keyframes ctaAuraPulse {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.08) translate3d(0, -10px, 0);
+  }
+}
+
+.animate-cta-aura {
+  animation: ctaAuraPulse 8s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 .font-display {

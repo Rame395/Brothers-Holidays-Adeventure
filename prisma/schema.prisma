@@ -308,20 +308,24 @@ model TripFaq {
 
 model TripReview {
   id            String    @id @default(cuid())
-  tripId        String
+  tripId        String?
+  tripName      String?
   authorName    String
   authorCountry String?
+  avatarUrl     String?
   rating        Int       @default(5)
   title         String?
   comment       String    @db.Text
   tripDate      DateTime?
   verified      Boolean   @default(true)
   isPublished   Boolean   @default(true)
+  showOnHome    Boolean   @default(true)
   createdAt     DateTime  @default(now())
 
-  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  trip Trip? @relation(fields: [tripId], references: [id], onDelete: SetNull)
 
   @@index([tripId, isPublished])
+  @@index([isPublished, showOnHome, createdAt])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -629,13 +633,18 @@ model SiteSetting {
   contactPhone           String   @default("+977-1-4700000")
   whatsappNumber         String   @default("+9779800000000")
   officeAddress          String   @default("Thamel, Kathmandu 44600, Nepal")
+  officeHours            String   @default("Sun–Fri · 9 AM – 6 PM NPT")
+  footerDescription      String   @default("Kathmandu-based trekking and mountaineering outfitter leading small groups across Nepal, Tibet, and Bhutan with local Sherpa leadership.") @db.Text
   registrationNo         String   @default("Govt. Regd. 58177/068/069 · TAAN · NMA · NTB")
+  australiaWhatsapp      String   @default("+61 426 378 149")
+  japanWhatsapp          String   @default("+81 80 4107 0813")
   defaultCurrency        String   @default("NPR")
   usdExchangeRate        Float    @default(135.0)
   announcementBanner     String?
   announcementActive     Boolean  @default(false)
   instagramUrl           String?
   facebookUrl            String?
+  tiktokUrl              String?
   youtubeUrl             String?
   tripadvisorUrl         String?
 

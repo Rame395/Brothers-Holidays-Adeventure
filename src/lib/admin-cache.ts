@@ -51,3 +51,10 @@ export function revalidateJournalPosts(slugs: string[] = []): void {
     }
   }
 }
+
+export function revalidateReviews(): void {
+  revalidateTag("reviews", { expire: 0 });
+  revalidateTag("trips", { expire: 0 });
+  revalidatePath("/");
+  revalidatePath("/destinations");
+}

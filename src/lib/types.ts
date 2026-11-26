@@ -83,13 +83,19 @@ export interface TripFaqDTO {
 
 export interface TripReviewDTO {
   id: string;
+  tripId?: string | null;
+  tripName?: string | null;
+  tripSlug?: string | null;
   authorName: string;
   authorCountry?: string | null;
+  avatarUrl?: string | null;
   rating: number;
   title?: string | null;
   comment: string;
   tripDate?: string | null;
   verified: boolean;
+  isPublished?: boolean;
+  showOnHome?: boolean;
 }
 
 export type TripCustomSectionStyle = "callout" | "note" | "article" | "warning";
@@ -318,13 +324,18 @@ export interface SiteSettingDTO {
   contactPhone: string;
   whatsappNumber: string;
   officeAddress: string;
+  officeHours: string;
+  footerDescription: string;
   registrationNo: string;
+  australiaWhatsapp?: string | null;
+  japanWhatsapp?: string | null;
   defaultCurrency: string;
   usdExchangeRate: number;
   announcementBanner?: string | null;
   announcementActive: boolean;
   instagramUrl?: string | null;
   facebookUrl?: string | null;
+  tiktokUrl?: string | null;
   youtubeUrl?: string | null;
   tripadvisorUrl?: string | null;
   gaMeasurementId?: string | null;

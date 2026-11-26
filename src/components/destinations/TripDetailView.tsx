@@ -672,8 +672,8 @@ export function TripDetailView({
   return (
     <div className="min-h-screen bg-[#faf9f7] text-[#1c1917] font-sans">
       {/* 1. CLEAN HEADER + BENTO PHOTO MOSAIC GALLERY */}
-      <section id="gallery-top" className="bg-white pt-24 sm:pt-28 pb-8">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8 space-y-6">
+      <section id="gallery-top" className="bg-white pt-20 sm:pt-28 pb-6 sm:pb-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-5 lg:px-8 space-y-6">
           {/* Breadcrumbs + Top Meta */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <nav
@@ -857,7 +857,7 @@ export function TripDetailView({
                       onClick={() => setActivePhotoIndex(idx)}
                       aria-label={`View ${trip.name} photo ${idx + 1}`}
                       aria-pressed={isActive}
-                      className={`relative shrink-0 w-20 sm:w-28 md:w-32 aspect-[16/10] rounded-xl overflow-hidden transition-all duration-300 cursor-pointer focus:outline-none ${
+                      className={`relative shrink-0 w-20 sm:w-28 md:w-32 aspect-[16/10] rounded-[12px] overflow-hidden transition-all duration-300 cursor-pointer focus:outline-none ${
                         isActive
                           ? "ring-2 ring-[#f05e25] ring-offset-2 opacity-100 scale-[1.02] shadow-md"
                           : "opacity-70 hover:opacity-100 border border-stone-200 hover:border-[#f05e25]/60"
@@ -1033,7 +1033,7 @@ export function TripDetailView({
       )}
 
       {/* 2. STICKY SECTION SUB-NAVIGATION */}
-      <div className="sticky top-[64px] sm:top-[72px] z-30 border-y border-stone-200/80 bg-white/92 backdrop-blur-xl shadow-[0_4px_20px_-8px_rgba(28,25,23,0.08)]">
+      <div className="sticky top-[60px] sm:top-[72px] z-30 border-y border-stone-200/80 bg-white/95 backdrop-blur-xl shadow-[0_6px_24px_-8px_rgba(28,25,23,0.1)]">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 sm:px-5 lg:px-8 py-2.5">
           <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
             {sections.map((s) => {
@@ -1045,7 +1045,7 @@ export function TripDetailView({
                   onClick={() => setActiveSection(s.id)}
                   className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-xs sm:text-[13px] font-semibold transition-all duration-200 ${
                     isActive
-                      ? "bg-[#3f6e15] text-white shadow-sm"
+                      ? "bg-[#3f6e15] text-white shadow-sm shadow-[#3f6e15]/25"
                       : "text-[#57534d] hover:bg-stone-100 hover:text-[#1c1917]"
                   }`}
                 >
@@ -1057,160 +1057,219 @@ export function TripDetailView({
           </div>
 
           <a
-            href="#book"
-            className="ml-auto shrink-0 whitespace-nowrap rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-4 py-2 text-xs font-bold text-white shadow-sm lg:hidden transition-colors"
+            href="#booking"
+            className="ml-auto shrink-0 whitespace-nowrap rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-3.5 py-1.5 text-[11px] sm:text-xs font-bold text-white shadow-sm lg:hidden transition-colors"
           >
             Book Now
           </a>
         </div>
       </div>
 
-      {/* 3. MAIN CONTENT GRID */}
-      <div className="mx-auto grid max-w-7xl gap-8 lg:gap-10 px-4 sm:px-5 py-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-8">
+      {/* 3. MAIN CONTENT GRID ON TEXTURED ALPINE CANVAS */}
+      <div className="relative overflow-hidden bg-[#f5f3ee]">
+        {/* Subtle Topographic Contour Pattern Backdrop */}
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 h-full w-full opacity-[0.045] text-[#1c1917]"
+        >
+          <defs>
+            <pattern
+              id="alpine-topo-grid"
+              width="120"
+              height="120"
+              patternUnits="userSpaceOnUse"
+            >
+              <circle
+                cx="60"
+                cy="60"
+                r="52"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="0.7"
+              />
+              <circle
+                cx="60"
+                cy="60"
+                r="34"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="0.7"
+              />
+              <circle
+                cx="60"
+                cy="60"
+                r="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="0.7"
+              />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#alpine-topo-grid)" />
+        </svg>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-white/75 to-transparent"
+        />
+
+        <div className="relative z-10 mx-auto grid grid-cols-1 max-w-7xl gap-8 lg:gap-10 px-4 sm:px-5 py-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-8">
         <div className="min-w-0 space-y-7 sm:space-y-8">
           {/* SECTION 1: CLEAN OVERVIEW PROSE */}
           <section id="overview" className="scroll-mt-36">
-            <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
+            <div className="relative overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
+              <div
+                aria-hidden="true"
+                className="h-[3px] w-full bg-gradient-to-r from-[#3f6e15] via-[#f05e25] to-[#ff8a50]"
+              />
+              <div className="relative overflow-hidden bg-gradient-to-r from-[#faf8f4] via-white to-[#fff7f3] px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 320 90"
+                  className="pointer-events-none absolute right-0 bottom-0 h-16 w-auto text-[#1c1917]/[0.035]"
+                  fill="currentColor"
+                >
+                  <path d="M0 90 L75 35 L135 65 L215 10 L275 55 L320 30 L320 90 Z" />
+                </svg>
+                <div className="relative">
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
                     Expedition Overview
                   </p>
-                  <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                  <h2 className="mt-0.5 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
                     Overview
                   </h2>
                 </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#faf9f7] border border-stone-200 px-3 py-1.5 text-xs font-semibold text-[#3f6e15]">
+                <span className="relative inline-flex items-center gap-1.5 rounded-full bg-white border border-stone-200 px-3.5 py-1.5 text-xs font-semibold text-[#3f6e15] shadow-2xs">
                   <MapPin className="h-3.5 w-3.5 text-[#f05e25]" />
                   <span>{trip.area}</span>
                 </span>
               </div>
 
-              <TripVoiceoverPlayer
-                tripName={trip.name}
-                tagline={trip.tagline}
-                area={trip.area}
-                days={trip.days}
-                maxAltitude={trip.maxAltitude}
-                difficulty={trip.difficulty}
-                overview={trip.overview}
-                highlights={trip.highlights}
-              />
+              <div className="p-5 sm:p-8 space-y-6">
+                <TripVoiceoverPlayer
+                  tripName={trip.name}
+                  tagline={trip.tagline}
+                  area={trip.area}
+                  days={trip.days}
+                  maxAltitude={trip.maxAltitude}
+                  difficulty={trip.difficulty}
+                  overview={trip.overview}
+                  highlights={trip.highlights}
+                />
 
-              <div className="border-l-2 border-[#f05e25]/35 pl-4 sm:pl-5">
-                {renderFormattedRichText(trip.overview)}
+                <div className="rounded-[12px] border border-stone-200/70 border-l-4 border-l-[#f05e25] bg-[#faf9f6] p-5 sm:p-6">
+                  {renderFormattedRichText(trip.overview)}
+                </div>
               </div>
             </div>
           </section>
 
           {/* SECTION 2: TRIP FACTS GRID + LIVE MOUNTAIN WEATHER */}
           <section aria-label="Trip facts and mountain weather">
-            <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-6">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
-                  At a Glance
-                </p>
-                <h2 className="mt-1 font-heading text-2xl sm:text-[26px] text-[#1c1917] font-bold tracking-tight">
-                  Trip Facts
-                </h2>
+            <div className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
+              <div className="bg-gradient-to-r from-[#faf8f4] to-white px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
+                    At a Glance
+                  </p>
+                  <h2 className="mt-0.5 font-heading text-2xl sm:text-[26px] text-[#1c1917] font-bold tracking-tight">
+                    Trip Facts
+                  </h2>
+                </div>
+                <span className="rounded-full border border-stone-200 bg-white px-3.5 py-1 text-xs font-semibold text-[#57534d] tabular-nums shadow-2xs">
+                  {trip.days} Days · {trip.maxAltitude.toLocaleString("en-US")} m
+                </span>
               </div>
 
-              <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5">
-                {tripFacts.map((fact) => (
-                  <div
-                    key={fact.label}
-                    className="flex items-start gap-3 rounded-xl border border-stone-200/75 bg-[#faf9f7]/80 p-3.5 sm:p-4 hover:border-[#3f6e15]/25 hover:bg-white transition-all min-w-0"
-                  >
-                    <div className="grid h-9 w-9 sm:h-10 sm:w-10 shrink-0 place-items-center rounded-xl bg-white text-[#3f6e15] shadow-2xs ring-1 ring-stone-200/80">
-                      <fact.icon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+              <div className="p-5 sm:p-8 space-y-6">
+                <dl className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-3.5">
+                  {tripFacts.map((fact, idx) => (
+                    <div
+                      key={fact.label}
+                      className="group flex items-start gap-3 rounded-[12px] border border-stone-200/80 bg-gradient-to-br from-white to-[#faf8f4] p-3.5 sm:p-4 shadow-2xs hover:shadow-md hover:-translate-y-0.5 hover:border-[#f05e25]/40 transition-all duration-200 min-w-0"
+                    >
+                      <div
+                        className={`grid h-9 w-9 sm:h-10 sm:w-10 shrink-0 place-items-center rounded-[12px] bg-white shadow-2xs ring-1 ring-stone-200/80 transition-transform duration-200 group-hover:scale-105 ${
+                          idx % 2 === 0 ? "text-[#3f6e15]" : "text-[#f05e25]"
+                        }`}
+                      >
+                        <fact.icon className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
+                      </div>
+                      <div className="min-w-0">
+                        <dt className="text-[10.5px] font-semibold uppercase tracking-wider text-[#64748b] leading-snug">
+                          {fact.label}
+                        </dt>
+                        <dd className="mt-0.5 text-[13.5px] sm:text-[15px] font-bold text-[#1c1917] leading-snug break-words">
+                          {fact.value}
+                        </dd>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <dt className="text-[10.5px] font-semibold uppercase tracking-wider text-[#64748b] leading-snug">
-                        {fact.label}
-                      </dt>
-                      <dd className="mt-0.5 text-[13.5px] sm:text-[15px] font-bold text-[#1c1917] leading-snug break-words">
-                        {fact.value}
-                      </dd>
-                    </div>
-                  </div>
-                ))}
-              </dl>
+                  ))}
+                </dl>
 
-              <div className="pt-2 border-t border-stone-100">
-                <TripWeatherWidget
-                  locationLabel={weatherLoc.label}
-                  maxAltitude={trip.maxAltitude}
-                  lat={weatherLoc.lat}
-                  lon={weatherLoc.lon}
-                  query={weatherLoc.query}
-                  country={weatherLoc.country}
-                />
+                <div className="pt-4 border-t border-stone-100">
+                  <TripWeatherWidget
+                    locationLabel={weatherLoc.label}
+                    maxAltitude={trip.maxAltitude}
+                    lat={weatherLoc.lat}
+                    lon={weatherLoc.lon}
+                    query={weatherLoc.query}
+                    country={weatherLoc.country}
+                  />
+                </div>
               </div>
             </div>
           </section>
 
-          {/* SECTION 3: TRIP HIGHLIGHTS CARD */}
+          {/* SECTION 3: CLEAN EDITORIAL TRIP HIGHLIGHTS */}
           {trip.highlights.length > 0 && (
             <section id="highlights" className="scroll-mt-36">
-              <div className="relative overflow-hidden rounded-2xl border border-stone-200/85 bg-gradient-to-br from-[#faf9f7] via-white to-[#f05e25]/[0.05] p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)]">
-                {/* Decorative Alpine Ridge Watermark */}
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 600 180"
-                  className="pointer-events-none absolute -bottom-2 right-0 h-36 sm:h-44 w-auto text-[#3f6e15]/[0.055]"
-                  fill="currentColor"
-                >
-                  <path d="M0 180 L115 72 L205 136 L345 18 L455 110 L535 58 L600 120 L600 180 Z" />
-                </svg>
-
-                <div className="relative space-y-5">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
-                        Key Experiences
-                      </p>
-                      <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
-                        Trip Highlights
-                      </h2>
-                    </div>
-                    <span className="rounded-full bg-[#f05e25]/10 border border-[#f05e25]/20 px-3 py-1 text-xs font-semibold text-[#d94e18] tabular-nums">
-                      {trip.highlights.length}{" "}
-                      {trip.highlights.length === 1 ? "Highlight" : "Highlights"}
-                    </span>
+              <div className="overflow-hidden rounded-[16px] border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
+                <div className="bg-gradient-to-r from-[#faf8f4] to-white px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
+                      Key Experiences
+                    </p>
+                    <h2 className="mt-0.5 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                      Trip Highlights
+                    </h2>
                   </div>
+                  <span className="rounded-full bg-[#3f6e15]/[0.08] border border-[#3f6e15]/15 px-3.5 py-1 text-xs font-semibold text-[#3f6e15] tabular-nums">
+                    {trip.highlights.length}{" "}
+                    {trip.highlights.length === 1 ? "Highlight" : "Highlights"}
+                  </span>
+                </div>
 
-                  <ul className="grid gap-3.5 sm:grid-cols-2">
-                    {trip.highlights.map((h, i) => {
-                      const parts = splitHighlight(h);
-                      return (
-                        <li
-                          key={`${h}-${i}`}
-                          className="flex items-start gap-3.5 rounded-xl border border-stone-200/75 bg-white/90 p-4 shadow-2xs hover:border-[#f05e25]/35 hover:shadow-sm transition-all"
-                        >
-                          <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#f05e25]/10 text-[#f05e25] font-bold text-xs tabular-nums">
-                            {String(i + 1).padStart(2, "0")}
-                          </span>
-                          <div className="min-w-0">
-                            {parts.title ? (
-                              <>
-                                <strong className="block font-semibold text-[15px] text-[#1c1917] mb-0.5 leading-snug">
-                                  {parts.title}
-                                </strong>
-                                <span className="text-[14px] leading-relaxed text-[#44403c]">
-                                  {parts.body}
-                                </span>
-                              </>
-                            ) : (
-                              <span className="text-[14.5px] leading-relaxed text-[#292524]">
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 p-5 sm:p-8">
+                  {trip.highlights.map((h, i) => {
+                    const parts = splitHighlight(h);
+                    return (
+                      <li
+                        key={`${h}-${i}`}
+                        className="flex items-start gap-3.5 pb-4 border-b border-stone-100 last:border-b-0"
+                      >
+                        <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-[8px] bg-[#3f6e15]/10 text-[#3f6e15] font-bold text-xs tabular-nums">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <div className="min-w-0">
+                          {parts.title ? (
+                            <>
+                              <strong className="block font-semibold text-[15px] text-[#1c1917] mb-0.5 leading-snug">
+                                {parts.title}
+                              </strong>
+                              <span className="text-[14px] leading-relaxed text-[#44403c]">
                                 {parts.body}
                               </span>
-                            )}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
+                            </>
+                          ) : (
+                            <span className="text-[14.5px] leading-relaxed text-[#292524]">
+                              {parts.body}
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             </section>
           )}
@@ -1222,23 +1281,23 @@ export function TripDetailView({
           {trip.itinerary.length > 0 && (
             <section id="itinerary" className="scroll-mt-36 space-y-6">
               {/* Day-to-Day Short Itinerary */}
-              <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
+                <div className="bg-gradient-to-r from-[#faf8f4] to-white px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
                       Route Summary
                     </p>
-                    <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                    <h2 className="mt-0.5 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
                       Day-to-Day Short Itinerary
                     </h2>
                   </div>
-                  <span className="rounded-full bg-[#3f6e15]/[0.08] border border-[#3f6e15]/15 px-3 py-1 text-xs font-semibold text-[#3f6e15] tabular-nums">
+                  <span className="rounded-full bg-[#3f6e15]/[0.08] border border-[#3f6e15]/15 px-3.5 py-1 text-xs font-semibold text-[#3f6e15] tabular-nums">
                     {trip.itinerary.length}{" "}
                     {trip.itinerary.length === 1 ? "Stage" : "Days"}
                   </span>
                 </div>
 
-                <div>
+                <div className="p-5 sm:p-8">
                   <div className="hidden sm:grid sm:grid-cols-[96px_minmax(0,1fr)_104px_92px_28px] px-4 pb-2.5 text-[11px] font-bold uppercase tracking-wider text-[#64748b] border-b border-stone-100">
                     <span>Stage</span>
                     <span>Route Overview</span>
@@ -1256,7 +1315,7 @@ export function TripDetailView({
                           key={`short-${d.day}-${idx}`}
                           type="button"
                           onClick={() => jumpToDetailedDay(idx)}
-                          className="group w-full text-left rounded-xl border border-stone-200/80 bg-[#faf9f7]/75 hover:border-[#3f6e15]/35 hover:bg-[#3f6e15]/[0.035] transition-all px-3.5 sm:px-4 py-3 flex flex-col sm:grid sm:grid-cols-[96px_minmax(0,1fr)_104px_92px_28px] sm:items-center gap-2 sm:gap-0 cursor-pointer"
+                          className="group w-full text-left rounded-[12px] border border-stone-200/80 bg-[#faf9f7]/80 hover:border-[#3f6e15]/40 hover:bg-white hover:shadow-xs hover:-translate-y-0.5 transition-all px-3.5 sm:px-4 py-3 flex flex-col sm:grid sm:grid-cols-[96px_minmax(0,1fr)_104px_92px_28px] sm:items-center gap-2 sm:gap-0 cursor-pointer"
                         >
                           <div className="flex items-center justify-between gap-2 sm:block sm:pr-3">
                             <span
@@ -1309,30 +1368,31 @@ export function TripDetailView({
               {itineraryCustomSections.map(renderCustomSection)}
 
               {/* Detailed Itinerary Accordions */}
-              <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-100">
+              <div className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
+                <div className="bg-gradient-to-r from-[#faf8f4] to-white px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
                       Stage-by-Stage Breakdown
                     </p>
-                    <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                    <h2 className="mt-0.5 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
                       Detailed Itinerary
                     </h2>
                   </div>
                   <button
                     type="button"
                     onClick={toggleAllDays}
-                    className="rounded-full border border-stone-200 bg-[#faf9f7] hover:border-[#3f6e15] hover:bg-[#3f6e15] hover:text-white px-4 py-2 text-xs font-semibold text-[#1c1917] transition-all cursor-pointer"
+                    className="rounded-full border border-stone-200 bg-white hover:border-[#3f6e15] hover:bg-[#3f6e15] hover:text-white px-4 py-2 text-xs font-semibold text-[#1c1917] transition-all cursor-pointer shadow-2xs"
                   >
                     {allDaysExpanded ? "Collapse All" : "Expand All"}
                   </button>
                 </div>
 
-                {trip.itineraryIntro && (
-                  <div className="rounded-xl border border-stone-200/80 bg-[#faf9f7] p-4 sm:p-6">
-                    {renderFormattedRichText(trip.itineraryIntro)}
-                  </div>
-                )}
+                <div className="p-5 sm:p-8 space-y-5">
+                  {trip.itineraryIntro && (
+                    <div className="rounded-[12px] border border-stone-200/80 bg-[#faf9f7] p-4 sm:p-6">
+                      {renderFormattedRichText(trip.itineraryIntro)}
+                    </div>
+                  )}
 
                 <div className="relative space-y-3.5 sm:pl-6">
                   <div
@@ -1411,7 +1471,7 @@ export function TripDetailView({
                       <div
                         key={`detail-${d.day}-${idx}`}
                         id={`detailed-day-${idx}`}
-                        className={`relative scroll-mt-36 rounded-xl border transition-all ${
+                        className={`relative scroll-mt-36 rounded-[12px] border transition-all ${
                           isOpen
                             ? "border-[#3f6e15]/30 bg-white shadow-md shadow-stone-900/[0.04]"
                             : "border-stone-200/85 bg-[#faf9f7]/65 hover:bg-white hover:border-stone-300"
@@ -1526,7 +1586,7 @@ export function TripDetailView({
                                 {daySpecs.map((spec) => (
                                   <div
                                     key={spec.label}
-                                    className="flex items-center gap-2.5 rounded-xl border border-stone-200/75 bg-[#faf9f7] p-3 min-w-0"
+                                    className="flex items-center gap-2.5 rounded-[12px] border border-stone-200/75 bg-[#faf9f7] p-3 min-w-0"
                                   >
                                     <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-[#3f6e15] ring-1 ring-stone-200/70">
                                       <spec.icon className="h-4 w-4" />
@@ -1565,7 +1625,7 @@ export function TripDetailView({
                                     )} — ${d.title}`,
                                   })
                                 }
-                                className="block rounded-xl overflow-hidden border border-stone-200 max-w-[340px] w-full aspect-[16/10] relative group cursor-pointer focus:outline-none shadow-2xs"
+                                className="block rounded-[12px] overflow-hidden border border-stone-200 max-w-[340px] w-full aspect-[16/10] relative group cursor-pointer focus:outline-none shadow-2xs"
                               >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
@@ -1588,6 +1648,7 @@ export function TripDetailView({
                     );
                   })}
                 </div>
+                </div>
               </div>
             </section>
           )}
@@ -1597,7 +1658,7 @@ export function TripDetailView({
             <section id="includes" className="scroll-mt-36">
               <div className="overflow-hidden rounded-2xl border border-emerald-200/80 bg-white shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)]">
                 <div className="bg-gradient-to-r from-emerald-50/90 via-emerald-50/40 to-white px-5 sm:px-8 py-5 border-b border-emerald-100 flex items-center gap-3.5">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-600 text-white shadow-xs shrink-0">
+                  <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-emerald-600 text-white shadow-xs shrink-0">
                     <Check className="h-5 w-5" />
                   </span>
                   <div>
@@ -1622,7 +1683,7 @@ export function TripDetailView({
                       {trip.includeGroups.map((grp) => (
                         <div
                           key={grp.id}
-                          className="rounded-xl border border-stone-200/80 bg-[#faf9f7]/70 p-4 sm:p-5 space-y-3"
+                          className="rounded-[12px] border border-stone-200/80 bg-[#faf9f7]/70 p-4 sm:p-5 space-y-3"
                         >
                           <div className="flex items-center gap-3 border-b border-stone-200/80 pb-3">
                             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#3f6e15]/[0.08] text-[#3f6e15]">
@@ -1663,7 +1724,7 @@ export function TripDetailView({
                       {trip.includes.map((x, idx) => (
                         <li
                           key={`${x}-${idx}`}
-                          className="flex items-start gap-3 rounded-xl border border-stone-100 bg-[#faf9f7]/75 px-4 py-3 text-[14.5px] text-[#1c1917] leading-relaxed"
+                          className="flex items-start gap-3 rounded-[12px] border border-stone-100 bg-[#faf9f7]/75 px-4 py-3 text-[14.5px] text-[#1c1917] leading-relaxed"
                         >
                           <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
                             <Check className="h-3 w-3" />
@@ -1683,7 +1744,7 @@ export function TripDetailView({
             <section id="excludes" className="scroll-mt-36">
               <div className="overflow-hidden rounded-2xl border border-stone-200/85 bg-white shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)]">
                 <div className="bg-gradient-to-r from-rose-50/80 via-rose-50/30 to-white px-5 sm:px-8 py-5 border-b border-rose-100/80 flex items-center gap-3.5">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-rose-500 text-white shadow-xs shrink-0">
+                  <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-rose-500 text-white shadow-xs shrink-0">
                     <X className="h-5 w-5" />
                   </span>
                   <div>
@@ -1702,7 +1763,7 @@ export function TripDetailView({
                       {trip.excludeGroups.map((grp) => (
                         <div
                           key={grp.id}
-                          className="rounded-xl border border-stone-200/80 bg-[#faf9f7]/60 p-4 sm:p-5 space-y-2.5"
+                          className="rounded-[12px] border border-stone-200/80 bg-[#faf9f7]/60 p-4 sm:p-5 space-y-2.5"
                         >
                           <h3 className="text-[16px] font-bold text-[#1c1917] border-b border-stone-200/70 pb-2.5">
                             {grp.title}
@@ -1733,7 +1794,7 @@ export function TripDetailView({
                       {trip.excludes.map((x, idx) => (
                         <li
                           key={`${x}-${idx}`}
-                          className="flex items-start gap-3 rounded-xl border border-stone-100 bg-[#faf9f7]/65 px-4 py-3 text-[14.5px] text-[#57534d] leading-relaxed"
+                          className="flex items-start gap-3 rounded-[12px] border border-stone-100 bg-[#faf9f7]/65 px-4 py-3 text-[14.5px] text-[#57534d] leading-relaxed"
                         >
                           <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-rose-100 text-rose-600">
                             <X className="h-3 w-3" />
@@ -1750,13 +1811,13 @@ export function TripDetailView({
 
           {/* SECTION 7: TRIP COST & GROUP DATES */}
           <section id="cost" className="scroll-mt-36">
-            <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
+              <div className="bg-gradient-to-r from-[#faf8f4] via-white to-[#fff7f3] px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
                     Transparent Pricing
                   </p>
-                  <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                  <h2 className="mt-0.5 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
                     Cost
                   </h2>
                 </div>
@@ -1771,6 +1832,8 @@ export function TripDetailView({
                   </span>
                 </div>
               </div>
+
+              <div className="p-5 sm:p-8 space-y-6">
 
               {/* Dynamic Group Price Breakdown Table */}
               <div className="space-y-3">
@@ -1843,7 +1906,7 @@ export function TripDetailView({
               </div>
 
               {/* Compact Value Strip */}
-              <div className="grid gap-3 sm:grid-cols-3 rounded-xl border border-stone-200/80 bg-[#faf9f7] p-4">
+              <div className="grid gap-3 sm:grid-cols-3 rounded-[12px] border border-stone-200/80 bg-[#faf9f7] p-4">
                 <div>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-[#64748b]">
                     Group Size
@@ -1876,7 +1939,7 @@ export function TripDetailView({
                     Scheduled Group Dates ({trip.departures.length})
                   </h3>
 
-                  <div className="divide-y divide-stone-200/80 rounded-xl border border-stone-200 overflow-hidden bg-white">
+                  <div className="divide-y divide-stone-200/80 rounded-[12px] border border-stone-200 overflow-hidden bg-white">
                     {trip.departures.map((dep) => {
                       const seatsLeft = Math.max(
                         dep.seatsTotal - dep.seatsBooked,
@@ -1937,7 +2000,7 @@ export function TripDetailView({
                               </span>
                             ) : (
                               <a
-                                href="#book"
+                                href="#booking"
                                 className="rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-5 py-2 text-xs font-bold text-white transition-colors shadow-xs"
                               >
                                 Book Now
@@ -1950,7 +2013,7 @@ export function TripDetailView({
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-dashed border-stone-300 bg-[#faf9f7] p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-[12px] border border-dashed border-stone-300 bg-[#faf9f7] p-5">
                   <div>
                     <p className="text-[15px] font-bold text-[#1c1917]">
                       Flexible Private &amp; Custom Departures
@@ -1961,26 +2024,27 @@ export function TripDetailView({
                     </p>
                   </div>
                   <a
-                    href="#book"
+                    href="#booking"
                     className="shrink-0 text-center rounded-full bg-[#3f6e15] hover:bg-[#315710] px-5 py-2.5 text-xs font-bold text-white transition-colors"
                   >
                     Select Date →
                   </a>
                 </div>
               )}
+              </div>
             </div>
           </section>
 
           {/* SECTION 8: ROUTE MAP, VIDEO & ELEVATION PROFILE */}
           {(Boolean(trip.mapImage) || profile.length > 1) && (
             <section id="map" className="scroll-mt-36">
-              <div className="rounded-2xl border border-stone-200/85 bg-white p-5 sm:p-8 shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)] space-y-6">
-                <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-stone-100">
+              <div className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
+                <div className="bg-gradient-to-r from-[#faf8f4] to-white px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#f05e25]">
                       Trail Topography
                     </p>
-                    <h2 className="mt-1 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
+                    <h2 className="mt-0.5 font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
                       Route Map &amp; Elevation Profile
                     </h2>
                   </div>
@@ -2006,6 +2070,8 @@ export function TripDetailView({
                     </div>
                   </div>
                 </div>
+
+                <div className="p-5 sm:p-8 space-y-6">
 
                 {trip.mapImage && (
                   <div className="relative group overflow-hidden rounded-2xl border border-stone-200 bg-[#faf9f7]">
@@ -2043,6 +2109,7 @@ export function TripDetailView({
                     </p>
                   </div>
                 )}
+                </div>
               </div>
             </section>
           )}
@@ -2155,7 +2222,7 @@ export function TripDetailView({
           {/* SECTION 10: TRAVELLER REVIEWS */}
           {trip.reviews.length > 0 && (
             <section id="reviews" className="scroll-mt-36">
-              <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="rounded-2xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)] space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100">
                   <h2 className="font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
                     Traveller Reviews
@@ -2228,7 +2295,7 @@ export function TripDetailView({
           {/* SECTION 11: FREQUENTLY ASKED QUESTIONS */}
           {trip.faqs.length > 0 && (
             <section id="faqs" className="scroll-mt-36">
-              <div className="rounded-[16px] border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
+              <div className="rounded-2xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
                 <div className="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100">
                   <span className="grid h-8 w-8 place-items-center rounded-full bg-[#3f6e15]/10 text-[#3f6e15] shrink-0">
                     <HelpCircle className="h-4 w-4" />
@@ -2261,14 +2328,18 @@ export function TripDetailView({
         </div>
 
         {/* RIGHT SIDEBAR: Sticky Booking Panel */}
-        <aside className="lg:sticky lg:top-32 lg:self-start">
+        <aside
+          id="booking"
+          className="min-w-0 scroll-mt-32 lg:sticky lg:top-32 lg:self-start"
+        >
           <BookingPanel trip={trip} whatsappNumber={whatsappNumber} />
         </aside>
+        </div>
       </div>
 
       {/* 4. SIMILAR / RELATED JOURNEYS */}
       {related.length > 0 && (
-        <section className="mx-auto max-w-7xl px-5 pb-20 pt-10 lg:px-8 border-t border-slate-200">
+        <section className="mx-auto max-w-7xl px-4 sm:px-5 pb-20 pt-10 lg:px-8 border-t border-slate-200">
           <div className="mb-8 flex items-end justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-[#f05e25]">

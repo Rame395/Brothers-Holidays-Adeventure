@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/auth/guards";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_FOLDERS = new Set(["trips", "maps", "blog"]);
+const ALLOWED_FOLDERS = new Set(["trips", "maps", "blog", "reviews"]);
 
 function detectImageExtension(
   buffer: Buffer,
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
     if (!ALLOWED_FOLDERS.has(folder)) {
       return NextResponse.json(
-        { ok: false, error: 'Invalid upload folder. Allowed: "trips", "maps", "blog".' },
+        { ok: false, error: 'Invalid upload folder. Allowed: "trips", "maps", "blog", "reviews".' },
         { status: 400 }
       );
     }

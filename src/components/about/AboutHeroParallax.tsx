@@ -121,7 +121,7 @@ export function AboutHeroParallax({ children }: { children: React.ReactNode }) {
     <div
       ref={containerRef}
       data-paused={isVisible && !reducedMotion ? "false" : "true"}
-      className="relative w-full min-h-[78vh] sm:min-h-[84vh] flex items-center overflow-hidden bg-[#071116]"
+      className="relative w-full min-h-[78vh] sm:min-h-[84vh] flex items-center overflow-hidden bg-[#141413]"
     >
       {/* Layer 1: Distant Mountain Photography with Ken Burns + Slow Parallax */}
       <div
@@ -130,8 +130,8 @@ export function AboutHeroParallax({ children }: { children: React.ReactNode }) {
         className="pointer-events-none absolute inset-x-0 -top-[15%] h-[130%] z-0 md:will-change-transform"
       >
         <Image
-          src="/images/about-hero-himalaya.jpg"
-          alt="Snow-capped Himalayan peaks rising above morning clouds in Nepal"
+          src="/images/trips/everest.jpg"
+          alt="Everest and Ama Dablam glowing at sunrise behind prayer flags in Nepal"
           fill
           priority
           sizes="100vw"
@@ -139,7 +139,7 @@ export function AboutHeroParallax({ children }: { children: React.ReactNode }) {
             !reducedMotion ? "md:animate-ken-burns" : ""
           }`}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#071116]/60 via-[#071116]/35 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/35 to-black/20" />
       </div>
 
       {/* Layer 2: Mid-ground Mountain Ridge Silhouette */}
@@ -161,7 +161,7 @@ export function AboutHeroParallax({ children }: { children: React.ReactNode }) {
       {/* Layer 3: Soft White Bottom Gradient Blend into Who We Are */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-32 sm:h-44 bg-gradient-to-t from-white via-white/80 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-28 sm:h-36 bg-gradient-to-t from-white via-white/75 to-transparent"
       />
 
       {/* Layer 4: Foreground Typography & CTAs */}
@@ -170,6 +170,17 @@ export function AboutHeroParallax({ children }: { children: React.ReactNode }) {
         className="relative z-10 w-full will-change-transform"
       >
         {children}
+      </div>
+
+      {/* Scroll-down indicator */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1 text-[#57534d]/75 anim-scroll-cue"
+      >
+        <span className="text-[10px] font-bold uppercase tracking-[0.25em]">
+          Scroll
+        </span>
+        <span className="h-4 w-px bg-[#f05e25]/70" />
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ import type {
   SiteSettingDTO,
   TrekRouteDTO,
   TripDTO,
+  TripReviewDTO,
 } from "@/lib/types";
 
 const DEFAULT_SITE_SETTINGS: SiteSettingDTO = {
@@ -25,13 +26,19 @@ const DEFAULT_SITE_SETTINGS: SiteSettingDTO = {
   contactPhone: "+977-1-4700000",
   whatsappNumber: "+9779800000000",
   officeAddress: "Thamel, Kathmandu 44600, Nepal",
+  officeHours: "Sun–Fri · 9 AM – 6 PM NPT",
+  footerDescription:
+    "Kathmandu-based trekking and mountaineering outfitter leading small groups across Nepal, Tibet, and Bhutan with local Sherpa leadership.",
   registrationNo: "Govt. Regd. 58177/068/069 · TAAN · NMA · NTB",
+  australiaWhatsapp: "+61 426 378 149",
+  japanWhatsapp: "+81 80 4107 0813",
   defaultCurrency: "USD",
   usdExchangeRate: 135.0,
   announcementBanner: null,
   announcementActive: false,
   instagramUrl: null,
   facebookUrl: null,
+  tiktokUrl: null,
   youtubeUrl: null,
   tripadvisorUrl: null,
   gaMeasurementId: null,
@@ -152,13 +159,19 @@ function serializeTrip(t: PrismaTripFull): TripDTO {
     })),
     reviews: t.reviews.map((r) => ({
       id: r.id,
+      tripId: r.tripId ?? null,
+      tripName: r.tripName ?? t.name,
+      tripSlug: t.slug,
       authorName: r.authorName,
       authorCountry: r.authorCountry,
+      avatarUrl: r.avatarUrl ?? null,
       rating: r.rating,
       title: r.title,
       comment: r.comment,
       tripDate: r.tripDate ? r.tripDate.toISOString() : null,
-      verified: r.verified,
+      verified: r.verified ?? true,
+      isPublished: r.isPublished ?? true,
+      showOnHome: r.showOnHome ?? true,
     })),
   };
 }
@@ -181,16 +194,23 @@ export async function getSiteSettings(): Promise<SiteSettingDTO> {
     contactEmail: row.contactEmail,
     contactPhone: row.contactPhone,
     whatsappNumber: row.whatsappNumber,
-    officeAddress: row.officeAddress,
-    registrationNo: row.registrationNo,
-    defaultCurrency: row.defaultCurrency,
-    usdExchangeRate: row.usdExchangeRate,
-    announcementBanner: row.announcementBanner,
-    announcementActive: row.announcementActive,
-    instagramUrl: row.instagramUrl,
-    facebookUrl: row.facebookUrl,
-    youtubeUrl: row.youtubeUrl,
-    tripadvisorUrl: row.tripadvisorUrl,
+    officeAddress: row.officeAddress ?? DEFAULT_SITE_SETTINGS.officeAddress,
+    officeHours: row.officeHours ?? DEFAULT_SITE_SETTINGS.officeHours,
+    footerDescription:
+      row.footerDescription ?? DEFAULT_SITE_SETTINGS.footerDescription,
+    registrationNo: row.registrationNo ?? DEFAULT_SITE_SETTINGS.registrationNo,
+    australiaWhatsapp:
+      row.australiaWhatsapp ?? DEFAULT_SITE_SETTINGS.australiaWhatsapp,
+    japanWhatsapp: row.japanWhatsapp ?? DEFAULT_SITE_SETTINGS.japanWhatsapp,
+    defaultCurrency: row.defaultCurrency ?? DEFAULT_SITE_SETTINGS.defaultCurrency,
+    usdExchangeRate: row.usdExchangeRate ?? DEFAULT_SITE_SETTINGS.usdExchangeRate,
+    announcementBanner: row.announcementBanner ?? null,
+    announcementActive: Boolean(row.announcementActive),
+    instagramUrl: row.instagramUrl ?? null,
+    facebookUrl: row.facebookUrl ?? null,
+    tiktokUrl: row.tiktokUrl ?? null,
+    youtubeUrl: row.youtubeUrl ?? null,
+    tripadvisorUrl: row.tripadvisorUrl ?? null,
     gaMeasurementId: row.gaMeasurementId,
     gtmContainerId: row.gtmContainerId,
     googleSiteVerification: row.googleSiteVerification,
@@ -741,5 +761,39 @@ export async function getArchiveEntries(): Promise<ArchiveEntryDTO[]> {
     altitudeFt: e.altitudeFt,
     icon: e.icon,
     summary: e.summary,
+  }));
+}
+
+export async function getHomeReviews(limit = 12): Promise<TripReviewDTO[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("reviews", "trips");
+
+  const rows = await prisma.tripReview.findMany({
+    where: { isPublished: true, showOnHome: true },
+    include: {
+      trip: {
+        select: { id: true, name: true, slug: true },
+      },
+    },
+    orderBy: [{ tripDate: "desc" }, { createdAt: "desc" }],
+    take: limit,
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    tripId: r.tripId ?? null,
+    tripName: r.trip?.name ?? r.tripName ?? null,
+    tripSlug: r.trip?.slug ?? null,
+    authorName: r.authorName,
+    authorCountry: r.authorCountry,
+    avatarUrl: r.avatarUrl ?? null,
+    rating: r.rating,
+    title: r.title,
+    comment: r.comment,
+    tripDate: r.tripDate ? r.tripDate.toISOString() : null,
+    verified: r.verified ?? true,
+    isPublished: r.isPublished ?? true,
+    showOnHome: r.showOnHome ?? true,
   }));
 }

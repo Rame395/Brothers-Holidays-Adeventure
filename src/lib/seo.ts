@@ -241,6 +241,7 @@ export function buildOrganizationJsonLd(settings: SiteSettingDTO) {
   const sameAs = [
     settings.instagramUrl,
     settings.facebookUrl,
+    settings.tiktokUrl,
     settings.youtubeUrl,
     settings.tripadvisorUrl,
   ].filter(Boolean);

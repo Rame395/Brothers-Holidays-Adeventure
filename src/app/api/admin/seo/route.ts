@@ -13,13 +13,6 @@ const optionalText = (max: number) =>
 
 const settingsPatchSchema = z.object({
   type: z.literal("settings"),
-  siteName: z.string().trim().min(2).max(120),
-  tagline: z.string().trim().min(2).max(200),
-  contactEmail: z.string().trim().email("Valid contact email is required").max(120),
-  contactPhone: z.string().trim().min(4).max(60),
-  whatsappNumber: z.string().trim().min(4).max(60),
-  officeAddress: z.string().trim().min(3).max(200),
-  registrationNo: z.string().trim().min(2).max(200),
   defaultMetaTitle: z.string().trim().min(5).max(160),
   defaultMetaDescription: z.string().trim().min(10).max(320),
   defaultOgImage: z.string().trim().min(1).max(300),
@@ -28,10 +21,6 @@ const settingsPatchSchema = z.object({
   gaMeasurementId: optionalText(60),
   gtmContainerId: optionalText(60),
   facebookPixelId: optionalText(60),
-  instagramUrl: optionalText(300),
-  facebookUrl: optionalText(300),
-  youtubeUrl: optionalText(300),
-  tripadvisorUrl: optionalText(300),
 });
 
 const pageSeoPatchSchema = z.object({
@@ -93,13 +82,6 @@ export async function PATCH(request: Request) {
       const settings = await prisma.siteSetting.upsert({
         where: { id: "default" },
         update: {
-          siteName: d.siteName,
-          tagline: d.tagline,
-          contactEmail: d.contactEmail,
-          contactPhone: d.contactPhone,
-          whatsappNumber: d.whatsappNumber,
-          officeAddress: d.officeAddress,
-          registrationNo: d.registrationNo,
           defaultMetaTitle: d.defaultMetaTitle,
           defaultMetaDescription: d.defaultMetaDescription,
           defaultOgImage: d.defaultOgImage,
@@ -108,20 +90,9 @@ export async function PATCH(request: Request) {
           gaMeasurementId: d.gaMeasurementId ?? null,
           gtmContainerId: d.gtmContainerId ?? null,
           facebookPixelId: d.facebookPixelId ?? null,
-          instagramUrl: d.instagramUrl ?? null,
-          facebookUrl: d.facebookUrl ?? null,
-          youtubeUrl: d.youtubeUrl ?? null,
-          tripadvisorUrl: d.tripadvisorUrl ?? null,
         },
         create: {
           id: "default",
-          siteName: d.siteName,
-          tagline: d.tagline,
-          contactEmail: d.contactEmail,
-          contactPhone: d.contactPhone,
-          whatsappNumber: d.whatsappNumber,
-          officeAddress: d.officeAddress,
-          registrationNo: d.registrationNo,
           defaultMetaTitle: d.defaultMetaTitle,
           defaultMetaDescription: d.defaultMetaDescription,
           defaultOgImage: d.defaultOgImage,
@@ -130,10 +101,6 @@ export async function PATCH(request: Request) {
           gaMeasurementId: d.gaMeasurementId ?? null,
           gtmContainerId: d.gtmContainerId ?? null,
           facebookPixelId: d.facebookPixelId ?? null,
-          instagramUrl: d.instagramUrl ?? null,
-          facebookUrl: d.facebookUrl ?? null,
-          youtubeUrl: d.youtubeUrl ?? null,
-          tripadvisorUrl: d.tripadvisorUrl ?? null,
         },
       });
 

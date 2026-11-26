@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
@@ -9,6 +10,16 @@ import {
 } from "@/lib/data";
 import { buildBreadcrumbJsonLd, buildTrekRouteMetadata } from "@/lib/seo";
 import RouteDetailsClient from "./RouteDetailsClient";
+
+const LEGACY_ROUTE_TO_TRIP_SLUG: Record<string, string> = {
+  "annapurna-sanctuary": "annapurna-base-camp-trek",
+  "khumbu-glacier-traverse": "everest-three-high-passes-trek",
+  "upper-mustang": "upper-mustang-trek",
+  "kanchenjunga-traverse": "kanchenjunga-base-camp-trek",
+  "manaslu-circuit": "manaslu-circuit-trek",
+  "gokyo-lakes-renjo-la": "gokyo-valley-trek",
+  "langtang-valley": "langtang-valley-trek",
+};
 
 export async function generateStaticParams() {
   try {
@@ -49,6 +60,11 @@ async function RouteDetailContent({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const targetTripSlug = LEGACY_ROUTE_TO_TRIP_SLUG[slug];
+  if (targetTripSlug) {
+    redirect(`/destinations/${targetTripSlug}`);
+  }
+
   const trek = await getTrekRouteBySlug(slug);
 
   if (!trek) {

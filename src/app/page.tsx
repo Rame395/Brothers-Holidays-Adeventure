@@ -4,22 +4,24 @@ import MirrorHighRoutes from "@/components/MirrorHighRoutes";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
 import TrekkingRegions from "@/components/home/TrekkingRegions";
 import BookingProcessSection from "@/components/home/BookingProcessSection";
+import ClientReviewsSection from "@/components/home/ClientReviewsSection";
 import { Hero } from "@/components/hero/Hero";
-import { QuickDispatchForm } from "@/components/home/QuickDispatchForm";
 import { AlpineBackdrop } from "@/components/site/AlpineBackdrop";
 import { ParallaxBackdrop } from "@/components/motion/ParallaxBackdrop";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { AnimatedCounter } from "@/components/motion/AnimatedCounter";
 import { HeroCloudTransition } from "@/components/motion/HeroCloudTransition";
-import { getPublishedTrekRoutes } from "@/lib/data";
+import { getHomeReviews, getPublishedTrips } from "@/lib/data";
 import { buildPageMetadata } from "@/lib/seo";
 import {
   ArrowRight,
+  Award,
   BookOpen,
   Calendar,
   Compass,
   HeartHandshake,
   MapPin,
+  ShieldCheck,
 } from "lucide-react";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,7 +29,23 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const trekRoutes = await getPublishedTrekRoutes();
+  const [allTrips, homeReviews] = await Promise.all([
+    getPublishedTrips(),
+    getHomeReviews(),
+  ]);
+  const featured = allTrips.filter((t) => t.isFeatured);
+  const featuredIds = new Set(featured.map((t) => t.id));
+  const extraTreks = allTrips.filter(
+    (t) => !featuredIds.has(t.id) && t.categories.includes("trekking")
+  );
+  let spotlightTrips = [...featured, ...extraTreks].slice(0, 10);
+  if (spotlightTrips.length < 6) {
+    const usedIds = new Set(spotlightTrips.map((t) => t.id));
+    spotlightTrips = [
+      ...spotlightTrips,
+      ...allTrips.filter((t) => !usedIds.has(t.id)),
+    ].slice(0, 10);
+  }
 
   return (
     <div className="flex flex-col w-full relative">
@@ -38,7 +56,7 @@ export default async function HomePage() {
       <HeroCloudTransition />
 
       {/* SECTION 2: SELECTED HIGH ROUTES DIRECTORY PREVIEW */}
-      <MirrorHighRoutes treks={trekRoutes} />
+      <MirrorHighRoutes trips={spotlightTrips} totalCount={allTrips.length} />
 
       {/* SECTION 3: WHY CHOOSE US (SHERPA HERITAGE & PARALLAX MOUNTAIN) */}
       <WhyChooseUs />
@@ -199,15 +217,37 @@ export default async function HomePage() {
       {/* SECTION 7: HOW BOOKING WORKS (SIMPLE 4-STEP EXPEDITION PROCESS) */}
       <BookingProcessSection />
 
+      {/* SECTION 7B: CLIENT REVIEWS & TRAVELLER TESTIMONIALS */}
+      <ClientReviewsSection reviews={homeReviews} />
+
       {/* SECTION 8: CLOSING CALL TO ACTION */}
-      <section className="w-full relative overflow-hidden py-24 sm:py-32 bg-[#071526] border-t border-white/10">
+      <section className="w-full relative overflow-hidden py-24 sm:py-32 bg-[#081207] border-t border-white/10">
         <ParallaxBackdrop
           imageSrc="/images/cta-himalaya-bg.jpg"
           imageAlt="Himalayan peaks at twilight"
           speed={115}
           kenBurns
         />
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#071526]/80 via-[#071526]/65 to-[#071526]/90" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 z-10 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(10,22,8,0.88) 0%, rgba(16,32,11,0.72) 50%, rgba(8,18,7,0.96) 100%)",
+          }}
+        />
+        {/* Ambient Alpine Glow Orbs */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-12 left-1/4 z-10 h-64 w-64 rounded-full bg-[#3f6e15]/30 blur-3xl animate-cta-aura"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-12 right-1/4 z-10 h-72 w-72 rounded-full bg-[#f05e25]/20 blur-3xl animate-cta-aura"
+          style={{ animationDelay: "3s" }}
+        />
+
+        {/* Smooth White Top Fade into Trail Banner */}
         <div
           aria-hidden="true"
           className="absolute -top-px inset-x-0 h-16 sm:h-24 z-10 pointer-events-none"
@@ -217,43 +257,98 @@ export default async function HomePage() {
           }}
         />
 
-        <div className="relative z-20 max-w-3xl mx-auto px-6 text-center space-y-6">
-          <ScrollReveal direction="up" distance={52} className="space-y-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#7dd3fc]">
-              2026 / 2027 Trekking Seasons
-            </p>
+        <div className="relative z-20 max-w-5xl mx-auto px-5 sm:px-8 text-center space-y-12">
+          <ScrollReveal direction="up" distance={48} className="space-y-6">
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-md px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-[#a3cf75] shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-[#f05e25] animate-pulse" />
+              <span>2026 / 2027 Himalayan Seasons · Spring &amp; Autumn Open</span>
+            </div>
 
-            <h2 className="font-serif text-4xl sm:text-5xl text-white font-normal tracking-tight">
+            <h2 className="font-heading text-4xl sm:text-6xl lg:text-[64px] text-white font-bold tracking-tight leading-[1.03] drop-shadow-sm">
               Ready to step onto the{" "}
-              <span className="italic text-[#ff7a45]">trail?</span>
+              <span className="italic text-gold-gradient">trail?</span>
             </h2>
 
-            <p className="text-white/80 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-              Clear USD pricing, in-house permits, and senior Sherpa guides from
-              Lukla or Pokhara back to Kathmandu.
+            <p className="text-white/80 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+              Clear USD pricing, in-house government permits, and senior Sherpa
+              guides leading small groups from Lukla or Pokhara back to
+              Kathmandu.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
               <Link
                 href="/destinations"
-                className="w-full sm:w-auto px-7 py-3 rounded-lg bg-[#f05e25] hover:bg-[#ff7a45] text-white font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
+                className="group w-full sm:w-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-[#f05e25] to-[#ff7a45] hover:from-[#d94e18] hover:to-[#f05e25] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all duration-300 shadow-lg shadow-[#f05e25]/35 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#f05e25]/45"
               >
                 <Calendar className="w-4 h-4" />
                 <span>Browse All Trips</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
               <Link
                 href="/journal"
-                className="w-full sm:w-auto px-7 py-3 rounded-lg border border-white/25 bg-[#071526]/60 hover:bg-[#071526] text-white font-medium text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
+                className="group w-full sm:w-auto px-8 py-3.5 rounded-full border border-white/25 bg-white/10 backdrop-blur-md hover:bg-white/18 hover:border-[#a3cf75]/60 text-white font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all duration-300 hover:-translate-y-0.5"
               >
-                <BookOpen className="w-4 h-4 text-[#7dd3fc]" />
+                <BookOpen className="w-4 h-4 text-[#a3cf75]" />
                 <span>Read Field Journal</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
             </div>
           </ScrollReveal>
 
-          <QuickDispatchForm />
+          {/* 3-Card Frosted Glass Expedition Promise Strip */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 text-left">
+            {[
+              {
+                icon: Award,
+                title: "Direct Kathmandu Pricing",
+                desc: "Transparent USD tariffs with zero international agency markups or hidden trail fees.",
+                delay: 0,
+              },
+              {
+                icon: Compass,
+                title: "Permits & Flight Desk",
+                desc: "TIMS, national park, restricted permits, and priority Lukla flight coordination.",
+                delay: 110,
+              },
+              {
+                icon: ShieldCheck,
+                title: "Senior Sherpa Safety",
+                desc: "Daily pulse-oximeter checks, conservative pacing, and 24/7 Thamel rescue backup.",
+                delay: 220,
+              },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <ScrollReveal key={item.title} delay={item.delay} distance={36}>
+                  <div className="h-full rounded-2xl border border-white/12 bg-white/[0.06] backdrop-blur-md p-5 sm:p-6 hover:-translate-y-1 hover:border-[#f05e25]/45 hover:bg-white/[0.1] transition-all duration-300 space-y-2.5">
+                    <div className="h-10 w-10 rounded-xl bg-[#f05e25]/18 border border-[#f05e25]/30 text-[#ff8a50] flex items-center justify-center">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-heading text-lg sm:text-xl font-bold text-white tracking-wide">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs sm:text-[13px] text-white/75 leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
+                </ScrollReveal>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Crisp Ridge Silhouette Transition into Light Footer */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-px inset-x-0 z-20 text-[#f7f6f2]"
+        >
+          <svg
+            viewBox="0 0 1440 56"
+            preserveAspectRatio="none"
+            className="w-full h-8 sm:h-12 fill-current block"
+          >
+            <path d="M0,56 L0,38 L140,18 L280,42 L450,14 L630,36 L810,8 L990,34 L1170,12 L1330,32 L1440,22 L1440,56 Z" />
+          </svg>
         </div>
       </section>
     </div>

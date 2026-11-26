@@ -106,15 +106,8 @@ export default function AdminSeoClient({
     text: string;
   } | null>(null);
 
-  // Global Site Settings state
+  // Global Site SEO & Analytics state (Company & Social live in /admin/company)
   const [settings, setSettings] = useState({
-    siteName: initialSettings.siteName,
-    tagline: initialSettings.tagline,
-    contactEmail: initialSettings.contactEmail,
-    contactPhone: initialSettings.contactPhone,
-    whatsappNumber: initialSettings.whatsappNumber,
-    officeAddress: initialSettings.officeAddress,
-    registrationNo: initialSettings.registrationNo,
     defaultMetaTitle: initialSettings.defaultMetaTitle,
     defaultMetaDescription: initialSettings.defaultMetaDescription,
     defaultOgImage: initialSettings.defaultOgImage,
@@ -123,10 +116,6 @@ export default function AdminSeoClient({
     gaMeasurementId: initialSettings.gaMeasurementId ?? "",
     gtmContainerId: initialSettings.gtmContainerId ?? "",
     facebookPixelId: initialSettings.facebookPixelId ?? "",
-    instagramUrl: initialSettings.instagramUrl ?? "",
-    facebookUrl: initialSettings.facebookUrl ?? "",
-    youtubeUrl: initialSettings.youtubeUrl ?? "",
-    tripadvisorUrl: initialSettings.tripadvisorUrl ?? "",
   });
 
   // Per-Page SEO state
@@ -195,7 +184,7 @@ export default function AdminSeoClient({
       }
       setStatusMsg({
         type: "ok",
-        text: "Saved Global SEO, Google verification & Knowledge Panel links across all pages.",
+        text: "Saved Global SEO metadata, search verification & analytics settings.",
       });
       router.refresh();
     } catch {
@@ -300,7 +289,7 @@ export default function AdminSeoClient({
           }`}
         >
           <Globe className="h-4 w-4" />
-          <span>Global SEO, Verification &amp; Social Links</span>
+          <span>Global SEO, Verification &amp; Analytics</span>
         </button>
 
         <button
@@ -367,7 +356,7 @@ export default function AdminSeoClient({
             <div className="rounded-xl border border-slate-200 bg-[#f8fafc] p-4 max-w-2xl space-y-1">
               <p className="text-xs text-slate-600 truncate">{siteUrl}</p>
               <p className="text-lg font-medium text-[#1a0dab] leading-snug">
-                {settings.defaultMetaTitle || settings.siteName}
+                {settings.defaultMetaTitle || initialSettings.siteName}
               </p>
               <p className="text-sm text-[#4d5156] leading-relaxed line-clamp-2">
                 {settings.defaultMetaDescription}
@@ -566,157 +555,92 @@ export default function AdminSeoClient({
             </section>
           </div>
 
-          {/* Organization LocalBusiness Schema + sameAs */}
+          {/* Synced Organization & Social Identity Summary (single source in /admin/company) */}
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-              <Share2 className="h-4 w-4 text-[#f05e25]" />
-              <h2 className="font-heading font-bold text-xl text-[#1c1917]">
-                Organization Schema (LocalBusiness NAP &amp; Google Knowledge Panel Links)
-              </h2>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Share2 className="h-4 w-4 text-[#f05e25]" />
+                <div>
+                  <h2 className="font-heading font-bold text-xl text-[#1c1917]">
+                    Synced Organization Schema &amp; Social Profiles
+                  </h2>
+                  <p className="text-xs text-[#57534d]">
+                    Managed in one place under Company &amp; Social so contact info
+                    and social links stay consistent everywhere.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href="/admin/company"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#3f6e15]/30 bg-[#3f6e15]/5 hover:bg-[#3f6e15] hover:text-white px-4 py-2 text-xs font-semibold text-[#3f6e15] transition-colors"
+              >
+                <span>Edit in Company &amp; Social</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div>
-                <label className={LABEL_CLS}>Site / Agency Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={settings.siteName}
-                  onChange={(e) =>
-                    setSettings((p) => ({ ...p, siteName: e.target.value }))
-                  }
-                  className={INPUT_CLS}
-                />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+              <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-3">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  Agency Name
+                </span>
+                <span className="mt-0.5 block font-semibold text-[#1c1917] truncate">
+                  {initialSettings.siteName}
+                </span>
               </div>
-              <div>
-                <label className={LABEL_CLS}>Contact Email *</label>
-                <input
-                  type="email"
-                  required
-                  value={settings.contactEmail}
-                  onChange={(e) =>
-                    setSettings((p) => ({ ...p, contactEmail: e.target.value }))
-                  }
-                  className={INPUT_CLS}
-                />
+              <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-3">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  Contact Email
+                </span>
+                <span className="mt-0.5 block font-semibold text-[#1c1917] truncate">
+                  {initialSettings.contactEmail}
+                </span>
               </div>
-              <div>
-                <label className={LABEL_CLS}>Contact Phone *</label>
-                <input
-                  type="text"
-                  required
-                  value={settings.contactPhone}
-                  onChange={(e) =>
-                    setSettings((p) => ({ ...p, contactPhone: e.target.value }))
-                  }
-                  className={INPUT_CLS}
-                />
+              <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-3">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  Phone / WhatsApp
+                </span>
+                <span className="mt-0.5 block font-semibold text-[#1c1917] truncate">
+                  {initialSettings.contactPhone}
+                </span>
               </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div>
-                <label className={LABEL_CLS}>WhatsApp Number *</label>
-                <input
-                  type="text"
-                  required
-                  value={settings.whatsappNumber}
-                  onChange={(e) =>
-                    setSettings((p) => ({
-                      ...p,
-                      whatsappNumber: e.target.value,
-                    }))
-                  }
-                  className={INPUT_CLS}
-                />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>Office Address *</label>
-                <input
-                  type="text"
-                  required
-                  value={settings.officeAddress}
-                  onChange={(e) =>
-                    setSettings((p) => ({
-                      ...p,
-                      officeAddress: e.target.value,
-                    }))
-                  }
-                  className={INPUT_CLS}
-                />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>Govt. Registration Line *</label>
-                <input
-                  type="text"
-                  required
-                  value={settings.registrationNo}
-                  onChange={(e) =>
-                    setSettings((p) => ({
-                      ...p,
-                      registrationNo: e.target.value,
-                    }))
-                  }
-                  className={INPUT_CLS}
-                />
+              <div className="rounded-xl border border-slate-100 bg-[#f8fafc] p-3">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  Office Address
+                </span>
+                <span className="mt-0.5 block font-semibold text-[#1c1917] truncate">
+                  {initialSettings.officeAddress}
+                </span>
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div>
-                <label className={LABEL_CLS}>Instagram URL</label>
-                <input
-                  type="url"
-                  placeholder="https://instagram.com/..."
-                  value={settings.instagramUrl}
-                  onChange={(e) =>
-                    setSettings((p) => ({ ...p, instagramUrl: e.target.value }))
-                  }
-                  className={`${INPUT_CLS} text-xs`}
-                />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>Facebook URL</label>
-                <input
-                  type="url"
-                  placeholder="https://facebook.com/..."
-                  value={settings.facebookUrl}
-                  onChange={(e) =>
-                    setSettings((p) => ({ ...p, facebookUrl: e.target.value }))
-                  }
-                  className={`${INPUT_CLS} text-xs`}
-                />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>YouTube URL</label>
-                <input
-                  type="url"
-                  placeholder="https://youtube.com/..."
-                  value={settings.youtubeUrl}
-                  onChange={(e) =>
-                    setSettings((p) => ({ ...p, youtubeUrl: e.target.value }))
-                  }
-                  className={`${INPUT_CLS} text-xs`}
-                />
-              </div>
-              <div>
-                <label className={LABEL_CLS}>TripAdvisor URL</label>
-                <input
-                  type="url"
-                  placeholder="https://tripadvisor.com/..."
-                  value={settings.tripadvisorUrl}
-                  onChange={(e) =>
-                    setSettings((p) => ({
-                      ...p,
-                      tripadvisorUrl: e.target.value,
-                    }))
-                  }
-                  className={`${INPUT_CLS} text-xs`}
-                />
-              </div>
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+              <span className="font-semibold text-[#57534d] mr-1">
+                Active Schema Channels:
+              </span>
+              {[
+                { label: "Facebook", ok: Boolean(initialSettings.facebookUrl) },
+                { label: "Instagram", ok: Boolean(initialSettings.instagramUrl) },
+                { label: "TikTok", ok: Boolean(initialSettings.tiktokUrl) },
+                { label: "WhatsApp", ok: Boolean(initialSettings.whatsappNumber) },
+                { label: "YouTube", ok: Boolean(initialSettings.youtubeUrl) },
+                { label: "TripAdvisor", ok: Boolean(initialSettings.tripadvisorUrl) },
+              ].map((ch) => (
+                <span
+                  key={ch.label}
+                  className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                    ch.ok
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "border-slate-200 bg-slate-50 text-slate-400"
+                  }`}
+                >
+                  {ch.label}
+                </span>
+              ))}
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-2 border-t border-slate-100">
               <button
                 type="submit"
                 disabled={saving}
