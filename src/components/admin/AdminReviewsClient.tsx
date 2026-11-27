@@ -22,7 +22,13 @@ import {
   formatReviewDateUTC,
   getReviewerInitials,
 } from "@/lib/review-utils";
-import type { TripReviewDTO } from "@/lib/types";
+import type { ReviewSource, TripReviewDTO } from "@/lib/types";
+
+const SOURCE_LABELS: Record<ReviewSource, string> = {
+  google: "Google",
+  tripadvisor: "TripAdvisor",
+  website: "Website",
+};
 
 export interface ReviewTripOption {
   id: string;
@@ -37,6 +43,7 @@ interface ReviewFormState {
   rating: number;
   title: string;
   comment: string;
+  source: ReviewSource;
   tripId: string;
   tripName: string;
   tripDate: string;
@@ -52,6 +59,7 @@ const EMPTY_FORM: ReviewFormState = {
   rating: 5,
   title: "",
   comment: "",
+  source: "google",
   tripId: "",
   tripName: "",
   tripDate: "",
@@ -170,6 +178,7 @@ export default function AdminReviewsClient({
       rating: review.rating || 5,
       title: review.title ?? "",
       comment: review.comment,
+      source: review.source ?? "website",
       tripId: review.tripId ?? "",
       tripName: review.tripName ?? "",
       tripDate: review.tripDate ? review.tripDate.slice(0, 10) : "",
@@ -232,6 +241,7 @@ export default function AdminReviewsClient({
         rating: form.rating,
         title: form.title.trim() || null,
         comment: form.comment.trim(),
+        source: form.source,
         tripId: form.tripId || null,
         tripName: form.tripName.trim() || null,
         tripDate: form.tripDate.trim() || null,
@@ -536,8 +546,29 @@ export default function AdminReviewsClient({
               </div>
             </div>
 
-            {/* Star Rating + Trip Date */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Star Rating + Source + Trip Date */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-stone-700 mb-1">
+                  Source
+                </label>
+                <select
+                  value={form.source}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      source: e.target.value as ReviewSource,
+                    }))
+                  }
+                  disabled={!canWrite}
+                  className="w-full rounded-[10px] border border-stone-200 bg-white px-3 py-2 text-sm text-[#1c1917] focus:outline-none focus:border-[#3f6e15]"
+                >
+                  <option value="google">Google Review</option>
+                  <option value="tripadvisor">TripAdvisor</option>
+                  <option value="website">Direct Website</option>
+                </select>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-stone-700 mb-1">
                   Rating
@@ -822,6 +853,17 @@ export default function AdminReviewsClient({
                                 Verified
                               </span>
                             )}
+                            <span
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold border ${
+                                review.source === "google"
+                                  ? "border-blue-200 bg-blue-50 text-blue-700"
+                                  : review.source === "tripadvisor"
+                                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                    : "border-stone-200 bg-stone-50 text-stone-700"
+                              }`}
+                            >
+                              {SOURCE_LABELS[review.source ?? "website"]}
+                            </span>
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-2">
                             <div className="flex items-center gap-0.5">

@@ -79,6 +79,7 @@ export async function POST(request: Request) {
         rating: d.rating,
         title: d.title ?? null,
         comment: d.comment,
+        source: d.source,
         tripId: resolvedTripId,
         tripName: resolvedTripName,
         tripDate: parseReviewDateInput(d.tripDate),

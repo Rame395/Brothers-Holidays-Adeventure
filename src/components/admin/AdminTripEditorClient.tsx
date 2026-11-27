@@ -175,6 +175,7 @@ export interface AdminTripEditorDTO {
   badge: string | null;
   isPublished: boolean;
   isFeatured: boolean;
+  isTopTrek?: boolean;
   featuredOrder: number;
   metaTitle: string | null;
   metaDescription: string | null;
@@ -277,6 +278,7 @@ interface TripFormState {
   badge: string;
   isPublished: boolean;
   isFeatured: boolean;
+  isTopTrek: boolean;
   featuredOrder: string;
   metaTitle: string;
   metaDescription: string;
@@ -375,6 +377,7 @@ function buildInitialFormState(
       badge: "",
       isPublished: false,
       isFeatured: false,
+      isTopTrek: false,
       featuredOrder: "0",
       metaTitle: "",
       metaDescription: "",
@@ -462,6 +465,7 @@ function buildInitialFormState(
     badge: trip.badge ?? "",
     isPublished: trip.isPublished,
     isFeatured: trip.isFeatured,
+    isTopTrek: Boolean(trip.isTopTrek),
     featuredOrder: String(trip.featuredOrder),
     metaTitle: trip.metaTitle ?? "",
     metaDescription: trip.metaDescription ?? "",
@@ -1567,6 +1571,7 @@ export default function AdminTripEditorClient({
       badge: form.badge.trim() || null,
       isPublished: nextPublished,
       isFeatured: form.isFeatured,
+      isTopTrek: form.isTopTrek,
       featuredOrder: Number.parseInt(form.featuredOrder || "0", 10) || 0,
       metaTitle: form.metaTitle.trim() || null,
       metaDescription: form.metaDescription.trim() || null,
@@ -2227,6 +2232,22 @@ export default function AdminTripEditorClient({
                   className="h-4 w-4 accent-[#f05e25]"
                 />
                 <span>Feature on Homepage</span>
+              </label>
+
+              <label className="flex items-center gap-2 text-sm font-medium text-[#1c1917] cursor-pointer">
+                <input
+                  type="checkbox"
+                  disabled={!canWrite}
+                  checked={form.isTopTrek}
+                  onChange={(e) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      isTopTrek: e.target.checked,
+                    }))
+                  }
+                  className="h-4 w-4 accent-[#3f6e15]"
+                />
+                <span>Top Trek in Nepal (Homepage tab)</span>
               </label>
 
               {form.isFeatured && (

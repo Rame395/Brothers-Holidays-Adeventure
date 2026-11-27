@@ -6,6 +6,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import prisma from "@/lib/prisma";
 import {
   getAllTripSlugs,
+  getComparableTrips,
   getRelatedTrips,
   getSiteSettings,
   getTripBySlug,
@@ -80,8 +81,9 @@ async function DestinationDetailContent({
     );
   }
 
-  const [related, travelGuides] = await Promise.all([
+  const [related, comparableTrips, travelGuides] = await Promise.all([
     getRelatedTrips(trip.slug, trip.region, trip.categories, 3),
+    getComparableTrips(),
     prisma.travelGuide.findMany({
       where: { isPublished: true },
       select: {
@@ -108,6 +110,7 @@ async function DestinationDetailContent({
       <TripDetailView
         trip={trip}
         related={related}
+        comparableTrips={comparableTrips}
         whatsappNumber={settings.whatsappNumber}
         travelGuides={travelGuides}
       />

@@ -9,16 +9,33 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import type {
+  TripCustomSectionDTO,
+  TripFaqDTO,
+  TripItineraryDayDTO,
+  TripServiceGroupDTO,
+} from "@/lib/types";
 
 export interface TripVoiceoverPlayerProps {
-  tripName: string;
-  tagline?: string | null;
-  area?: string | null;
-  days: number;
-  maxAltitude: number;
-  difficulty: string;
+  tripSlug: string;
   overview: string;
+  overviewCustomSections?: TripCustomSectionDTO[];
   highlights?: string[];
+  itineraryIntro?: string | null;
+  itinerary?: TripItineraryDayDTO[];
+  includes?: string[];
+  includeGroups?: TripServiceGroupDTO[];
+  excludes?: string[];
+  excludeGroups?: TripServiceGroupDTO[];
+  knowBeforeYouGoSections?: TripCustomSectionDTO[];
+  gearList?: string[];
+  bottomCustomSections?: TripCustomSectionDTO[];
+  faqs?: TripFaqDTO[];
+}
+
+interface NarrationChunk {
+  text: string;
+  section: string;
 }
 
 const WAVEFORM_BARS = [
@@ -27,13 +44,18 @@ const WAVEFORM_BARS = [
 ];
 
 const SPEEDS = [1, 1.25, 1.5] as const;
+const MAX_CHUNK_CHARS = 160;
 
 function subscribeNoop() {
   return () => {};
 }
 
 function getSpeechSupportSnapshot() {
-  return typeof window !== "undefined" && "speechSynthesis" in window;
+  return (
+    typeof window !== "undefined" &&
+    "speechSynthesis" in window &&
+    typeof SpeechSynthesisUtterance !== "undefined"
+  );
 }
 
 function getSpeechSupportServerSnapshot() {
@@ -44,17 +66,96 @@ function stripRichText(raw: string): string {
   return raw
     .replace(/<[^>]*>/g, " ")
     .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-    .replace(/[*_`#>~-]+/g, " ")
+    .replace(/[*_`#>~]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
-function splitIntoSentences(text: string): string[] {
-  const parts = text
+function ensurePeriod(text: string): string {
+  const clean = text.trim();
+  if (!clean) return "";
+  return /[.!?]$/.test(clean) ? clean : `${clean}.`;
+}
+
+/**
+ * Splits long prose into <= 160 char chunks on sentence, clause, then word
+ * boundaries so iOS Safari and mobile WebKit never hit the silent 15s cutoff.
+ */
+function splitSafeChunks(text: string, section: string): NarrationChunk[] {
+  const clean = stripRichText(text);
+  if (!clean) return [];
+
+  const sentences = clean
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
     .filter(Boolean);
-  return parts.length > 0 ? parts : text ? [text] : [];
+
+  const chunks: NarrationChunk[] = [];
+
+  const pushBounded = (piece: string) => {
+    const trimmed = piece.trim();
+    if (!trimmed) return;
+    if (trimmed.length <= MAX_CHUNK_CHARS) {
+      chunks.push({ text: trimmed, section });
+      return;
+    }
+
+    const clauses = trimmed
+      .split(/(?<=[,;:])\s+/)
+      .map((c) => c.trim())
+      .filter(Boolean);
+
+    let buffer = "";
+    for (const clause of clauses) {
+      if (clause.length > MAX_CHUNK_CHARS) {
+        if (buffer) {
+          chunks.push({ text: buffer, section });
+          buffer = "";
+        }
+        const words = clause.split(/\s+/);
+        let wordBuf = "";
+        for (const w of words) {
+          const candidate = wordBuf ? `${wordBuf} ${w}` : w;
+          if (candidate.length > MAX_CHUNK_CHARS) {
+            if (wordBuf) chunks.push({ text: wordBuf, section });
+            wordBuf = w;
+          } else {
+            wordBuf = candidate;
+          }
+        }
+        if (wordBuf) chunks.push({ text: wordBuf, section });
+        continue;
+      }
+
+      const combined = buffer ? `${buffer} ${clause}` : clause;
+      if (combined.length > MAX_CHUNK_CHARS) {
+        if (buffer) chunks.push({ text: buffer, section });
+        buffer = clause;
+      } else {
+        buffer = combined;
+      }
+    }
+    if (buffer) chunks.push({ text: buffer, section });
+  };
+
+  let sentenceBuf = "";
+  for (const sentence of sentences) {
+    const combined = sentenceBuf ? `${sentenceBuf} ${sentence}` : sentence;
+    if (combined.length <= MAX_CHUNK_CHARS) {
+      sentenceBuf = combined;
+    } else {
+      if (sentenceBuf) pushBounded(sentenceBuf);
+      if (sentence.length > MAX_CHUNK_CHARS) {
+        pushBounded(sentence);
+        sentenceBuf = "";
+      } else {
+        sentenceBuf = sentence;
+      }
+    }
+  }
+  if (sentenceBuf) pushBounded(sentenceBuf);
+
+  return chunks;
 }
 
 function formatClock(totalSeconds: number): string {
@@ -69,31 +170,45 @@ function pickPreferredVoice(
 ): SpeechSynthesisVoice | null {
   if (voices.length === 0) return null;
   const preferredNames = [
+    "Samantha",
+    "Daniel",
+    "Karen",
+    "Moira",
     "Natural",
     "Google US English",
     "Google UK English Female",
     "Google UK English Male",
-    "Samantha",
-    "Daniel",
   ];
   for (const needle of preferredNames) {
     const match = voices.find(
-      (v) => v.lang.startsWith("en") && v.name.includes(needle)
+      (v) => v.lang.toLowerCase().startsWith("en") && v.name.includes(needle)
     );
     if (match) return match;
   }
-  return voices.find((v) => v.lang.startsWith("en")) ?? voices[0] ?? null;
+  return (
+    voices.find(
+      (v) => v.lang.toLowerCase().startsWith("en") && v.localService
+    ) ??
+    voices.find((v) => v.lang.toLowerCase().startsWith("en")) ??
+    null
+  );
 }
 
 export function TripVoiceoverPlayer({
-  tripName,
-  tagline,
-  area,
-  days,
-  maxAltitude,
-  difficulty,
+  tripSlug,
   overview,
+  overviewCustomSections = [],
   highlights = [],
+  itineraryIntro,
+  itinerary = [],
+  includes = [],
+  includeGroups = [],
+  excludes = [],
+  excludeGroups = [],
+  knowBeforeYouGoSections = [],
+  gearList = [],
+  bottomCustomSections = [],
+  faqs = [],
 }: TripVoiceoverPlayerProps) {
   const isSupported = useSyncExternalStore(
     subscribeNoop,
@@ -104,58 +219,163 @@ export function TripVoiceoverPlayer({
   const [isPlaying, setIsPlaying] = useState(false);
   const [speedIndex, setSpeedIndex] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [activeChunkIndex, setActiveChunkIndex] = useState(0);
 
   const playbackSessionRef = useRef(0);
-  const sentenceIndexRef = useRef(0);
+  const chunkIndexRef = useRef(0);
   const speedRef = useRef<number>(SPEEDS[0]);
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
+  const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const resumeTimerRef = useRef<number | null>(null);
 
   const speed = SPEEDS[speedIndex] ?? 1;
 
-  const { sentences, baseTotalSeconds } = useMemo(() => {
-    const sections: string[] = [];
-    const cleanTagline = tagline ? stripRichText(tagline) : "";
-    const intro = cleanTagline ? `${tripName}. ${cleanTagline}.` : `${tripName}.`;
-    sections.push(intro);
+  // Build script strictly from Overview downward (skipping the top hero heading)
+  const { chunks, baseTotalSeconds } = useMemo(() => {
+    const list: NarrationChunk[] = [];
+    const pushSection = (section: string, blocks: (string | null | undefined)[]) => {
+      for (const block of blocks) {
+        if (!block) continue;
+        list.push(...splitSafeChunks(ensurePeriod(block), section));
+      }
+    };
 
-    const specParts = [
-      `A ${days}-${days === 1 ? "day" : "days"} ${difficulty.toLowerCase()} expedition`,
-      area ? `in ${area}` : "",
-      maxAltitude > 0
-        ? `reaching a maximum altitude of ${maxAltitude.toLocaleString("en-US")} meters`
-        : "",
-    ].filter(Boolean);
-    sections.push(`${specParts.join(", ")}.`);
+    // 1. Overview
+    pushSection("Overview", [
+      "Overview",
+      overview,
+      ...overviewCustomSections.flatMap((s) => [s.title, s.content]),
+    ]);
 
-    const cleanOverview = stripRichText(overview);
-    if (cleanOverview) {
-      sections.push(cleanOverview);
+    // 2. Highlights
+    if (highlights.length > 0) {
+      pushSection("Highlights", ["Trip Highlights", ...highlights]);
     }
 
-    const topHighlights = highlights
-      .slice(0, 4)
-      .map((h) => stripRichText(h))
-      .filter(Boolean);
-    if (topHighlights.length > 0) {
-      sections.push(`Key highlights include: ${topHighlights.join(". ")}.`);
+    // 3. Itinerary
+    if (itinerary.length > 0) {
+      const dayBlocks: string[] = ["Day by Day Itinerary"];
+      if (itineraryIntro) dayBlocks.push(itineraryIntro);
+      const unit = itinerary.length === 1 ? "Stage" : "Day";
+      for (const day of itinerary) {
+        const trimmedDay = day.day.trim();
+        const label = /^(day|stage)\b/i.test(trimmedDay)
+          ? trimmedDay
+          : `${unit} ${trimmedDay}`;
+        const headerParts = [
+          `${label}: ${day.title}`,
+          day.altitude > 0
+            ? `Maximum altitude ${day.altitude.toLocaleString("en-US")} meters`
+            : "",
+        ].filter(Boolean);
+        dayBlocks.push(headerParts.join(". "));
+        if (day.note) dayBlocks.push(day.note);
+      }
+      pushSection("Itinerary", dayBlocks);
     }
 
-    const fullText = sections.join(" ");
-    const chunked = splitIntoSentences(fullText);
-    const words = fullText.split(/\s+/).filter(Boolean).length;
-    const estimatedSeconds = Math.max(12, Math.round((words / 150) * 60));
+    // 4. Cost Includes
+    const incLines =
+      includeGroups.length > 0
+        ? includeGroups.flatMap((g) => [g.title, ...g.items])
+        : includes;
+    if (incLines.length > 0) {
+      pushSection("Includes", ["What is Included", ...incLines]);
+    }
+
+    // 5. Cost Excludes
+    const excLines =
+      excludeGroups.length > 0
+        ? excludeGroups.flatMap((g) => [g.title, ...g.items])
+        : excludes;
+    if (excLines.length > 0) {
+      pushSection("Excludes", ["What is Excluded", ...excLines]);
+    }
+
+    // 6. Know Before You Go & Gear Checklist
+    const kbygBlocks: string[] = [];
+    for (const sec of knowBeforeYouGoSections) {
+      kbygBlocks.push(sec.title, sec.content);
+    }
+    if (gearList.length > 0) {
+      kbygBlocks.push("Packing and Gear Checklist", ...gearList);
+    }
+    for (const sec of bottomCustomSections) {
+      kbygBlocks.push(sec.title, sec.content);
+    }
+    if (kbygBlocks.length > 0) {
+      pushSection("Know Before You Go", [
+        "Know Before You Go",
+        ...kbygBlocks,
+      ]);
+    }
+
+    // 7. FAQs
+    if (faqs.length > 0) {
+      pushSection("FAQs", [
+        "Frequently Asked Questions",
+        ...faqs.flatMap((f) => [f.question, f.answer]),
+      ]);
+    }
+
+    const totalWords = list.reduce(
+      (sum, chunk) => sum + chunk.text.split(/\s+/).filter(Boolean).length,
+      0
+    );
+    const estimatedSeconds = Math.max(12, Math.round((totalWords / 150) * 60));
 
     return {
-      sentences: chunked,
+      chunks: list,
       baseTotalSeconds: estimatedSeconds,
     };
-  }, [tripName, tagline, area, days, maxAltitude, difficulty, overview, highlights]);
+  }, [
+    overview,
+    overviewCustomSections,
+    highlights,
+    itineraryIntro,
+    itinerary,
+    includes,
+    includeGroups,
+    excludes,
+    excludeGroups,
+    knowBeforeYouGoSections,
+    gearList,
+    bottomCustomSections,
+    faqs,
+  ]);
 
   const totalSeconds = Math.max(8, Math.round(baseTotalSeconds / speed));
 
+  // Keep speechSynthesis voices cached (critical for iOS Safari / Chrome async voice loading)
+  useEffect(() => {
+    if (!isSupported) return;
+    const synth = window.speechSynthesis;
+    const syncVoices = () => {
+      try {
+        voicesRef.current = synth.getVoices();
+      } catch {
+        voicesRef.current = [];
+      }
+    };
+    syncVoices();
+    synth.addEventListener?.("voiceschanged", syncVoices);
+    return () => {
+      synth.removeEventListener?.("voiceschanged", syncVoices);
+    };
+  }, [isSupported]);
+
   const stopSpeechEngine = useCallback(() => {
     playbackSessionRef.current += 1;
+    if (resumeTimerRef.current !== null) {
+      window.clearTimeout(resumeTimerRef.current);
+      resumeTimerRef.current = null;
+    }
+    activeUtteranceRef.current = null;
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
+      const synth = window.speechSynthesis;
+      if (synth.speaking || synth.pending) {
+        synth.cancel();
+      }
     }
   }, []);
 
@@ -163,7 +383,7 @@ export function TripVoiceoverPlayer({
     return () => {
       stopSpeechEngine();
     };
-  }, [stopSpeechEngine, tripName]);
+  }, [stopSpeechEngine, tripSlug]);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -176,54 +396,94 @@ export function TripVoiceoverPlayer({
     return () => window.clearInterval(timer);
   }, [isPlaying, totalSeconds]);
 
-  const speakFromSentence = useCallback(
+  const speakFromChunk = useCallback(
     (startIndex: number, rate: number) => {
-      if (!isSupported || sentences.length === 0) return;
+      if (!isSupported || chunks.length === 0) return;
 
-      stopSpeechEngine();
+      const synth = window.speechSynthesis;
+      const hadActiveSpeech = synth.speaking || synth.pending;
+
+      playbackSessionRef.current += 1;
       const sessionId = playbackSessionRef.current;
+
+      if (resumeTimerRef.current !== null) {
+        window.clearTimeout(resumeTimerRef.current);
+        resumeTimerRef.current = null;
+      }
+
       const clampedStart = Math.max(
         0,
-        Math.min(startIndex, sentences.length - 1)
+        Math.min(startIndex, chunks.length - 1)
       );
-      sentenceIndexRef.current = clampedStart;
+      chunkIndexRef.current = clampedStart;
       speedRef.current = rate;
-
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = pickPreferredVoice(voices);
+      setActiveChunkIndex(clampedStart);
+      setIsPlaying(true);
 
       const enqueueNext = (idx: number) => {
         if (playbackSessionRef.current !== sessionId) return;
-        if (idx >= sentences.length) {
-          sentenceIndexRef.current = 0;
+        if (idx >= chunks.length) {
+          activeUtteranceRef.current = null;
+          chunkIndexRef.current = 0;
+          setActiveChunkIndex(0);
           setIsPlaying(false);
           setElapsedSeconds(0);
           return;
         }
 
-        sentenceIndexRef.current = idx;
-        const utterance = new SpeechSynthesisUtterance(sentences[idx]!);
+        chunkIndexRef.current = idx;
+        setActiveChunkIndex(idx);
+
+        const chunk = chunks[idx]!;
+        const utterance = new SpeechSynthesisUtterance(chunk.text);
         utterance.lang = "en-US";
         utterance.rate = speedRef.current;
-        if (preferredVoice) utterance.voice = preferredVoice;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        const preferredVoice = pickPreferredVoice(
+          voicesRef.current.length > 0 ? voicesRef.current : synth.getVoices()
+        );
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+
+        // Pin strong reference so iOS WebKit does not GC utterance before onend
+        activeUtteranceRef.current = utterance;
 
         utterance.onend = () => {
           if (playbackSessionRef.current !== sessionId) return;
           enqueueNext(idx + 1);
         };
 
-        utterance.onerror = () => {
+        utterance.onerror = (event: SpeechSynthesisErrorEvent) => {
           if (playbackSessionRef.current !== sessionId) return;
+          if (
+            event.error === "interrupted" ||
+            event.error === "canceled"
+          ) {
+            return;
+          }
+          activeUtteranceRef.current = null;
           setIsPlaying(false);
         };
 
-        window.speechSynthesis.speak(utterance);
+        synth.speak(utterance);
       };
 
-      setIsPlaying(true);
-      enqueueNext(clampedStart);
+      // Only cancel when interrupting existing audio; when idle, speak synchronously
+      // inside the user tap gesture (required by iOS / iPhone Safari).
+      if (hadActiveSpeech) {
+        synth.cancel();
+        resumeTimerRef.current = window.setTimeout(() => {
+          resumeTimerRef.current = null;
+          enqueueNext(clampedStart);
+        }, 40);
+      } else {
+        enqueueNext(clampedStart);
+      }
     },
-    [isSupported, sentences, stopSpeechEngine]
+    [isSupported, chunks]
   );
 
   const handleTogglePlay = () => {
@@ -234,16 +494,17 @@ export function TripVoiceoverPlayer({
       return;
     }
     const startIdx =
-      elapsedSeconds >= totalSeconds ? 0 : sentenceIndexRef.current;
+      elapsedSeconds >= totalSeconds ? 0 : chunkIndexRef.current;
     if (elapsedSeconds >= totalSeconds) {
       setElapsedSeconds(0);
     }
-    speakFromSentence(startIdx, speed);
+    speakFromChunk(startIdx, speed);
   };
 
   const handleReset = () => {
     stopSpeechEngine();
-    sentenceIndexRef.current = 0;
+    chunkIndexRef.current = 0;
+    setActiveChunkIndex(0);
     setIsPlaying(false);
     setElapsedSeconds(0);
   };
@@ -257,32 +518,34 @@ export function TripVoiceoverPlayer({
     setElapsedSeconds(Math.round(progressRatio * nextTotal));
     speedRef.current = nextSpeed;
     if (isPlaying) {
-      speakFromSentence(sentenceIndexRef.current, nextSpeed);
+      speakFromChunk(chunkIndexRef.current, nextSpeed);
     }
   };
 
   const handleSeekBar = (barIdx: number) => {
     const ratio = (barIdx + 1) / WAVEFORM_BARS.length;
     const targetElapsed = Math.round(ratio * totalSeconds);
-    const targetSentence = Math.min(
-      sentences.length - 1,
-      Math.max(0, Math.floor(ratio * sentences.length))
+    const targetChunk = Math.min(
+      chunks.length - 1,
+      Math.max(0, Math.floor(ratio * chunks.length))
     );
-    sentenceIndexRef.current = targetSentence;
+    chunkIndexRef.current = targetChunk;
+    setActiveChunkIndex(targetChunk);
     setElapsedSeconds(targetElapsed);
 
     if (isPlaying) {
-      speakFromSentence(targetSentence, speed);
+      speakFromChunk(targetChunk, speed);
     }
   };
 
-  if (!isSupported || sentences.length === 0) {
+  if (!isSupported || chunks.length === 0) {
     return null;
   }
 
   const progressFraction =
     totalSeconds > 0 ? Math.min(1, elapsedSeconds / totalSeconds) : 0;
   const activeBarCount = Math.round(progressFraction * WAVEFORM_BARS.length);
+  const currentSectionName = chunks[activeChunkIndex]?.section ?? "Overview";
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -290,7 +553,7 @@ export function TripVoiceoverPlayer({
         <button
           type="button"
           onClick={handleTogglePlay}
-          aria-label={isPlaying ? "Pause audio overview" : "Play audio overview"}
+          aria-label={isPlaying ? "Pause audio guide" : "Play audio guide"}
           className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-white shadow-xs transition-all cursor-pointer active:scale-95 ${
             isPlaying
               ? "bg-[#f05e25] hover:bg-[#d94e18]"
@@ -357,7 +620,7 @@ export function TripVoiceoverPlayer({
           <button
             type="button"
             onClick={handleReset}
-            aria-label="Restart audio overview"
+            aria-label="Restart audio guide"
             className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-[#57534d] hover:bg-stone-200/70 hover:text-[#1c1917] transition-colors cursor-pointer"
           >
             <RotateCcw className="h-3.5 w-3.5" />
@@ -366,8 +629,14 @@ export function TripVoiceoverPlayer({
       </div>
 
       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#64748b]">
-        <Volume2 className="h-3.5 w-3.5 text-[#3f6e15]" />
-        <span>{isPlaying ? "Playing Audio Guide..." : "Listen to Audio Guide"}</span>
+        <Volume2 className="h-3.5 w-3.5 text-[#3f6e15] shrink-0" />
+        <span>
+          {isPlaying
+            ? `Playing · ${currentSectionName}`
+            : elapsedSeconds > 0
+            ? `Paused · ${currentSectionName}`
+            : "Listen to Audio Guide"}
+        </span>
       </span>
     </div>
   );

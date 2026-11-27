@@ -226,6 +226,7 @@ model Trip {
   badge                String?
   isPublished     Boolean  @default(true)
   isFeatured      Boolean  @default(false)
+  isTopTrek       Boolean  @default(false)
   featuredOrder   Int      @default(0)
 
   // SEO Controls
@@ -316,6 +317,7 @@ model TripReview {
   rating        Int       @default(5)
   title         String?
   comment       String    @db.Text
+  source        String    @default("website")
   tripDate      DateTime?
   verified      Boolean   @default(true)
   isPublished   Boolean   @default(true)

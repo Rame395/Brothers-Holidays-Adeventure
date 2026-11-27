@@ -203,20 +203,16 @@ export default function BookingProcessSection() {
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 space-y-16 sm:space-y-20">
         {/* SECTION HEADER WITH REAL-TIME EXPEDITION TELEMETRY */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center justify-center gap-2.5 mb-1 px-4 py-1.5 rounded-full bg-white/90 border border-stone-200/90 shadow-2xs backdrop-blur-md">
-            <span className="w-6 h-[2px] bg-[#f05e25]" />
-            <span className="text-[11px] font-bold tracking-[0.24em] text-[#1c1917] uppercase">
-              How Expedition Planning Works
-            </span>
-            <span className="w-6 h-[2px] bg-[#f05e25]" />
-          </div>
+        <div className="text-center max-w-2xl mx-auto space-y-2.5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#3f6e15]">
+            How Expedition Planning Works
+          </p>
 
-          <h2 className="font-heading font-black text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[#1c1917] uppercase tracking-tight leading-tight drop-shadow-xs">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-[42px] font-semibold text-[#1c1917] tracking-wide uppercase leading-tight">
             Your Path From Dream To Trailhead
           </h2>
 
-          <p className="font-sans text-[#1c1917]/85 font-medium text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
+          <p className="text-sm sm:text-[15px] text-[#57534d] leading-relaxed max-w-2xl mx-auto">
             From your initial route inquiry to stepping onto the high ridges of
             Nepal, our in-house Sherpa team coordinates every flight, permit,
             and safety measure with total transparency.
@@ -498,7 +494,7 @@ export default function BookingProcessSection() {
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto shrink-0">
             <Link
               href="/contact"
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-[#f05e25] hover:bg-[#ff7a45] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
+              className="w-full sm:w-auto px-7 py-3 rounded-full bg-[#f05e25] hover:bg-[#ff7a45] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]"
             >
               <Sparkles className="w-4 h-4" />
               <span>Start Planning Your Trek</span>
@@ -507,9 +503,12 @@ export default function BookingProcessSection() {
 
             <Link
               href="/destinations"
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-stone-300 hover:border-[#1c1917] text-[#1c1917] hover:bg-stone-50 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors"
+              className="group w-full sm:w-auto inline-flex items-center justify-center gap-2.5 whitespace-nowrap rounded-full border border-[#3f6e15]/25 bg-white pl-5 pr-2 py-2 text-[13px] font-semibold text-[#1c1917] shadow-[0_6px_18px_-10px_rgba(28,25,23,0.22)] transition-all duration-200 hover:border-[#3f6e15] hover:bg-[#3f6e15] hover:text-white hover:shadow-[0_12px_26px_-10px_rgba(63,110,21,0.42)] active:scale-[0.98]"
             >
               <span>Explore All Routes</span>
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#3f6e15]/10 text-[#3f6e15] transition-all duration-200 group-hover:bg-white/20 group-hover:text-white group-hover:translate-x-0.5">
+                <ArrowRight className="w-3.5 h-3.5 stroke-[2]" />
+              </span>
             </Link>
           </div>
         </div>

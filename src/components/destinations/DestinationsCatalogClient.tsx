@@ -523,10 +523,12 @@ export function DestinationsCatalogClient({
                     region: undefined,
                   })
                 }
-                className="inline-flex items-center gap-1 font-heading text-xs font-semibold uppercase tracking-wider text-[#f05e25] hover:underline cursor-pointer"
+                className="group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-[#3f6e15]/25 bg-white pl-4 pr-1.5 py-1.5 text-xs font-semibold text-[#1c1917] shadow-[0_4px_12px_-6px_rgba(28,25,23,0.18)] transition-all duration-200 hover:border-[#3f6e15] hover:bg-[#3f6e15] hover:text-white active:scale-[0.98] cursor-pointer"
               >
                 <span>View all regions</span>
-                <ArrowUpRight className="h-3.5 w-3.5" />
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#3f6e15]/10 text-[#3f6e15] transition-all duration-200 group-hover:bg-white/20 group-hover:text-white group-hover:translate-x-0.5">
+                  <ArrowUpRight className="h-3 w-3 stroke-[2]" />
+                </span>
               </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

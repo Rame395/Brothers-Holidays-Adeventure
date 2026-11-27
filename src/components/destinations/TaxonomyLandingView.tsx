@@ -182,13 +182,16 @@ export function TaxonomyLandingView({
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Link
                 href="/destinations"
-                className="rounded-full border border-slate-200 bg-[#f8fafc] px-5 py-2.5 text-sm font-semibold text-[#3f6e15] hover:border-[#3f6e15]"
+                className="group inline-flex items-center justify-center gap-2.5 whitespace-nowrap rounded-full border border-[#3f6e15]/25 bg-white pl-5 pr-2 py-2 text-[13px] font-semibold text-[#1c1917] shadow-[0_6px_18px_-10px_rgba(28,25,23,0.22)] transition-all duration-200 hover:border-[#3f6e15] hover:bg-[#3f6e15] hover:text-white hover:shadow-[0_12px_26px_-10px_rgba(63,110,21,0.42)] active:scale-[0.98]"
               >
-                Browse All Destinations
+                <span>Browse All Destinations</span>
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#3f6e15]/10 text-[#3f6e15] transition-all duration-200 group-hover:bg-white/20 group-hover:text-white group-hover:translate-x-0.5">
+                  <ArrowRight className="w-3.5 h-3.5 stroke-[2]" />
+                </span>
               </Link>
               <Link
                 href="/contact"
-                className="rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-5 py-2.5 text-sm font-semibold text-white"
+                className="rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-5 py-2.5 text-sm font-semibold text-white transition-colors"
               >
                 Request Custom Route
               </Link>

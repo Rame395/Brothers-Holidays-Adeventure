@@ -9,6 +9,7 @@ import {
   Edit3,
   Globe2,
   Layers,
+  Mountain,
   Plus,
   Search,
   Star,
@@ -35,6 +36,7 @@ export interface AdminTripRowDTO {
   groupMax: number;
   isPublished: boolean;
   isFeatured: boolean;
+  isTopTrek?: boolean;
   featuredOrder: number;
   updatedAt: string;
   _count: {
@@ -147,7 +149,7 @@ export default function AdminTripsClient({
 
   async function handleQuickPatch(
     id: string,
-    patch: { isPublished?: boolean; isFeatured?: boolean }
+    patch: { isPublished?: boolean; isFeatured?: boolean; isTopTrek?: boolean }
   ) {
     if (!canWrite) return;
     setBusyId(id);
@@ -452,21 +454,40 @@ export default function AdminTripsClient({
                     </button>
                   </td>
                   <td className="py-3.5 pr-4">
-                    <button
-                      type="button"
-                      disabled={!canWrite || busyId === t.id}
-                      onClick={() =>
-                        handleQuickPatch(t.id, { isFeatured: !t.isFeatured })
-                      }
-                      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold cursor-pointer disabled:opacity-60 ${
-                        t.isFeatured
-                          ? "border-orange-200 bg-orange-50 text-[#d94e18]"
-                          : "border-slate-200 bg-slate-50 text-slate-500"
-                      }`}
-                    >
-                      <Star className="h-3 w-3" />
-                      <span>{t.isFeatured ? "FEATURED" : "Standard"}</span>
-                    </button>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        disabled={!canWrite || busyId === t.id}
+                        onClick={() =>
+                          handleQuickPatch(t.id, { isFeatured: !t.isFeatured })
+                        }
+                        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold cursor-pointer disabled:opacity-60 ${
+                          t.isFeatured
+                            ? "border-orange-200 bg-orange-50 text-[#d94e18]"
+                            : "border-slate-200 bg-slate-50 text-slate-500"
+                        }`}
+                      >
+                        <Star className="h-3 w-3" />
+                        <span>{t.isFeatured ? "FEATURED" : "Standard"}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={!canWrite || busyId === t.id}
+                        onClick={() =>
+                          handleQuickPatch(t.id, { isTopTrek: !t.isTopTrek })
+                        }
+                        title="Include in Top Treks in Nepal homepage tab"
+                        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold cursor-pointer disabled:opacity-60 ${
+                          t.isTopTrek
+                            ? "border-emerald-200 bg-emerald-50 text-[#3f6e15]"
+                            : "border-slate-200 bg-slate-50 text-slate-500"
+                        }`}
+                      >
+                        <Mountain className="h-3 w-3" />
+                        <span>Top Trek</span>
+                      </button>
+                    </div>
                   </td>
                   <td className="py-3.5 text-right whitespace-nowrap">
                     <div className="inline-flex items-center gap-1.5">

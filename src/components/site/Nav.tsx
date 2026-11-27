@@ -184,6 +184,7 @@ export function Nav({
     "nepal"
   );
   const [scrolled, setScrolled] = useState(false);
+  const [hideForTripSubnav, setHideForTripSubnav] = useState(false);
   const [customerName, setCustomerName] = useState<string | null>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const maxScrollRef = useRef(0);
@@ -197,7 +198,14 @@ export function Nav({
     pathname.startsWith("/destinations/country/") ||
     pathname.startsWith("/destinations/category/") ||
     pathname.startsWith("/destinations/region/");
+  const isTripDetailPage =
+    pathname.startsWith("/destinations/") &&
+    !pathname.startsWith("/destinations/country/") &&
+    !pathname.startsWith("/destinations/category/") &&
+    !pathname.startsWith("/destinations/region/");
   const isSolid = !hasDarkHero || scrolled || activeMenu !== null || open;
+  const isHiddenForSubnav =
+    isTripDetailPage && hideForTripSubnav && activeMenu === null && !open;
 
   const openMenu = (menu: ActiveDesktopMenu) => {
     if (closeTimer.current) window.clearTimeout(closeTimer.current);
@@ -229,6 +237,17 @@ export function Nav({
       const y = window.scrollY;
       const next = y > 40;
       setScrolled((prev) => (prev === next ? prev : next));
+      if (isTripDetailPage) {
+        const sentinel = document.getElementById("trip-subnav-sentinel");
+        const shouldHide = sentinel
+          ? sentinel.getBoundingClientRect().top <= 76
+          : y > 420;
+        setHideForTripSubnav((prev) =>
+          prev === shouldHide ? prev : shouldHide
+        );
+      } else {
+        setHideForTripSubnav(false);
+      }
       const max = maxScrollRef.current;
       const ratio = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
       if (progressBarRef.current) {
@@ -278,7 +297,7 @@ export function Nav({
       window.removeEventListener("keydown", onKeyDown);
       if (raf) window.cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [isTripDetailPage]);
 
   useEffect(() => {
     let activeFetch = true;
@@ -379,10 +398,15 @@ export function Nav({
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 w-full transition-colors duration-300 ${
+      aria-hidden={isHiddenForSubnav}
+      className={`fixed inset-x-0 top-0 z-50 w-full transition-[transform,opacity,background-color] duration-300 ${
         isSolid
           ? "bg-white border-b border-stone-200 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.14)]"
           : "bg-gradient-to-b from-black/70 via-black/30 to-transparent border-b border-transparent"
+      } ${
+        isHiddenForSubnav
+          ? "-translate-y-full opacity-0 pointer-events-none"
+          : "translate-y-0 opacity-100"
       }`}
       onMouseLeave={scheduleCloseMenu}
     >

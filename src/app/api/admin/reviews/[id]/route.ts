@@ -73,6 +73,7 @@ export async function PATCH(
         ...(d.rating !== undefined ? { rating: d.rating } : {}),
         ...(d.title !== undefined ? { title: d.title } : {}),
         ...(d.comment !== undefined ? { comment: d.comment } : {}),
+        ...(d.source !== undefined ? { source: d.source } : {}),
         ...(d.tripId !== undefined ? { tripId: nextTripId } : {}),
         ...(nextTripName !== existing.tripName
           ? { tripName: nextTripName }

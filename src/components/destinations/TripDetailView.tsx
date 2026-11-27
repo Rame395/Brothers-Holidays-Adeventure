@@ -5,53 +5,63 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowUpRight,
+  BadgeCheck,
+  Ban,
+  Banknote,
   BedDouble,
+  BookOpen,
   Bus,
   Calendar,
+  CalendarRange,
   Camera,
   Check,
-  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
-  Compass,
   Expand,
   FileText,
   Footprints,
   Gauge,
   Globe,
+  Heart,
   HelpCircle,
   Images,
   Info,
-  Map as MapIcon,
+  Loader2,
   MapPin,
+  MapPinned,
   Mountain,
   PlayCircle,
-  Route,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   Star,
   Sun,
   Users,
   Utensils,
-  Wallet,
   X,
-  XCircle,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { BookingPanel } from "@/components/destinations/BookingPanel";
 import { ElevationProfile } from "@/components/destinations/ElevationProfile";
 import { TripCard } from "@/components/destinations/TripCard";
+import { TripCompareModal } from "@/components/destinations/TripCompareModal";
 import { TripVoiceoverPlayer } from "@/components/destinations/TripVoiceoverPlayer";
 import { TripWeatherWidget } from "@/components/destinations/TripWeatherWidget";
 import { CATEGORIES, REGIONS } from "@/data/trips";
 import type {
+  ComparableTripDTO,
   TripCustomSectionDTO,
   TripDTO,
   TripServiceIconKey,
 } from "@/lib/types";
+import {
+  addCompareTripSlug,
+  toggleSavedTripSlug,
+  useCompareTripSlugs,
+  useSavedTripSlugs,
+} from "@/lib/trip-client-store";
+import { downloadTripPdf } from "@/lib/trip-pdf";
 import { formatPriceUsd } from "@/lib/booking";
 import { trackViewTrip } from "@/lib/analytics";
 import {
@@ -95,28 +105,82 @@ function SectionNavIcon({ id }: { id: string }) {
   const cls = "h-3.5 w-3.5 shrink-0";
   switch (id) {
     case "overview":
-      return <Compass className={cls} />;
+      return <BookOpen className={cls} strokeWidth={1.85} />;
     case "highlights":
-      return <Sparkles className={cls} />;
+      return (
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.85}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={cls}
+          aria-hidden="true"
+        >
+          <path d="M12 10V3l5 2.5L12 8" />
+          <path d="M3 20l6.5-10 3.5 5 2.5-3.5L21 20H3z" />
+        </svg>
+      );
     case "itinerary":
-      return <Route className={cls} />;
+      return <CalendarRange className={cls} strokeWidth={1.85} />;
     case "includes":
-      return <CheckCircle2 className={cls} />;
+      return <BadgeCheck className={cls} strokeWidth={1.85} />;
     case "excludes":
-      return <XCircle className={cls} />;
+      return <Ban className={cls} strokeWidth={1.85} />;
     case "cost":
-      return <Wallet className={cls} />;
+      return <Banknote className={cls} strokeWidth={1.85} />;
     case "map":
-      return <MapIcon className={cls} />;
+      return <MapPinned className={cls} strokeWidth={1.85} />;
     case "know-before-you-go":
-      return <ShieldAlert className={cls} />;
+      return <ShieldCheck className={cls} strokeWidth={1.85} />;
     case "reviews":
-      return <Star className={cls} />;
+      return <Star className={cls} strokeWidth={1.85} />;
     case "faqs":
-      return <HelpCircle className={cls} />;
+      return <HelpCircle className={cls} strokeWidth={1.85} />;
     default:
-      return <Info className={cls} />;
+      return <Info className={cls} strokeWidth={1.85} />;
   }
+}
+
+function CompareArrowsIcon({ className = "h-3.5 w-3.5 shrink-0" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M16 3l4 4-4 4" />
+      <path d="M4 7h16" />
+      <path d="M8 21l-4-4 4-4" />
+      <path d="M20 17H4" />
+    </svg>
+  );
+}
+
+function PdfDocumentIcon({ className = "h-3.5 w-3.5 shrink-0" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+      <path d="M12 18v-6" />
+      <path d="M9.5 15.5L12 18l2.5-2.5" />
+    </svg>
+  );
 }
 
 function formatSlugLabel(slug: string, kind: "region" | "category"): string {
@@ -347,17 +411,21 @@ function renderCustomSection(sec: TripCustomSectionDTO) {
 export function TripDetailView({
   trip,
   related,
+  comparableTrips = [],
   whatsappNumber,
   travelGuides = [],
 }: {
   trip: TripDTO;
   related: TripDTO[];
+  comparableTrips?: ComparableTripDTO[];
   whatsappNumber?: string;
   travelGuides?: TravelGuideSummaryDTO[];
 }) {
   const [activePhotoIndex, setActivePhotoIndex] = useState<number>(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [mapLightboxOpen, setMapLightboxOpen] = useState(false);
+  const [compareModalOpen, setCompareModalOpen] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [activeDayImage, setActiveDayImage] = useState<{
     src: string;
     caption: string;
@@ -372,6 +440,26 @@ export function TripDetailView({
     );
     return first ? new Set([first.id]) : new Set();
   });
+
+  const savedSlugs = useSavedTripSlugs();
+  const compareSlugs = useCompareTripSlugs();
+  const isSaved = savedSlugs.includes(trip.slug);
+  const isInCompare = compareSlugs.includes(trip.slug);
+
+  const handleOpenCompare = () => {
+    addCompareTripSlug(trip.slug);
+    setCompareModalOpen(true);
+  };
+
+  const handleDownloadPdf = async () => {
+    if (isGeneratingPdf) return;
+    setIsGeneratingPdf(true);
+    try {
+      await downloadTripPdf(trip);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   useEffect(() => {
     trackViewTrip({
@@ -550,7 +638,7 @@ export function TripDetailView({
         }
       },
       {
-        rootMargin: "-140px 0px -60% 0px",
+        rootMargin: "-84px 0px -60% 0px",
         threshold: 0.05,
       }
     );
@@ -1033,9 +1121,10 @@ export function TripDetailView({
       )}
 
       {/* 2. STICKY SECTION SUB-NAVIGATION */}
-      <div className="sticky top-[60px] sm:top-[72px] z-30 border-y border-stone-200/80 bg-white/95 backdrop-blur-xl shadow-[0_6px_24px_-8px_rgba(28,25,23,0.1)]">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 sm:px-5 lg:px-8 py-2.5">
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
+      <div id="trip-subnav-sentinel" aria-hidden="true" className="h-0 w-full" />
+      <div className="sticky top-0 z-40 border-y border-stone-200/80 bg-white/95 backdrop-blur-xl shadow-[0_6px_24px_-8px_rgba(28,25,23,0.1)]">
+        <div className="mx-auto flex max-w-7xl flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-3 px-4 sm:px-5 lg:px-8 py-2.5">
+          <div className="flex w-full lg:w-auto min-w-0 lg:flex-1 items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
             {sections.map((s) => {
               const isActive = activeSection === s.id;
               return (
@@ -1056,12 +1145,78 @@ export function TripDetailView({
             })}
           </div>
 
-          <a
-            href="#booking"
-            className="ml-auto shrink-0 whitespace-nowrap rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-3.5 py-1.5 text-[11px] sm:text-xs font-bold text-white shadow-sm lg:hidden transition-colors"
-          >
-            Book Now
-          </a>
+          <div className="flex w-full lg:w-auto shrink-0 items-center justify-between lg:justify-end gap-1.5 sm:gap-2 border-t border-stone-100 pt-2 lg:border-t-0 lg:pt-0 lg:border-l lg:border-stone-200/80 lg:pl-3">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                onClick={handleOpenCompare}
+                title="Compare expeditions"
+                aria-label="Compare this expedition with other trips"
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer active:scale-95 ${
+                  isInCompare
+                    ? "border-[#3f6e15]/40 bg-[#3f6e15]/10 text-[#3f6e15] hover:bg-[#3f6e15]/15"
+                    : "border-stone-200 bg-white text-[#1c1917] hover:border-[#3f6e15]/40 hover:text-[#3f6e15]"
+                }`}
+              >
+                <CompareArrowsIcon className="h-3.5 w-3.5 shrink-0" />
+                <span>Compare</span>
+                {compareSlugs.length > 0 && (
+                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#3f6e15] px-1 text-[10px] font-bold text-white tabular-nums">
+                    {compareSlugs.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDownloadPdf}
+                disabled={isGeneratingPdf}
+                title="Download itinerary PDF"
+                aria-label="Download itinerary PDF"
+                className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-[#1c1917] hover:border-[#f05e25]/50 hover:text-[#f05e25] disabled:opacity-60 transition-all cursor-pointer active:scale-95"
+              >
+                {isGeneratingPdf ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-[#f05e25] shrink-0" />
+                ) : (
+                  <PdfDocumentIcon className="h-3.5 w-3.5 text-[#f05e25] shrink-0" />
+                )}
+                <span>{isGeneratingPdf ? "PDF..." : "PDF"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => toggleSavedTripSlug(trip.slug)}
+                title={isSaved ? "Remove from saved" : "Save expedition"}
+                aria-label={
+                  isSaved
+                    ? "Remove trip from saved wishlist"
+                    : "Save trip to wishlist"
+                }
+                aria-pressed={isSaved}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 sm:px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer active:scale-95 ${
+                  isSaved
+                    ? "border-[#f05e25]/40 bg-[#f05e25]/10 text-[#f05e25]"
+                    : "border-stone-200 bg-white text-[#1c1917] hover:border-[#f05e25]/50 hover:text-[#f05e25]"
+                }`}
+              >
+                <Heart
+                  className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+                    isSaved
+                      ? "fill-[#f05e25] text-[#f05e25]"
+                      : "text-[#57534d]"
+                  }`}
+                />
+                <span>{isSaved ? "Saved" : "Save"}</span>
+              </button>
+            </div>
+
+            <a
+              href="#booking"
+              className="shrink-0 whitespace-nowrap rounded-full bg-[#f05e25] hover:bg-[#d94e18] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm lg:hidden transition-colors"
+            >
+              Book Now
+            </a>
+          </div>
         </div>
       </div>
 
@@ -1115,7 +1270,7 @@ export function TripDetailView({
         <div className="relative z-10 mx-auto grid grid-cols-1 max-w-7xl gap-8 lg:gap-10 px-4 sm:px-5 py-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_380px] lg:px-8">
         <div className="min-w-0 space-y-7 sm:space-y-8">
           {/* SECTION 1: CLEAN OVERVIEW PROSE */}
-          <section id="overview" className="scroll-mt-36">
+          <section id="overview" className="scroll-mt-28 lg:scroll-mt-20">
             <div className="relative overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
               <div
                 aria-hidden="true"
@@ -1146,14 +1301,20 @@ export function TripDetailView({
 
               <div className="p-5 sm:p-8 space-y-6">
                 <TripVoiceoverPlayer
-                  tripName={trip.name}
-                  tagline={trip.tagline}
-                  area={trip.area}
-                  days={trip.days}
-                  maxAltitude={trip.maxAltitude}
-                  difficulty={trip.difficulty}
+                  tripSlug={trip.slug}
                   overview={trip.overview}
+                  overviewCustomSections={overviewCustomSections}
                   highlights={trip.highlights}
+                  itineraryIntro={trip.itineraryIntro}
+                  itinerary={trip.itinerary}
+                  includes={trip.includes}
+                  includeGroups={trip.includeGroups}
+                  excludes={trip.excludes}
+                  excludeGroups={trip.excludeGroups}
+                  knowBeforeYouGoSections={knowBeforeYouGoSections}
+                  gearList={trip.gearList}
+                  bottomCustomSections={bottomCustomSections}
+                  faqs={trip.faqs}
                 />
 
                 <div className="rounded-[12px] border border-stone-200/70 border-l-4 border-l-[#f05e25] bg-[#faf9f6] p-5 sm:p-6">
@@ -1222,7 +1383,7 @@ export function TripDetailView({
 
           {/* SECTION 3: CLEAN EDITORIAL TRIP HIGHLIGHTS */}
           {trip.highlights.length > 0 && (
-            <section id="highlights" className="scroll-mt-36">
+            <section id="highlights" className="scroll-mt-28 lg:scroll-mt-20">
               <div className="overflow-hidden rounded-[16px] border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
                 <div className="bg-gradient-to-r from-[#faf8f4] to-white px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -1279,7 +1440,7 @@ export function TripDetailView({
 
           {/* SECTION 4: SHORT ITINERARY + ADMIN NOTES + DETAILED ACCORDION */}
           {trip.itinerary.length > 0 && (
-            <section id="itinerary" className="scroll-mt-36 space-y-6">
+            <section id="itinerary" className="scroll-mt-28 lg:scroll-mt-20 space-y-6">
               {/* Day-to-Day Short Itinerary */}
               <div className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
                 <div className="bg-gradient-to-r from-[#faf8f4] to-white px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
@@ -1471,7 +1632,7 @@ export function TripDetailView({
                       <div
                         key={`detail-${d.day}-${idx}`}
                         id={`detailed-day-${idx}`}
-                        className={`relative scroll-mt-36 rounded-[12px] border transition-all ${
+                        className={`relative scroll-mt-28 lg:scroll-mt-20 rounded-[12px] border transition-all ${
                           isOpen
                             ? "border-[#3f6e15]/30 bg-white shadow-md shadow-stone-900/[0.04]"
                             : "border-stone-200/85 bg-[#faf9f7]/65 hover:bg-white hover:border-stone-300"
@@ -1655,7 +1816,7 @@ export function TripDetailView({
 
           {/* SECTION 5: INCLUDES */}
           {(trip.includeGroups.length > 0 || trip.includes.length > 0) && (
-            <section id="includes" className="scroll-mt-36">
+            <section id="includes" className="scroll-mt-28 lg:scroll-mt-20">
               <div className="overflow-hidden rounded-2xl border border-emerald-200/80 bg-white shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)]">
                 <div className="bg-gradient-to-r from-emerald-50/90 via-emerald-50/40 to-white px-5 sm:px-8 py-5 border-b border-emerald-100 flex items-center gap-3.5">
                   <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-emerald-600 text-white shadow-xs shrink-0">
@@ -1741,7 +1902,7 @@ export function TripDetailView({
 
           {/* SECTION 6: EXCLUDES */}
           {(trip.excludeGroups.length > 0 || trip.excludes.length > 0) && (
-            <section id="excludes" className="scroll-mt-36">
+            <section id="excludes" className="scroll-mt-28 lg:scroll-mt-20">
               <div className="overflow-hidden rounded-2xl border border-stone-200/85 bg-white shadow-[0_2px_16px_-4px_rgba(28,25,23,0.06)]">
                 <div className="bg-gradient-to-r from-rose-50/80 via-rose-50/30 to-white px-5 sm:px-8 py-5 border-b border-rose-100/80 flex items-center gap-3.5">
                   <span className="grid h-10 w-10 place-items-center rounded-[12px] bg-rose-500 text-white shadow-xs shrink-0">
@@ -1810,7 +1971,7 @@ export function TripDetailView({
           )}
 
           {/* SECTION 7: TRIP COST & GROUP DATES */}
-          <section id="cost" className="scroll-mt-36">
+          <section id="cost" className="scroll-mt-28 lg:scroll-mt-20">
             <div className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
               <div className="bg-gradient-to-r from-[#faf8f4] via-white to-[#fff7f3] px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -2037,7 +2198,7 @@ export function TripDetailView({
 
           {/* SECTION 8: ROUTE MAP, VIDEO & ELEVATION PROFILE */}
           {(Boolean(trip.mapImage) || profile.length > 1) && (
-            <section id="map" className="scroll-mt-36">
+            <section id="map" className="scroll-mt-28 lg:scroll-mt-20">
               <div className="overflow-hidden rounded-2xl border border-stone-200/90 bg-white shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
                 <div className="bg-gradient-to-r from-[#faf8f4] to-white px-5 sm:px-8 py-5 border-b border-stone-100 flex flex-wrap items-center justify-between gap-4">
                   <div>
@@ -2118,7 +2279,7 @@ export function TripDetailView({
           {(knowBeforeYouGoSections.length > 0 ||
             trip.gearList.length > 0 ||
             bottomCustomSections.length > 0) && (
-            <section id="know-before-you-go" className="scroll-mt-36 space-y-6">
+            <section id="know-before-you-go" className="scroll-mt-28 lg:scroll-mt-20 space-y-6">
               {knowBeforeYouGoSections.length > 0 && (
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -2221,7 +2382,7 @@ export function TripDetailView({
 
           {/* SECTION 10: TRAVELLER REVIEWS */}
           {trip.reviews.length > 0 && (
-            <section id="reviews" className="scroll-mt-36">
+            <section id="reviews" className="scroll-mt-28 lg:scroll-mt-20">
               <div className="rounded-2xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)] space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100">
                   <h2 className="font-heading text-2xl sm:text-[30px] text-[#1c1917] font-bold tracking-tight">
@@ -2294,7 +2455,7 @@ export function TripDetailView({
 
           {/* SECTION 11: FREQUENTLY ASKED QUESTIONS */}
           {trip.faqs.length > 0 && (
-            <section id="faqs" className="scroll-mt-36">
+            <section id="faqs" className="scroll-mt-28 lg:scroll-mt-20">
               <div className="rounded-2xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-[0_8px_30px_-12px_rgba(28,25,23,0.09)]">
                 <div className="flex items-center gap-3 pb-4 mb-5 border-b border-slate-100">
                   <span className="grid h-8 w-8 place-items-center rounded-full bg-[#3f6e15]/10 text-[#3f6e15] shrink-0">
@@ -2330,7 +2491,7 @@ export function TripDetailView({
         {/* RIGHT SIDEBAR: Sticky Booking Panel */}
         <aside
           id="booking"
-          className="min-w-0 scroll-mt-32 lg:sticky lg:top-32 lg:self-start"
+          className="min-w-0 scroll-mt-28 lg:scroll-mt-20 lg:sticky lg:top-20 lg:self-start"
         >
           <BookingPanel trip={trip} whatsappNumber={whatsappNumber} />
         </aside>
@@ -2351,9 +2512,12 @@ export function TripDetailView({
             </div>
             <Link
               href="/destinations"
-              className="text-xs sm:text-sm font-semibold text-[#3f6e15] hover:underline"
+              className="group inline-flex items-center justify-center gap-2.5 whitespace-nowrap rounded-full border border-[#3f6e15]/25 bg-white pl-5 pr-2 py-2 text-[13px] font-semibold text-[#1c1917] shadow-[0_6px_18px_-10px_rgba(28,25,23,0.22)] transition-all duration-200 hover:border-[#3f6e15] hover:bg-[#3f6e15] hover:text-white hover:shadow-[0_12px_26px_-10px_rgba(63,110,21,0.42)] active:scale-[0.98]"
             >
-              View All Trips ↗
+              <span>View All Trips</span>
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#3f6e15]/10 text-[#3f6e15] transition-all duration-200 group-hover:bg-white/20 group-hover:text-white group-hover:translate-x-0.5">
+                <ArrowUpRight className="w-3.5 h-3.5 stroke-[2]" />
+              </span>
             </Link>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -2363,6 +2527,13 @@ export function TripDetailView({
           </div>
         </section>
       )}
+
+      <TripCompareModal
+        open={compareModalOpen}
+        onClose={() => setCompareModalOpen(false)}
+        currentTripSlug={trip.slug}
+        catalog={comparableTrips.length > 0 ? comparableTrips : [trip]}
+      />
     </div>
   );
 }

@@ -81,6 +81,8 @@ export interface TripFaqDTO {
   sortOrder: number;
 }
 
+export type ReviewSource = "google" | "tripadvisor" | "website";
+
 export interface TripReviewDTO {
   id: string;
   tripId?: string | null;
@@ -92,6 +94,7 @@ export interface TripReviewDTO {
   rating: number;
   title?: string | null;
   comment: string;
+  source?: ReviewSource;
   tripDate?: string | null;
   verified: boolean;
   isPublished?: boolean;
@@ -181,6 +184,7 @@ export interface TripDTO {
   badge?: string | null;
   isPublished: boolean;
   isFeatured: boolean;
+  isTopTrek?: boolean;
   featuredOrder: number;
   metaTitle?: string | null;
   metaDescription?: string | null;
@@ -206,6 +210,28 @@ export interface NavTripDTO {
   days: number;
   maxAltitude: number;
   price: number;
+}
+
+export interface ComparableTripDTO {
+  slug: string;
+  name: string;
+  area: string;
+  region?: string | null;
+  country: string;
+  image: string;
+  days: number;
+  maxAltitude: number;
+  difficulty: string;
+  price: number;
+  priceUsd?: number | null;
+  groupMax: number;
+  seasonMonths: number[];
+  start: string;
+  end: string;
+  accommodationSummary?: string | null;
+  mealsSummary?: string | null;
+  highlights: string[];
+  badge?: string | null;
 }
 
 export interface TrekRouteDTO {

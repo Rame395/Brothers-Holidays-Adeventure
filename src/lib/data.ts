@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from "next/cache";
 import prisma from "@/lib/prisma";
+import { normalizeReviewSource } from "@/lib/review-utils";
 import {
   parseCustomSections,
   parsePriceTiers,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/weather-locations";
 import type {
   ArchiveEntryDTO,
+  ComparableTripDTO,
   DestinationTaxonomyDTO,
   ExpeditionObjectiveDTO,
   JournalPostDTO,
@@ -117,6 +119,7 @@ function serializeTrip(t: PrismaTripFull): TripDTO {
     badge: t.badge,
     isPublished: t.isPublished,
     isFeatured: t.isFeatured,
+    isTopTrek: Boolean(t.isTopTrek),
     featuredOrder: t.featuredOrder,
     metaTitle: t.metaTitle,
     metaDescription: t.metaDescription,
@@ -168,6 +171,7 @@ function serializeTrip(t: PrismaTripFull): TripDTO {
       rating: r.rating,
       title: r.title,
       comment: r.comment,
+      source: normalizeReviewSource(r.source),
       tripDate: r.tripDate ? r.tripDate.toISOString() : null,
       verified: r.verified ?? true,
       isPublished: r.isPublished ?? true,
@@ -791,9 +795,64 @@ export async function getHomeReviews(limit = 12): Promise<TripReviewDTO[]> {
     rating: r.rating,
     title: r.title,
     comment: r.comment,
+    source: normalizeReviewSource(r.source),
     tripDate: r.tripDate ? r.tripDate.toISOString() : null,
     verified: r.verified ?? true,
     isPublished: r.isPublished ?? true,
     showOnHome: r.showOnHome ?? true,
+  }));
+}
+
+export async function getComparableTrips(): Promise<ComparableTripDTO[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("trips");
+
+  const rows = await prisma.trip.findMany({
+    where: { isPublished: true },
+    orderBy: [{ isFeatured: "desc" }, { featuredOrder: "asc" }, { name: "asc" }],
+    select: {
+      slug: true,
+      name: true,
+      area: true,
+      region: true,
+      country: true,
+      image: true,
+      days: true,
+      maxAltitude: true,
+      difficulty: true,
+      price: true,
+      priceUsd: true,
+      groupMax: true,
+      seasonMonths: true,
+      startPoint: true,
+      endPoint: true,
+      accommodationSummary: true,
+      mealsSummary: true,
+      highlights: true,
+      badge: true,
+    },
+  });
+
+  return rows.map((t) => ({
+    slug: t.slug,
+    name: t.name,
+    area: t.area,
+    region: t.region,
+    country: t.country,
+    image: t.image,
+    days: t.days,
+    maxAltitude: t.maxAltitude,
+    difficulty: t.difficulty,
+    price: t.price,
+    priceUsd: t.priceUsd,
+    groupMax: t.groupMax,
+    seasonMonths: t.seasonMonths,
+    start: t.startPoint,
+    end: t.endPoint,
+    accommodationSummary: t.accommodationSummary,
+    mealsSummary: t.mealsSummary,
+    highlights: t.highlights.slice(0, 4),
+    badge: t.badge,
   }));
 }

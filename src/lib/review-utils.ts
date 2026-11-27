@@ -1,5 +1,12 @@
 import { z } from "zod";
-import type { TripReviewDTO } from "@/lib/types";
+import type { ReviewSource, TripReviewDTO } from "@/lib/types";
+
+export function normalizeReviewSource(raw?: string | null): ReviewSource {
+  const lower = (raw || "").trim().toLowerCase();
+  if (lower === "google") return "google";
+  if (lower === "tripadvisor") return "tripadvisor";
+  return "website";
+}
 
 const IGNORED_NAME_CONNECTORS = new Set(["&", "and", "+", "-", "/"]);
 
@@ -97,6 +104,7 @@ export const createReviewSchema = z.object({
     .trim()
     .min(10, "Review comment must be at least 10 characters.")
     .max(1400, "Review comment cannot exceed 1400 characters."),
+  source: z.enum(["google", "tripadvisor", "website"]).default("website"),
   tripId: optionalTrimmedString(64),
   tripName: optionalTrimmedString(140),
   tripDate: optionalTripDate,
@@ -128,6 +136,7 @@ export function serializeReviewRow(r: {
   rating: number;
   title: string | null;
   comment: string;
+  source?: string | null;
   tripDate: Date | null;
   verified: boolean;
   isPublished: boolean;
@@ -145,6 +154,7 @@ export function serializeReviewRow(r: {
     rating: r.rating,
     title: r.title ?? null,
     comment: r.comment,
+    source: normalizeReviewSource(r.source),
     tripDate: r.tripDate ? r.tripDate.toISOString() : null,
     verified: Boolean(r.verified),
     isPublished: Boolean(r.isPublished),

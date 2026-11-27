@@ -1,416 +1,429 @@
 "use client";
 
-import Image from "next/image";
+import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
-import {
-  DollarSign,
-  Globe,
-  Shield,
-  Sparkles,
-  Users,
-} from "lucide-react";
 
 interface Pillar {
-  icon: typeof Users;
   title: string;
   description: string;
+  renderIcon: (className: string) => ReactNode;
+}
+
+function SherpaPeaksIcon({ className }: { className: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        d="M3 19.5 9.2 8.2l3.8 6 2.8-4.2L21 19.5H3Z"
+        fill="#3f6e15"
+        fillOpacity="0.1"
+        stroke="#1c1917"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m7.1 12.2 2.1 1.2 2.1-1.3"
+        stroke="#3f6e15"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9.2 8.2V4.5m0 0 3.2 1.2L9.2 7"
+        stroke="#f05e25"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function AlpineSafetyIcon({ className }: { className: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        d="M12 3 4.8 6.3v5.4c0 4.6 3.1 8.5 7.2 9.5 4.1-1 7.2-4.9 7.2-9.5V6.3L12 3Z"
+        fill="#f05e25"
+        fillOpacity="0.09"
+        stroke="#1c1917"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7.8 12.2h2.1l1.3-2.6 1.7 5 1.4-2.4h2.1"
+        stroke="#f05e25"
+        strokeWidth={1.7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function VillageCareIcon({ className }: { className: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        d="M3.5 19.5h17"
+        stroke="#1c1917"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
+      <path
+        d="M5.5 19.5v-5.5l4-3.2 4 3.2v5.5"
+        fill="#3f6e15"
+        fillOpacity="0.1"
+        stroke="#1c1917"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9.5 19.5v-2.8"
+        stroke="#3f6e15"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
+      <path
+        d="M17.2 19.5v-7.2m0 0-2.6 3.5h5.2l-2.6-3.5Zm0-4.2-2.1 2.8h4.2l-2.1-2.8Z"
+        stroke="#3f6e15"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function TrailMapIcon({ className }: { className: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        d="M3.5 6.5 9 4l6 2.5 5.5-2.5v13.5L15 20l-6-2.5L3.5 20V6.5Z"
+        fill="#1c1917"
+        fillOpacity="0.05"
+        stroke="#1c1917"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 4v13.5M15 6.5V20"
+        stroke="#1c1917"
+        strokeWidth={1.4}
+        strokeOpacity="0.35"
+      />
+      <path
+        d="M6.8 14.5c1.8-2.8 3.5-4.5 5.6-3.2 1.8 1.1 3.3-.4 4.8-2.6"
+        stroke="#f05e25"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+      />
+      <circle cx="17.2" cy="8.7" r="1.4" fill="#3f6e15" />
+    </svg>
+  );
+}
+
+function DirectLedgerIcon({ className }: { className: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        d="M6 3.8h12v16.4l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3V3.8Z"
+        fill="#d97706"
+        fillOpacity="0.08"
+        stroke="#1c1917"
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 8.5h6M9 12h4.2"
+        stroke="#1c1917"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+      <path
+        d="m9.2 15.6 1.5 1.4 3.5-3.4"
+        stroke="#3f6e15"
+        strokeWidth={1.7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SummitLeadIcon({ className }: { className: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="8.5"
+        fill="#3f6e15"
+        fillOpacity="0.08"
+        stroke="#1c1917"
+        strokeWidth={1.6}
+      />
+      <path
+        d="M12 3.5v1.6M12 18.9v1.6M3.5 12h1.6M18.9 12h1.6"
+        stroke="#1c1917"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+      <path
+        d="m15 9-1.9 4.5L8.6 15l1.9-4.5L15 9Z"
+        fill="#f05e25"
+        fillOpacity="0.2"
+        stroke="#f05e25"
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 const PILLARS: Pillar[] = [
   {
-    icon: Users,
     title: "Local Sherpa Expertise",
     description:
-      "Born and raised in the Himalayas. Our Sherpa guides know every trail, every peak, every hidden gem.",
+      "Born and raised across Nepal's mountain valleys, our licensed Sherpa guides know every trail rhythm, weather shift, and hidden viewpoint firsthand.",
+    renderIcon: (cls) => <SherpaPeaksIcon className={cls} />,
   },
   {
-    icon: Shield,
-    title: "Safety First Approach",
+    title: "Safety-First Approach",
     description:
-      "Certified guides, backup systems, emergency protocols. We prepare for everything so you can focus on the journey.",
+      "Structured acclimatisation days, calibrated pulse oximeters, satellite weather checks, and Kathmandu rescue coordination keep every trekker protected.",
+    renderIcon: (cls) => <AlpineSafetyIcon className={cls} />,
   },
   {
-    icon: Sparkles,
-    title: "Personalized Trips",
+    title: "Responsible Himalayan Travel",
     description:
-      "No cookie-cutter itineraries. Every expedition is tailored to your pace, goals, and experience level.",
+      "Small group footprints, fair porter welfare, and family-run mountain teahouses ensure your journey directly supports highland communities.",
+    renderIcon: (cls) => <VillageCareIcon className={cls} />,
   },
   {
-    icon: Globe,
-    title: "Cultural Experience",
+    title: "Personalized Itineraries",
     description:
-      "Authentic village stays, monastery visits, local cuisine. Experience the real Himalayan culture, not tourist traps.",
+      "No rigid cookie-cutter schedules—we adapt daily walking distances, rest days, and route extensions around your pace and travel window.",
+    renderIcon: (cls) => <TrailMapIcon className={cls} />,
   },
   {
-    icon: DollarSign,
-    title: "Transparent Pricing",
+    title: "Transparent Direct Pricing",
     description:
-      "No hidden fees, no surprises. Clear breakdown of costs upfront. What you see is what you pay.",
+      "Book directly with our Thamel operations desk with a clear upfront USD breakdown for permits, flights, and lodges—zero hidden fees or surprises.",
+    renderIcon: (cls) => <DirectLedgerIcon className={cls} />,
   },
   {
-    icon: Shield,
-    title: "Leadership",
+    title: "Seasoned Mountain Leadership",
     description:
-      "You are led by some of the most respected and accomplished mountaineers in the world.",
+      "Led by veteran Nepalese trek and expedition leaders with thousands of safe high-pass crossings across Everest, Annapurna, Manaslu, and Langtang.",
+    renderIcon: (cls) => <SummitLeadIcon className={cls} />,
   },
 ];
 
 export default function WhyChooseUs() {
-  const containerRef = useRef<HTMLElement | null>(null);
-  const bgRef = useRef<HTMLDivElement | null>(null);
-  const contentRef = useRef<HTMLDivElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const watermarkRef = useRef<HTMLDivElement | null>(null);
 
-  // 1. SILKY-SMOOTH PARALLAX SCROLL: Text scrolls faster than background mountain image
   useEffect(() => {
-    const container = containerRef.current;
-    const bg = bgRef.current;
-    const content = contentRef.current;
-    if (!container || !bg) return;
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    let ticking = false;
+    if (prefersReduced) {
+      if (watermarkRef.current) {
+        watermarkRef.current.style.transform = "translate3d(0, 0px, 0)";
+      }
+      return;
+    }
+
+    let rafId = 0;
+
+    const updateWatermark = () => {
+      rafId = 0;
+      const section = sectionRef.current;
+      const watermark = watermarkRef.current;
+      if (!section || !watermark) return;
+
+      const rect = section.getBoundingClientRect();
+      const viewportH = window.innerHeight || 900;
+      if (rect.bottom < -120 || rect.top > viewportH + 120) return;
+
+      const progress = Math.min(
+        Math.max((viewportH - rect.top) / (viewportH + rect.height), 0),
+        1
+      );
+      const shiftY = ((progress - 0.5) * -36).toFixed(2);
+      watermark.style.transform = `translate3d(0, ${shiftY}px, 0)`;
+    };
 
     const onScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const rect = container.getBoundingClientRect();
-          const windowH = window.innerHeight;
-
-          // Only calculate when near or within viewport
-          if (rect.bottom > -150 && rect.top < windowH + 150) {
-            // Normalized progress from 0 (section enters viewport) to 1 (section leaves viewport)
-            const progress = (windowH - rect.top) / (windowH + rect.height);
-
-            // Background mountain travels slowly in scroll direction (anchored slow-parallax feel)
-            const bgShift = (progress - 0.5) * 150;
-            bg.style.transform = `translate3d(0, ${bgShift.toFixed(2)}px, 0)`;
-
-            // Foreground text moves faster upwards, creating the fast-scroll speed contrast
-            if (content) {
-              const contentShift = (progress - 0.5) * -90;
-              content.style.transform = `translate3d(0, ${contentShift.toFixed(2)}px, 0)`;
-            }
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(updateWatermark);
     };
 
+    updateWatermark();
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
+    window.addEventListener("resize", onScroll, { passive: true });
 
     return () => {
+      if (rafId) window.cancelAnimationFrame(rafId);
       window.removeEventListener("scroll", onScroll);
-    };
-  }, []);
-
-  // 2. High-performance, lightweight snow/mist particle system (0% CPU when offscreen)
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d", { alpha: true });
-    if (!ctx) return;
-
-    let animId = 0;
-    let isVisible = false;
-    let width = (canvas.width = canvas.offsetWidth);
-    let height = (canvas.height = canvas.offsetHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = canvas.offsetWidth;
-      height = canvas.height = canvas.offsetHeight;
-    };
-    window.addEventListener("resize", handleResize);
-
-    // Pre-render a single 16x16 glowing snow sprite once (avoids per-frame ctx.shadowBlur Gaussian cost)
-    const flakeCanvas = document.createElement("canvas");
-    flakeCanvas.width = 16;
-    flakeCanvas.height = 16;
-    const fCtx = flakeCanvas.getContext("2d");
-    if (fCtx) {
-      const grad = fCtx.createRadialGradient(8, 8, 0.5, 8, 8, 8);
-      grad.addColorStop(0, "rgba(255, 255, 255, 1)");
-      grad.addColorStop(0.45, "rgba(255, 255, 255, 0.7)");
-      grad.addColorStop(1, "rgba(255, 255, 255, 0)");
-      fCtx.fillStyle = grad;
-      fCtx.fillRect(0, 0, 16, 16);
-    }
-
-    // 38 high-altitude snow & mist crystal particles
-    const particleCount = 38;
-    const particles = Array.from({ length: particleCount }, () => ({
-      x: Math.random() * width,
-      y: Math.random() * height,
-      radius: Math.random() * 2.2 + 0.9,
-      speedY: Math.random() * 1.0 + 0.8,
-      speedX: Math.random() * 0.8 - 0.4,
-      opacity: Math.random() * 0.55 + 0.3,
-      swayOffset: Math.random() * Math.PI * 2,
-      swaySpeed: Math.random() * 0.03 + 0.015,
-    }));
-
-    let tick = 0;
-    let lastTime = 0;
-    const render = (now: number) => {
-      if (!isVisible) return;
-      if (lastTime !== 0 && now - lastTime < 33) {
-        animId = requestAnimationFrame(render);
-        return;
-      }
-      const dtFactor = lastTime === 0 ? 1 : Math.min((now - lastTime) / 16.67, 3);
-      lastTime = now;
-
-      ctx.clearRect(0, 0, width, height);
-
-      tick += dtFactor;
-      for (let i = 0; i < particleCount; i++) {
-        const p = particles[i];
-        p.y += p.speedY * dtFactor;
-        p.x += (p.speedX + Math.sin(tick * p.swaySpeed + p.swayOffset) * 0.35) * dtFactor;
-
-        // Wrap around boundaries smoothly
-        if (p.y > height + 5) {
-          p.y = -5;
-          p.x = Math.random() * width;
-        }
-        if (p.x < -5) p.x = width + 5;
-        if (p.x > width + 5) p.x = -5;
-
-        // Draw pre-rendered soft glowing mist flake sprite
-        const drawSize = p.radius * 4.5;
-        ctx.globalAlpha = p.opacity;
-        ctx.drawImage(
-          flakeCanvas,
-          p.x - drawSize * 0.5,
-          p.y - drawSize * 0.5,
-          drawSize,
-          drawSize
-        );
-      }
-      ctx.globalAlpha = 1;
-
-      animId = requestAnimationFrame(render);
-    };
-
-    // Observer to pause canvas & CSS animations when scrolled away
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        isVisible = entry?.isIntersecting ?? false;
-        bgRef.current?.setAttribute("data-paused", isVisible ? "false" : "true");
-        if (isVisible) {
-          lastTime = 0;
-          cancelAnimationFrame(animId);
-          animId = requestAnimationFrame(render);
-        } else {
-          cancelAnimationFrame(animId);
-        }
-      },
-      { threshold: 0.05 }
-    );
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", handleResize);
-      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", onScroll);
     };
   }, []);
 
   return (
     <section
-      ref={containerRef}
+      ref={sectionRef}
       id="why-choose-us"
-      className="relative w-full overflow-hidden py-24 sm:py-32 lg:py-40 bg-white text-[#1c1917]"
+      className="relative w-full overflow-hidden bg-white py-20 sm:py-24 lg:py-28 text-[#111827] border-t border-stone-100"
     >
-      {/* ────────── PARALLAX BACKGROUND LAYER (Oversized for smooth travel) ────────── */}
+      {/* Subtle Bottom-Left Trekker & Himalayan Ridge Silhouette Background Art */}
       <div
-        ref={bgRef}
-        data-paused="true"
+        ref={watermarkRef}
         aria-hidden="true"
-        className="absolute -top-[20%] left-0 w-full h-[140%] z-0 pointer-events-none overflow-hidden will-change-transform"
+        className="pointer-events-none absolute inset-x-0 -bottom-5 z-0 select-none will-change-transform transition-transform duration-150 ease-out"
       >
-        {/* User's uploaded mountain photo */}
-        <div className="absolute inset-0 w-full h-full animate-mountain-breathe">
-          <Image
-            src="/images/booking-bg-alpine-snow-peak.jpg"
-            alt="Majestic Himalayan snow peaks of Everest and Nuptse"
-            fill
-            sizes="100vw"
-            className="object-cover object-center"
-            priority={false}
+        <svg
+          viewBox="0 0 1440 340"
+          preserveAspectRatio="xMidYMax slice"
+          className="w-full h-[230px] sm:h-[290px] lg:h-[340px]"
+        >
+          {/* Rolling Himalayan foothill ridge */}
+          <path
+            d="M0 340 L0 265 C95 220 155 192 225 194 C285 196 340 238 415 262 C495 288 575 282 670 258 C785 228 895 245 1015 256 C1135 268 1275 232 1440 252 L1440 340 Z"
+            fill="#f1f0ec"
+            opacity="0.88"
           />
-        </div>
+          <path
+            d="M0 340 L0 296 C150 268 270 278 405 292 C565 308 725 274 915 286 C1105 298 1280 268 1440 288 L1440 340 Z"
+            fill="#edf1ea"
+            opacity="0.92"
+          />
 
-        {/* Soft atmospheric white wash so mountain detail breathes while keeping text 100% readable */}
-        <div className="absolute inset-0 bg-white/60 sm:bg-white/55" />
+          {/* Subtle alpine grass tufts along ridge shoulder */}
+          <path
+            d="M368 248 L363 230 M372 248 L374 226 M377 249 L385 233 M382 251 L392 240 M360 247 L352 235"
+            stroke="#eceae4"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+          />
 
-        {/* DRIFTING CLOUD LAYER 1: Deep slow horizontal drift across the peaks */}
-        <div className="absolute inset-x-0 top-1/4 h-64 sm:h-80 w-[200%] flex opacity-50 animate-cloud-drift-left">
-          <svg
-            className="w-1/2 h-full shrink-0"
-            viewBox="0 0 1200 320"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0,180 Q250,90 500,160 T1000,140 Q1150,110 1200,150 L1200,320 L0,320 Z"
-              fill="url(#cloudGrad1)"
+          {/* Standing trekker with backpack & trekking poles on the left ridge */}
+          <g fill="#f0efe9" stroke="#f0efe9" opacity="0.95">
+            <line
+              x1="154"
+              y1="145"
+              x2="137"
+              y2="240"
+              strokeWidth="2.2"
+              strokeLinecap="round"
             />
-            <defs>
-              <linearGradient id="cloudGrad1" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
-                <stop offset="50%" stopColor="#ffffff" stopOpacity="0.45" />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.8" />
-              </linearGradient>
-            </defs>
-          </svg>
-          <svg
-            className="w-1/2 h-full shrink-0"
-            viewBox="0 0 1200 320"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0,180 Q250,90 500,160 T1000,140 Q1150,110 1200,150 L1200,320 L0,320 Z"
-              fill="url(#cloudGrad1b)"
+            <line
+              x1="216"
+              y1="148"
+              x2="233"
+              y2="240"
+              strokeWidth="2.2"
+              strokeLinecap="round"
             />
-            <defs>
-              <linearGradient id="cloudGrad1b" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
-                <stop offset="50%" stopColor="#ffffff" stopOpacity="0.45" />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.8" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-
-        {/* DRIFTING CLOUD LAYER 2: Foreground counter-drift across lower mountain face */}
-        <div className="absolute inset-x-0 bottom-0 h-72 sm:h-96 w-[200%] flex opacity-65 animate-cloud-drift-right">
-          <svg
-            className="w-1/2 h-full shrink-0"
-            viewBox="0 0 1200 360"
-            preserveAspectRatio="none"
-          >
+            <circle cx="185" cy="84" r="10.5" stroke="none" />
             <path
-              d="M0,160 Q300,60 620,140 T1100,110 Q1180,80 1200,120 L1200,360 L0,360 Z"
-              fill="url(#cloudGrad2)"
+              d="M170 98 C163 101 160 112 161 132 L164 152 L169 152 L168 198 L175 198 L182 162 L188 162 L195 198 L202 198 L201 150 L206 149 L207 115 C206 102 199 97 189 96 L176 96 Z"
+              stroke="none"
             />
-            <defs>
-              <linearGradient id="cloudGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
-                <stop offset="40%" stopColor="#ffffff" stopOpacity="0.55" />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.95" />
-              </linearGradient>
-            </defs>
-          </svg>
-          <svg
-            className="w-1/2 h-full shrink-0"
-            viewBox="0 0 1200 360"
-            preserveAspectRatio="none"
-          >
+            <rect
+              x="166"
+              y="98"
+              width="20"
+              height="38"
+              rx="6"
+              stroke="none"
+            />
             <path
-              d="M0,160 Q300,60 620,140 T1100,110 Q1180,80 1200,120 L1200,360 L0,360 Z"
-              fill="url(#cloudGrad2b)"
+              d="M167 107 L154 143 M202 108 L216 146"
+              fill="none"
+              strokeWidth="5.5"
+              strokeLinecap="round"
             />
-            <defs>
-              <linearGradient id="cloudGrad2b" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
-                <stop offset="40%" stopColor="#ffffff" stopOpacity="0.55" />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity="0.95" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-
-        {/* LIVE HIGH-ALTITUDE SNOW / MIST PARTICLE CANVAS */}
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full pointer-events-none z-10"
-        />
+          </g>
+        </svg>
       </div>
 
-      {/* PINNED GRADIENT MASKS (Stay at fixed section edges for seamless transition) */}
-      <div
-        aria-hidden="true"
-        className="absolute top-0 left-0 w-full h-[32%] pointer-events-none z-10"
-        style={{
-          background:
-            "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.96) 30%, rgba(255,255,255,0.6) 65%, transparent 100%)",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="absolute bottom-0 left-0 w-full h-[32%] pointer-events-none z-10"
-        style={{
-          background:
-            "linear-gradient(to top, #ffffff 0%, rgba(255,255,255,0.96) 35%, rgba(255,255,255,0.55) 70%, transparent 100%)",
-        }}
-      />
-
-      {/* ────────── FOREGROUND CONTENT (PARALLAX TEXT SCROLLING FASTER THAN BG) ────────── */}
-      <div
-        ref={contentRef}
-        className="relative z-20 max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 will-change-transform"
-      >
-        {/* SECTION HEADER (BLACK/CHARCOAL TYPOGRAPHY — NO BLUE AS REQUESTED) */}
-        <ScrollReveal className="text-center max-w-4xl mx-auto mb-14 sm:mb-16 lg:mb-20 space-y-3">
-          <div className="inline-flex items-center justify-center gap-2.5 mb-1">
-            <span className="w-6 h-[2px] bg-[#f05e25]" />
-            <span className="text-[11px] font-semibold tracking-[0.22em] text-[#57534d] uppercase">
-              The Brothers Difference
-            </span>
-            <span className="w-6 h-[2px] bg-[#f05e25]" />
-          </div>
-
-          <h2 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl text-[#1c1917] tracking-tight leading-tight uppercase">
-            Why Choose Us
+      {/* Foreground Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
+        {/* Centered Header Matching Selected High Routes */}
+        <ScrollReveal
+          distance={20}
+          className="max-w-2xl mx-auto text-center space-y-2.5"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#3f6e15]">
+            The Brothers Difference
+          </p>
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-[42px] font-semibold text-[#1c1917] tracking-wide uppercase leading-tight">
+            Why Brothers Holidays
           </h2>
-
-          <p className="font-sans text-[#57534d] text-sm sm:text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-            Built on deep Sherpa heritage, uncompromising safety standards, and
-            personalized care to deliver an unforgettable journey in the Himalayas.
+          <p className="text-sm sm:text-[15px] text-[#57534d] leading-relaxed">
+            Built in Kathmandu on local Sherpa leadership, structured
+            acclimatisation, and direct transparent pricing.
           </p>
         </ScrollReveal>
 
-        {/* 6-PILLAR FROSTED GLASS CARDS (CLEAN LIGHT CANVAS, BLACK TITLES, BALANCED STONE BODY) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
-          {PILLARS.map((pillar, idx) => {
-            const Icon = pillar.icon;
-            return (
-              <ScrollReveal
-                key={pillar.title}
-                delay={idx * 110}
-                distance={56}
-                className="h-full"
-              >
-                <div className="group relative h-full rounded-[20px] bg-white/92 hover:bg-white p-6 sm:p-8 border border-white/80 hover:border-stone-200/90 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] hover:shadow-[0_16px_32px_-8px_rgba(15,23,42,0.12)] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center">
-                  {/* Refined squircle badge with dark icon and orange hover */}
-                  <div className="w-14 h-14 rounded-2xl bg-stone-100/90 text-[#1c1917] group-hover:bg-[#f05e25] group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-xs mb-5">
-                    <Icon className="w-6 h-6 stroke-[2] transition-transform duration-300 group-hover:scale-110" />
-                  </div>
+        {/* Open 3x2 Horizontal Feature Grid */}
+        <div className="mt-12 sm:mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-10 lg:gap-x-12 gap-y-10 sm:gap-y-12">
+          {PILLARS.map((pillar, idx) => (
+            <ScrollReveal key={pillar.title} delay={idx * 65} distance={20}>
+              <div className="group flex items-start gap-4 sm:gap-5">
+                <div className="w-14 h-14 rounded-[12px] bg-white border border-stone-100/90 shadow-[0_10px_28px_-8px_rgba(28,25,23,0.12),0_2px_6px_-1px_rgba(28,25,23,0.05)] flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:-translate-y-0.5">
+                  {pillar.renderIcon("w-6 h-6")}
+                </div>
 
-                  {/* Pillar Title in crisp dark typography */}
-                  <h3 className="font-heading font-bold text-base sm:text-lg text-[#1c1917] uppercase tracking-[0.12em] group-hover:text-[#f05e25] transition-colors duration-200">
+                <div className="min-w-0">
+                  <h3 className="font-sans text-[17px] sm:text-[18px] font-semibold text-[#111827] leading-snug tracking-tight group-hover:text-[#3f6e15] transition-colors">
                     {pillar.title}
                   </h3>
-
-                  {/* Subtle accent line under title */}
-                  <span className="w-6 group-hover:w-10 h-[2px] bg-[#f05e25]/30 group-hover:bg-[#f05e25] transition-all duration-300 my-3 rounded-full" />
-
-                  {/* Pillar Description in balanced, readable stone-600 */}
-                  <p className="font-sans text-[#57534d] leading-relaxed text-xs sm:text-sm max-w-xs mt-1">
+                  <p className="mt-2 font-sans text-[13.5px] sm:text-[14px] leading-[1.65] text-[#57534d]">
                     {pillar.description}
                   </p>
                 </div>
-              </ScrollReveal>
-            );
-          })}
+              </div>
+            </ScrollReveal>
+          ))}
         </div>
       </div>
     </section>

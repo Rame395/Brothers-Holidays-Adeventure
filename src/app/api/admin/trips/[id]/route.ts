@@ -202,6 +202,7 @@ export async function PATCH(
           ...(d.badge !== undefined ? { badge: d.badge || null } : {}),
           ...(d.isPublished !== undefined ? { isPublished: d.isPublished } : {}),
           ...(d.isFeatured !== undefined ? { isFeatured: d.isFeatured } : {}),
+          ...(d.isTopTrek !== undefined ? { isTopTrek: d.isTopTrek } : {}),
           ...(d.featuredOrder !== undefined ? { featuredOrder: d.featuredOrder } : {}),
           ...(d.metaTitle !== undefined ? { metaTitle: d.metaTitle || null } : {}),
           ...(d.metaDescription !== undefined

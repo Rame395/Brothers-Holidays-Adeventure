@@ -1,9 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import MirrorHighRoutes from "@/components/MirrorHighRoutes";
+import CategoryTripsShowcase from "@/components/home/CategoryTripsShowcase";
 import WhyChooseUs from "@/components/home/WhyChooseUs";
 import TrekkingRegions from "@/components/home/TrekkingRegions";
 import BookingProcessSection from "@/components/home/BookingProcessSection";
+import LatestJournalSection from "@/components/home/LatestJournalSection";
 import ClientReviewsSection from "@/components/home/ClientReviewsSection";
 import { Hero } from "@/components/hero/Hero";
 import { AlpineBackdrop } from "@/components/site/AlpineBackdrop";
@@ -11,7 +13,12 @@ import { ParallaxBackdrop } from "@/components/motion/ParallaxBackdrop";
 import { ScrollReveal } from "@/components/motion/ScrollReveal";
 import { AnimatedCounter } from "@/components/motion/AnimatedCounter";
 import { HeroCloudTransition } from "@/components/motion/HeroCloudTransition";
-import { getHomeReviews, getPublishedTrips } from "@/lib/data";
+import {
+  getDestinationTaxonomy,
+  getHomeReviews,
+  getPublishedJournalPosts,
+  getPublishedTrips,
+} from "@/lib/data";
 import { buildPageMetadata } from "@/lib/seo";
 import {
   ArrowRight,
@@ -29,9 +36,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [allTrips, homeReviews] = await Promise.all([
+  const [allTrips, homeReviews, taxonomy, journalPosts] = await Promise.all([
     getPublishedTrips(),
     getHomeReviews(),
+    getDestinationTaxonomy(),
+    getPublishedJournalPosts(),
   ]);
   const featured = allTrips.filter((t) => t.isFeatured);
   const featuredIds = new Set(featured.map((t) => t.id));
@@ -54,6 +63,12 @@ export default async function HomePage() {
 
       {/* VOLUMETRIC SCROLL-REACTIVE CLOUD TRANSITION */}
       <HeroCloudTransition />
+
+      {/* SECTION 1B: DYNAMIC CATEGORY-TABBED ADVENTURE SHOWCASE */}
+      <CategoryTripsShowcase
+        categories={taxonomy.categories}
+        trips={allTrips}
+      />
 
       {/* SECTION 2: SELECTED HIGH ROUTES DIRECTORY PREVIEW */}
       <MirrorHighRoutes trips={spotlightTrips} totalCount={allTrips.length} />
@@ -217,6 +232,9 @@ export default async function HomePage() {
       {/* SECTION 7: HOW BOOKING WORKS (SIMPLE 4-STEP EXPEDITION PROCESS) */}
       <BookingProcessSection />
 
+      {/* SECTION 7A: LATEST BLOGS & FIELD JOURNAL (1 BIG + 3 COMPACT) */}
+      <LatestJournalSection posts={journalPosts} />
+
       {/* SECTION 7B: CLIENT REVIEWS & TRAVELLER TESTIMONIALS */}
       <ClientReviewsSection reviews={homeReviews} />
 
@@ -337,10 +355,10 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Crisp Ridge Silhouette Transition into Light Footer */}
+        {/* Crisp Ridge Silhouette Transition into Footer Skyline */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-px inset-x-0 z-20 text-[#f7f6f2]"
+          className="pointer-events-none absolute -bottom-px inset-x-0 z-20 text-white"
         >
           <svg
             viewBox="0 0 1440 56"

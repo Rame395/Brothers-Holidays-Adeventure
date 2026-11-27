@@ -109,6 +109,7 @@ async function AdminEditTripGate({
     badge: trip.badge,
     isPublished: trip.isPublished,
     isFeatured: trip.isFeatured,
+    isTopTrek: Boolean(trip.isTopTrek),
     featuredOrder: trip.featuredOrder,
     metaTitle: trip.metaTitle,
     metaDescription: trip.metaDescription,

@@ -56,9 +56,14 @@ export default function MirrorHighRoutes({
   totalCount?: number;
 }) {
   const sectionRef = useRef<HTMLElement>(null);
+  const mobileScrollRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [isPausedByUser, setIsPausedByUser] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [mobileActiveIndex, setMobileActiveIndex] = useState<number>(0);
+  const [mobileCanLeft, setMobileCanLeft] = useState<boolean>(false);
+  const [mobileCanRight, setMobileCanRight] = useState<boolean>(trips.length > 1);
+  const [mobilePaused, setMobilePaused] = useState<boolean>(false);
   const touchStartXRef = useRef<number | null>(null);
 
   const reducedMotion = useSyncExternalStore(
@@ -107,6 +112,76 @@ export default function MirrorHighRoutes({
     return () => window.clearInterval(timer);
   }, [reducedMotion, isPausedByUser, isVisible, trips.length]);
 
+  const checkMobileScroll = useCallback(() => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setMobileCanLeft(scrollLeft > 20);
+    setMobileCanRight(scrollLeft < scrollWidth - clientWidth - 20);
+    const firstCard = el.firstElementChild as HTMLElement | null;
+    const step = firstCard ? firstCard.offsetWidth + 20 : 310;
+    const index = Math.round(scrollLeft / Math.max(step, 1));
+    setMobileActiveIndex(
+      Math.min(Math.max(index, 0), Math.max(trips.length - 1, 0))
+    );
+  }, [trips.length]);
+
+  useEffect(() => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    let rafId = 0;
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        checkMobileScroll();
+      });
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    const initRaf = requestAnimationFrame(checkMobileScroll);
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(initRaf);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [checkMobileScroll]);
+
+  useEffect(() => {
+    if (!isVisible || mobilePaused || reducedMotion || trips.length <= 1) {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      const el = mobileScrollRef.current;
+      if (!el || el.clientWidth === 0) return;
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      if (maxScroll <= 0) return;
+      if (el.scrollLeft >= maxScroll - 30) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        const firstCard = el.firstElementChild as HTMLElement | null;
+        const step = firstCard ? firstCard.offsetWidth + 20 : 310;
+        el.scrollBy({ left: step, behavior: "smooth" });
+      }
+    }, 3800);
+    return () => window.clearInterval(timer);
+  }, [isVisible, mobilePaused, reducedMotion, trips.length]);
+
+  const scrollMobileBy = (direction: "left" | "right") => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    const firstCard = el.firstElementChild as HTMLElement | null;
+    const step = (firstCard ? firstCard.offsetWidth + 20 : 310) * (direction === "left" ? -1 : 1);
+    el.scrollBy({ left: step, behavior: "smooth" });
+  };
+
+  const scrollMobileTo = (idx: number) => {
+    const el = mobileScrollRef.current;
+    if (!el) return;
+    const target = el.children.item(idx) as HTMLElement | null;
+    if (!target) return;
+    el.scrollTo({ left: target.offsetLeft - 8, behavior: "smooth" });
+  };
+
   if (trips.length === 0) return null;
 
   return (
@@ -138,8 +213,159 @@ export default function MirrorHighRoutes({
         </p>
       </ScrollReveal>
 
-      {/* Smooth 3-Slot Daylight Coverflow Stage */}
-      <ScrollReveal direction="scale" delay={120} className="w-full">
+      {/* Mobile TrekkingRegions-Style Poster Carousel (< md) */}
+      <div
+        className="md:hidden relative w-full px-4 z-20"
+        onMouseEnter={() => setMobilePaused(true)}
+        onMouseLeave={() => setMobilePaused(false)}
+        onTouchStart={() => setMobilePaused(true)}
+        onTouchEnd={() => setMobilePaused(false)}
+      >
+        {mobileCanLeft && (
+          <button
+            type="button"
+            onClick={() => scrollMobileBy("left")}
+            aria-label="Previous route"
+            className="absolute left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/95 text-stone-900 shadow-xl border border-slate-200/80 flex items-center justify-center hover:bg-[#f05e25] hover:text-white hover:border-[#f05e25] transition-all cursor-pointer"
+          >
+            <ChevronLeft className="w-5 h-5 stroke-[2]" />
+          </button>
+        )}
+
+        {mobileCanRight && (
+          <button
+            type="button"
+            onClick={() => scrollMobileBy("right")}
+            aria-label="Next route"
+            className="absolute right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/95 text-stone-900 shadow-xl border border-slate-200/80 flex items-center justify-center hover:bg-[#f05e25] hover:text-white hover:border-[#f05e25] transition-all cursor-pointer"
+          >
+            <ChevronRight className="w-5 h-5 stroke-[2]" />
+          </button>
+        )}
+
+        <div
+          ref={mobileScrollRef}
+          className="flex gap-5 overflow-x-auto scrollbar-none snap-x snap-mandatory py-4 px-2 scroll-smooth"
+        >
+          {trips.map((trip) => {
+            const statusLabel = trip.badge || "Open Trail";
+            const isRestricted =
+              statusLabel.toLowerCase().includes("restrict") ||
+              trip.region === "restricted";
+            const regionLabel = trip.area || trip.region || trip.country;
+            const tripSummary = trip.tagline || trip.overview;
+            const tripHref = `/destinations/${trip.slug}`;
+            const bookHref = `/destinations/${trip.slug}#booking`;
+
+            return (
+              <article
+                key={`mobile-${trip.id}`}
+                className="group relative w-[290px] sm:w-[330px] h-[480px] shrink-0 rounded-[28px] overflow-hidden shadow-[0_12px_32px_-8px_rgba(15,23,42,0.18)] snap-center select-none"
+              >
+                <Image
+                  src={trip.image}
+                  alt={trip.name}
+                  fill
+                  sizes="330px"
+                  unoptimized={trip.image.startsWith("/api/uploads/")}
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+                />
+
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-black/20 pointer-events-none"
+                />
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.74) 45%, rgba(0,0,0,0.22) 74%, transparent 100%)",
+                  }}
+                />
+
+                {/* Top Price & Trail Status */}
+                <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between gap-2">
+                  <span className="inline-block rounded-full bg-white/95 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold text-[#1c1917] tabular-nums shadow-xs">
+                    From {formatPriceUsd(trip.price, trip.priceUsd)}
+                  </span>
+
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-black/45 backdrop-blur-sm border border-white/25 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/95">
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        isRestricted ? "bg-amber-400" : "bg-emerald-400"
+                      }`}
+                    />
+                    <span>{statusLabel}</span>
+                  </span>
+                </div>
+
+                {/* Centered Poster Content Matching TrekkingRegions */}
+                <div className="absolute inset-x-0 bottom-0 p-6 flex flex-col items-center text-center">
+                  <span className="inline-block rounded-full bg-white/15 backdrop-blur-sm border border-white/25 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/95 mb-2.5">
+                    {trip.days} {trip.days === 1 ? "Day" : "Days"} ·{" "}
+                    {trip.maxAltitude.toLocaleString("en-US")} m ·{" "}
+                    {trip.difficulty}
+                  </span>
+
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/80 mb-1">
+                    {regionLabel}
+                  </p>
+
+                  <h3 className="font-heading font-bold text-2xl text-white tracking-wide leading-tight drop-shadow-md line-clamp-2">
+                    {trip.name}
+                  </h3>
+
+                  <span className="w-8 h-[2px] bg-[#f05e25] my-3 rounded-full" />
+
+                  <p className="font-sans text-xs text-white/95 leading-relaxed max-w-[250px] line-clamp-2">
+                    {tripSummary}
+                  </p>
+
+                  <div className="mt-4 flex items-center justify-center gap-2.5 w-full">
+                    <Link
+                      href={tripHref}
+                      className="inline-flex items-center justify-center gap-1 px-4 py-2 rounded-full border border-white/60 bg-white/15 backdrop-blur-sm text-white font-heading font-semibold text-[11px] uppercase tracking-wider hover:bg-white hover:text-[#1c1917] transition-all"
+                    >
+                      <span>Details</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                    <Link
+                      href={bookHref}
+                      className="inline-flex items-center justify-center gap-1 px-4 py-2 rounded-full bg-[#f05e25] hover:bg-[#d94e18] text-white font-heading font-semibold text-[11px] uppercase tracking-wider shadow-md shadow-[#f05e25]/35 transition-all"
+                    >
+                      <span>Book Now</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        {/* Mobile Pagination Indicator Dots Matching TrekkingRegions */}
+        {trips.length > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-4">
+            {trips.map((trip, idx) => (
+              <button
+                key={`mob-dot-${trip.id}`}
+                type="button"
+                aria-label={`Scroll to ${trip.name}`}
+                onClick={() => scrollMobileTo(idx)}
+                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                  mobileActiveIndex === idx
+                    ? "w-8 bg-[#f05e25]"
+                    : "w-2 bg-slate-300 hover:bg-slate-400"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Smooth 3-Slot Daylight Coverflow Stage (Tablet & Desktop >= md) */}
+      <ScrollReveal direction="scale" delay={120} className="hidden md:block w-full">
         <div
           role="region"
           aria-label="High altitude trekking route spotlight"
@@ -388,7 +614,7 @@ export default function MirrorHighRoutes({
       <div className="relative z-20 max-w-7xl mx-auto px-5 sm:px-6 lg:px-10 mt-5 sm:mt-8">
         {trips.length > 1 && (
           <div
-            className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2"
+            className="hidden md:flex flex-wrap items-center justify-center gap-1.5 sm:gap-2"
             role="tablist"
             aria-label="Select route card"
           >
@@ -415,7 +641,12 @@ export default function MirrorHighRoutes({
 
         <div className="mt-8 pt-5 border-t border-slate-300/60 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-slate-500 tabular-nums">
-            Route {safeActiveIndex + 1} of {trips.length}
+            <span className="md:hidden">
+              Route {mobileActiveIndex + 1} of {trips.length}
+            </span>
+            <span className="hidden md:inline">
+              Route {safeActiveIndex + 1} of {trips.length}
+            </span>
           </p>
           <Link
             href="/destinations"

@@ -26,6 +26,7 @@ export async function GET(request: Request) {
       groupMax: true,
       isPublished: true,
       isFeatured: true,
+      isTopTrek: true,
       featuredOrder: true,
       updatedAt: true,
       _count: {
@@ -168,6 +169,7 @@ export async function POST(request: Request) {
         badge: d.badge || null,
         isPublished: d.isPublished,
         isFeatured: d.isFeatured,
+        isTopTrek: d.isTopTrek,
         featuredOrder: d.featuredOrder,
         metaTitle: d.metaTitle || defaultMetaTitle,
         metaDescription: d.metaDescription || defaultMetaDescription,

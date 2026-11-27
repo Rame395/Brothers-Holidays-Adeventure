@@ -30,6 +30,7 @@ async function AdminTripsGate() {
         groupMax: true,
         isPublished: true,
         isFeatured: true,
+        isTopTrek: true,
         featuredOrder: true,
         updatedAt: true,
         _count: {
@@ -81,6 +82,7 @@ async function AdminTripsGate() {
       canWrite={canWrite}
       initialTrips={trips.map((t) => ({
         ...t,
+        isTopTrek: Boolean(t.isTopTrek),
         updatedAt: t.updatedAt.toISOString(),
       }))}
       countries={countries}
